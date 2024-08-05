@@ -54,19 +54,19 @@ graph_ttfe_lin <- ggplot(ttfe_lin, aes(x = year,
        x = "",
        y = "")
 ################################################################################################################################
-#                                             4. Time to full effect logistique                                                #
+#                                             4. Time to full effect par interpolation cosinus                                 #
 ################################################################################################################################
 
-calc_ttfe_logistic <- function(year_i, year_n, delta, p){
+calc_ttfe_cos <- function(year_i, year_n, delta, p){
   1- (1 - cos(pi*((year_n - year_i)/delta)^p))/2
 }
 
-ttfe_logistic <- year_n %>% 
+ttfe_cos <- year_n %>% 
   mutate(ttfe = case_when(year > year_i + delta ~ 0,
-                          year <= year_i + delta ~ calc_ttfe_logistic(year_i, year, delta, p)))
+                          year <= year_i + delta ~ calc_ttfe_cos(year_i, year, delta, p)))
   
-graph_ttfe_logistic <- ggplot(ttfe_logistic, aes(x = year,
-                                                 y = ttfe))+
+graph_ttfe_cos <- ggplot(ttfe_cos, aes(x = year,
+                                       y = ttfe))+
   geom_line(color = "darkseagreen", size = 1, alpha = 0.8)+
   labs(title = "Weight of mortality rate associated with initial diet with time since change in diet",
        x = "",
@@ -76,11 +76,11 @@ graph_ttfe_logistic <- ggplot(ttfe_logistic, aes(x = year,
 
   p_values <- seq(0, 2, by = 0.25)
   
-  ttfe_logistic_var <- expand.grid(year = year_n$year, p = p_values) %>% 
+  ttfe_cos_var <- expand.grid(year = year_n$year, p = p_values) %>% 
     mutate(ttfe = case_when(year > year_i + delta ~ 0,
-                            year <= year_i + delta ~ mapply(calc_ttfe_logistic, year_i, year, delta, p)))
+                            year <= year_i + delta ~ mapply(calc_ttfe_cos, year_i, year, delta, p)))
              
-graph_ttfe_logistic_var <- ggplot(ttfe_logistic_var, aes(x = year,
+graph_ttfe_cos_var <- ggplot(ttfe_cos_var, aes(x = year,
                                                          y = ttfe,
                                                          color = as.factor(p)))+
     geom_line(size = 1, alpha = 0.8)+
@@ -172,9 +172,9 @@ graph_ttfe_ln_var <- ggplot(ttfe_ln_var, aes(x = year,
 # Time to full effect linéaire
 ggsave(here("results", "full_effect_lin.pdf"), plot = graph_ttfe_lin)
 
-# Time to full effect logistique
-ggsave(here("results", "full_effect_logistic.pdf"), plot = graph_ttfe_logistic)
-ggsave(here("results", "full_effect_logistic_var_p.pdf"), plot = graph_ttfe_logistic_var)
+# Time to full effect par interpolation cosinus
+ggsave(here("results", "full_effect_cos.pdf"), plot = graph_ttfe_cos)
+ggsave(here("results", "full_effect_cos_var_p.pdf"), plot = graph_ttfe_cos_var)
 
 # Time to full effect sigmoïdal
 ggsave(here("results", "full_effect_sig.pdf"), plot = graph_ttfe_sig)
