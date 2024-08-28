@@ -6,7 +6,8 @@ pacman::p_load(
   rio,                 # Importation de fichiers
   here,                # Localisation des fichiers dans le dossier du projet
   dplyr,               # Manipulation des données
-  scico                # Palettes de couleur
+  scico,               # Palettes de couleur
+  tidyverse            # Data management, inclus ggplot
 )
 
 ################################################################################################################################
