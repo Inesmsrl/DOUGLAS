@@ -47,6 +47,16 @@ year_c <- 2050 # Année d'intérêt
     filter(year %in% c(year_i, year_c)) %>% 
     select("scenario", "year","combined_rr")
   
+# Charte graphique
+  col_scenario <- c("sc0" = "azure4",
+                    "sc1" = "darkseagreen4",
+                    "sc2" = "aquamarine2",
+                    "sc3" = "lightpink",
+                    "sc4" = "maroon",
+                    "sc5" = "royalblue4")
+  
+  
+  
 ################################################################################################################################
 #                                             4. Ajustement des MR                                                             #
 ################################################################################################################################
@@ -71,11 +81,17 @@ MR_adjusted <- MR_year_i %>%
     pivot_wider(names_from = "year", values_from = "deaths") %>% 
     mutate(avoided_deaths = get(as.character(year_i)) - get(as.character(year_c))) %>% 
     select("age", "scenario", "avoided_deaths")
+  
+# Nombre total de décès évités par scénario
+  total_avoided_deaths <- avoided_deaths %>% 
+    group_by(scenario) %>% 
+    summarize(total_avoided_deaths = sum(avoided_deaths))
 
 ################################################################################################################################
 #                                             6. Représentation graphique                                                      #
 ################################################################################################################################
-  
+
+# Décès évités par âge
   graph_avoided_deaths_2035 <- ggplot(avoided_deaths, aes(x = age,
                                                           y = avoided_deaths))+
     facet_wrap(~ scenario, scales = "fixed")+
@@ -96,16 +112,46 @@ MR_adjusted <- MR_year_i %>%
          x = "Age",
          y = "Avoided deaths")
   
+# Total des décès évités
+  graph_total_avoided_2035 <- ggplot(data = total_avoided_deaths, aes(x = scenario, 
+                                                                      y = total_avoided_deaths, 
+                                                                      fill = scenario))+
+    geom_bar(stat = "identity", alpha = 0.8)+
+    labs(title = "Total avoided deaths in 2035 compared to 2020",
+         subtitle = "sigmoidal implementation of diets",
+         x = "",
+         y = "number of avoided deaths")+
+    scale_fill_manual(values = col_scenario)+
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  graph_total_avoided_2050 <- ggplot(data = total_avoided_deaths, aes(x = scenario, 
+                                                                      y = total_avoided_deaths, 
+                                                                          fill = scenario))+
+    geom_bar(stat = "identity", alpha = 0.8)+
+    labs(title = "Total avoided deaths in 2050 compared to 2020",
+         subtitle = "sigmoidal implementation of diets",
+         x = "",
+         y = "number of avoided deaths")+
+    scale_fill_manual(values = col_scenario)+
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
   
 ################################################################################################################################
 #                                             7. Exportation des données                                                       #
 ################################################################################################################################
 
 # Décès évités en 2035 par rapport à 2020
-  export(avoided_deaths ,here("results", "avoided_deaths_2035_2020.xlsx"))
+  export(avoided_deaths, here("results", "avoided_deaths_2035_2020.xlsx"))
+  export(total_avoided_deaths, here("results", "total_avoided_2035_2020.xlsx"))
+  
   ggsave(here("results", "avoided_deaths_2035_2020.pdf"), plot = graph_avoided_deaths_2035)
+  ggsave(here("results", "total_avoided_2035_2020.pdf"), plot = graph_total_avoided_2035)
   
 # Décès évités en 2050 par rapport à 2020
   export(avoided_deaths ,here("results", "avoided_deaths_2050_2020.xlsx"))
+  export(total_avoided_deaths, here("results", "total_avoided_2050_2020.xlsx"))
+  
   ggsave(here("results", "avoided_deaths_2050_2020.pdf"), plot = graph_avoided_deaths_2050)
+  ggsave(here("results", "total_avoided_2050_2020.pdf"), plot = graph_total_avoided_2050)
+  
   
