@@ -75,7 +75,7 @@ lambda_values <- seq(0, 20, by = 2) # séquence de valeurs de lambda de 0 à 20 
     
     # Scénarios à traiter (exclure "Actuel" car ce n'est pas un scénario futur)
       scenarios <- colnames(diets)[-1]
-      scenarios <- setdiff(scenarios, "actuel")
+      #scenarios <- setdiff(scenarios, "actuel")
       
     # Calculer les doses consommées pour chaque scénario
       scenario_q <- map(scenarios, calc_food_q)
@@ -88,7 +88,7 @@ lambda_values <- seq(0, 20, by = 2) # séquence de valeurs de lambda de 0 à 20 
     
     # Sélectionner les scénarios d'intérêt
       diets_evo_lin_filt <- diets_evo_lin %>% 
-        filter(scenario %in% c("sc0", "sc1", "sc2", "sc3", "sc4", "sc5"))
+        filter(scenario %in% c("actuel", "sc0", "sc1", "sc2", "sc3", "sc4", "sc5"))
 
 # Exemple : évolution de la viande rouge dans S1
       
@@ -103,9 +103,6 @@ lambda_values <- seq(0, 20, by = 2) # séquence de valeurs de lambda de 0 à 20 
              x = "",
              y = "Quantity (g/day/pers)") +
         theme(axis.text.x = element_text(angle = 45, hjust = 1))
-      
-      
-      
      
 ################################################################################################################################
 #                                             4. Evolution par interpolation cosinus des régimes dans le temps                 #
@@ -118,9 +115,11 @@ lambda_values <- seq(0, 20, by = 2) # séquence de valeurs de lambda de 0 à 20 
 
 # Appliquer la fonction sur chaque combinaison d'année et scénario
     diets_evo_cos_filt <- diets %>%
-      select("food_group", "actuel", "sc0", "sc1", "sc2", "sc3", "sc4", "sc5") %>% 
-      pivot_longer(cols = starts_with("sc"), names_to = "scenario", values_to = "q_f") %>%
-      mutate(q_i = actuel) %>%
+      select("food_group", "actuel", "sc0", "sc1", "sc2", "sc3", "sc4", "sc5") %>%
+      mutate(q_i = actuel) %>% 
+      pivot_longer(cols = c("actuel", "sc0", "sc1", "sc2", "sc3", "sc4", "sc5"), 
+                   names_to = "scenario", 
+                   values_to = "q_f") %>%  
       crossing(year_n = year_i:year_f) %>%
       mutate(quantity = mapply(calc_food_q_cos, q_i, q_f, year_n, year_i, year_f, p)) %>% 
       select("food_group", "scenario", "year_n", "quantity") %>% 
@@ -178,8 +177,10 @@ lambda_values <- seq(0, 20, by = 2) # séquence de valeurs de lambda de 0 à 20 
     # Appliquer la fonction sur chaque combinaison d'année et scénario
       diets_evo_sig_filt <- diets %>%
         select("food_group", "actuel", "sc0", "sc1", "sc2", "sc3", "sc4", "sc5") %>% 
-        pivot_longer(cols = starts_with("sc"), names_to = "scenario", values_to = "q_f") %>%
-        mutate(q_i = actuel) %>%
+        mutate(q_i = actuel) %>% 
+        pivot_longer(cols = c("actuel", "sc0", "sc1", "sc2", "sc3", "sc4", "sc5"), 
+                     names_to = "scenario", 
+                     values_to = "q_f") %>%  
         crossing(year_n = year_i:year_f) %>%
         mutate(quantity = mapply(calc_food_q_sig, q_i, q_f, year_n, year_i, year_f, lambda)) %>% 
         select("food_group", "scenario", "year_n", "quantity") %>% 
