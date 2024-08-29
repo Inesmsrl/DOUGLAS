@@ -26,7 +26,7 @@ combined_rr_sig <- import(here("data_clean", "combined_rr_sig.xlsx"))
 
 # Bornes temporelles du modèle
 year_i <- 2020 # Année initiale
-year_c <- 2035 # Année d'intérêt
+year_c <- 2050 # Année d'intérêt
 
 ################################################################################################################################
 #                                             3. Préparation des données                                                       #
@@ -58,8 +58,12 @@ year_c <- 2035 # Année d'intérêt
     filter(year %in% c(year_i, year_c)) %>% 
     select("scenario", "year","combined_rr")
   
+# RR de référence
+  rr_ref <- combined_rr_sig$combined_rr[1]
+  
 # Charte graphique
-  col_scenario <- c("sc0" = "azure4",
+  col_scenario <- c("actuel" = "azure4",
+                    "sc0" = "royalblue2",
                     "sc1" = "darkseagreen4",
                     "sc2" = "aquamarine2",
                     "sc3" = "lightpink",
@@ -74,14 +78,14 @@ year_c <- 2035 # Année d'intérêt
 
 # Ajustement des MR de l'année initiale du modèle
   MR_adjusted_i <- MR_year_i %>% 
-      crossing(rr) %>% 
-      mutate(adjusted_mr = mr_year_i * combined_rr / combined_rr[year == year_i]) %>% 
-      select("age", "year", "scenario", "adjusted_mr")
+    crossing(rr) %>%
+    mutate(adjusted_mr = mr_year_i * combined_rr / rr_ref) %>% 
+    select("age", "year", "scenario", "adjusted_mr")
   
 # Ajustement des MR de l'année d'intérêt du modèle
   MR_adjusted_c <- MR_year_c %>% 
     crossing(rr) %>% 
-    mutate(adjusted_mr = mr_year_c * combined_rr / combined_rr[year == year_c]) %>% 
+    mutate(adjusted_mr = mr_year_c * combined_rr) %>%
     select("age", "year", "scenario", "adjusted_mr")
   
   
@@ -206,7 +210,7 @@ year_c <- 2035 # Année d'intérêt
                                                                           fill = scenario))+
     geom_bar(stat = "identity", alpha = 0.8)+
     labs(title = "Total avoided deaths in 2035 compared to 2020",
-         subtitle = "sigmoidal implementation of diets applied to 2020 population",
+         subtitle = "sigmoidal implementation of diets applied to 2035 population",
          x = "",
          y = "number of avoided deaths")+
     scale_fill_manual(values = col_scenario)+
@@ -222,6 +226,9 @@ year_c <- 2035 # Année d'intérêt
          y = "number of avoided deaths")+
     scale_fill_manual(values = col_scenario)+
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+
+
   
 ################################################################################################################################
 #                                             7. Exportation des données                                                       #
