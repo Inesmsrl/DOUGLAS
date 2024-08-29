@@ -73,8 +73,59 @@ calc_combined_rr <- function(df) {
   
 # RR en fonction de l'implémentation sigmoïdale des régimes 
   combined_rr_table_sig <- calc_combined_rr(rr_evo_sig)
+ 
 ################################################################################################################################
-#                                             5. Exportation des données                                                       #
+#                                             5. Représentations graphiques                                                    #
+################################################################################################################################
+  
+# Charte graphique
+  col_scenario <- c("actuel" = "azure4",
+                    "sc0" = "royalblue2",
+                    "sc1" = "darkseagreen4",
+                    "sc2" = "aquamarine2",
+                    "sc3" = "lightpink",
+                    "sc4" = "maroon",
+                    "sc5" = "royalblue4")
+  
+# Implémentation linéaire des régimes
+  graph_rr_evo_lin <- ggplot(combined_rr_table_lin, aes(x = year,
+                                                        y = combined_rr,
+                                                        colour = scenario))+
+    geom_line(size = 1)+
+    scale_color_manual(values = col_scenario)+
+    labs(title = "Whole diet RR evolution in each scenario",
+         subtitle = "linear implementation of diets from 2019 to 2050",
+         x = "",
+         y = "Diet RR") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+# Implémentation par interpolation cosinus des régimes
+  graph_rr_evo_cos <- ggplot(combined_rr_table_cos, aes(x = year,
+                                                        y = combined_rr,
+                                                        colour = scenario))+
+    geom_line(size = 1)+
+    scale_color_manual(values = col_scenario)+
+    labs(title = "Whole diet RR evolution in each scenario",
+         subtitle = "cosine interpolation implementation of diets from 2019 to 2050",
+         x = "",
+         y = "Diet RR") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  
+# Implémentation sigmoïdale des régimes
+  graph_rr_evo_sig <- ggplot(combined_rr_table_sig, aes(x = year,
+                                                        y = combined_rr,
+                                                        colour = scenario))+
+    geom_line(size = 1)+
+    scale_color_manual(values = col_scenario)+
+    labs(title = "Whole diet RR evolution in each scenario",
+         subtitle = "sigmoidal implementation of diets from 2019 to 2050",
+         x = "",
+         y = "Diet RR") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+################################################################################################################################
+#                                             6. Exportation des données                                                       #
 ################################################################################################################################
 
 # RR par scénario, par année et pour chaque aliment selon la dose consomée
@@ -86,3 +137,8 @@ export(rr_evo_sig, here("data_clean", "RR_evo_sig.xlsx"))
 export(combined_rr_table_lin, here("data_clean", "combined_rr_lin.xlsx"))
 export(combined_rr_table_cos, here("data_clean", "combined_rr_cos.xlsx"))
 export(combined_rr_table_sig, here("data_clean", "combined_rr_sig.xlsx"))
+
+# Evolution dans le temps des RR combinés dans chaque scénario
+ggsave(here("results", "Diets_RR_evo_lin.pdf"), plot = graph_rr_evo_lin)
+ggsave(here("results", "Diets_RR_evo_cos.pdf"), plot = graph_rr_evo_cos)
+ggsave(here("results", "Diets_RR_evo_sig.pdf"), plot = graph_rr_evo_sig)
