@@ -52,7 +52,6 @@ year_c <- 2050 # Année d'intérêt
     select("age", !!sym(as.character(year_c))) %>% 
     rename("population" = !!sym(as.character(year_c)))
   
-
 # RR combinés de l'année initiale et l'année d'intérêt pour chaque scénario
   rr <- combined_rr_sig %>% 
     filter(year %in% c(year_i, year_c)) %>% 
@@ -79,13 +78,15 @@ year_c <- 2050 # Année d'intérêt
 # Ajustement des MR de l'année initiale du modèle
   MR_adjusted_i <- MR_year_i %>% 
     crossing(rr) %>%
-    mutate(adjusted_mr = mr_year_i * combined_rr / rr_ref) %>% 
+    group_by(scenario) %>% 
+    mutate(adjusted_mr = mr_year_i * combined_rr / combined_rr[year == year_i]) %>% 
     select("age", "year", "scenario", "adjusted_mr")
   
 # Ajustement des MR de l'année d'intérêt du modèle
   MR_adjusted_c <- MR_year_c %>% 
     crossing(rr) %>% 
-    mutate(adjusted_mr = mr_year_c * combined_rr) %>%
+    group_by(scenario) %>% 
+    mutate(adjusted_mr = mr_year_c * combined_rr / combined_rr[year == year_c]) %>%
     select("age", "year", "scenario", "adjusted_mr")
   
   
