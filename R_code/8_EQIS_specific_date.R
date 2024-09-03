@@ -22,7 +22,7 @@ population <- import(here("data_clean", "population_clean.xlsx"))
 MR <- import(here("data_clean", "MR_table.xlsx"))
 
 # RR combinés par année pour chaque scénario (implémentation sigmoïdale)
-combined_rr_sig <- import(here("data_clean", "combined_rr_sig.xlsx"))
+combined_rr_sig <- import(here("data_clean", "combined_rr_sig_2.xlsx"))
 
 # Bornes temporelles du modèle
 year_i <- 2020 # Année initiale
