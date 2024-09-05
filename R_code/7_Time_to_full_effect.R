@@ -34,11 +34,20 @@ pacman::p_load(
 # Paramètre de modulation de la courbe logarithmique
   eta <- 1
   
+# Valeurs de x
+  x0 <- 0
+  xf <- x0 + delta
+  
+# Dataframe contenant toutes les valeurs de x (période temporelle depuis le changement de régime)
+  xn <- tibble(x0:xf) %>% 
+    rename("x" = "x0:xf")
+  
 
 ################################################################################################################################
 #                                             3. Time to full effect linéaire                                                  #
 ################################################################################################################################
 
+# Poids accordé au taux de mortalité initial avec le temps (décroissant)
 calc_ttfe_lin <- function(year_i, year_n, delta){
   -year_n/(delta) + 1 + year_i/delta
 }
@@ -54,6 +63,42 @@ graph_ttfe_lin <- ggplot(ttfe_lin, aes(x = year,
   labs(title = "Weight of mortality rate associated with initial diet with time since change in diet",
        x = "",
        y = "")
+
+# Evolution du time ti full effect avec le temps (croissant)
+calc_ttfe_lin_2 <- function(year_i, year_n, delta){
+  year_n/(delta) - year_i/delta
+}
+
+ttfe_lin_2 <- year_n %>% 
+  mutate(ttfe = case_when(year > year_i + delta ~ 1,
+                          year <= year_i + delta ~ calc_ttfe_lin_2(year_i, year, delta)))
+
+
+graph_ttfe_lin_2 <- ggplot(ttfe_lin_2, aes(x = year,
+                                           y = ttfe))+
+  geom_line(color = "darkseagreen", size = 1, alpha = 0.8)+
+  labs(title = "% of RR since diet change",
+       x = "",
+       y = "")
+
+# Pour n'importe quelle année x
+
+calc_ttfe_lin_3 <- function(xn, delta){
+  xn/delta
+}
+
+ttfe_lin_3 <- xn %>% 
+  mutate(ttfe = calc_ttfe_lin_3(x, delta))
+
+
+graph_ttfe_lin_3 <- ggplot(ttfe_lin_3, aes(x = x,
+                                           y = ttfe))+
+  geom_line(color = "darkseagreen", size = 1, alpha = 0.8)+
+  labs(title = "% of RR since diet change",
+       x = "",
+       y = "")
+
+
 ################################################################################################################################
 #                                             4. Time to full effect par interpolation cosinus                                 #
 ################################################################################################################################
@@ -170,7 +215,9 @@ graph_ttfe_ln_var <- ggplot(ttfe_ln_var, aes(x = year,
 #                                             §. Exportation des données                                                       #
 ################################################################################################################################
 
-# Time to full effect linéaire
+# Time to full effect linéaire sur 20 ans
+export(ttfe_lin_3, here("data_clean", "ttfe_lin_20.xlsx"))
+
 ggsave(here("results", "full_effect_lin.pdf"), plot = graph_ttfe_lin)
 
 # Time to full effect par interpolation cosinus
