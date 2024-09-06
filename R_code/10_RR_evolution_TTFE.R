@@ -11,30 +11,44 @@ pacman::p_load(
 )
 
 ################################################################################################################################
-#                                             2. Importation des données et paramètres                                         #
+#                                             2. Importation des données                                                       #
 ################################################################################################################################
 
 # RR des régimes complets de chaque scénario par année
-  rr_lin_i <- import(here("data_clean", "combined_rr_lin_2.xlsx"))
+  rr_diet_lin <- import(here("data_clean", "combined_rr_lin_2.xlsx"))
   
 # RR de chaque aliment par année
-  rr_food_lin_i <-  import(here("data_clean", "rr_evo_lin_2.xlsx"))
+  rr_food_lin <-  import(here("data_clean", "rr_evo_lin_2.xlsx"))
   
 # Time to full effect linéaire sur 20 ans
   ttfe_lin <- import(here("data_clean", "ttfe_lin_20.xlsx"))
   
 ################################################################################################################################
-#                                             3. Calcul des RR avec ttfe                                                       #
+#                                             3. Initialisation des paramètres                                                 #
+################################################################################################################################
+
+# Paramètre de modulation de la courbe d'interpolation cosinus
+  p <- 1
+  
+# Paramètre de modulation de la courbe sigmoïde
+  lambda <- 10
+  
+# Paramètre de modulation de la courbe logarithmique
+  eta <- 1
+  
+  
+################################################################################################################################
+#                                             4. Calcul des RR avec ttfe linéaire                                              #
 ################################################################################################################################
 
 # Implémentation linéaire des régimes 
 # Time to full effect linéaire sur 20 ans 
   
 # RR des régimes complets
-  rr_evo <- rr_lin_i %>% 
+  rr_evo <- rr_diet_lin %>% 
     rowwise() %>% 
-    mutate(year_n = list(seq(from = min(rr_lin_i$year), 
-                                 to = max(rr_lin_i$year)))) %>%
+    mutate(year_n = list(seq(from = min(rr_diet_lin$year), 
+                                 to = max(rr_diet_lin$year)))) %>%
     unnest(year_n) %>% 
     mutate(rr_n = case_when(
       year_n < year ~ NA_real_,
@@ -50,10 +64,10 @@ pacman::p_load(
     summarize(mean_rr = mean(rr_n, na.rm = TRUE), .groups = 'drop')
   
 # RR de chaque aliment
-  rr_evo_food <- rr_food_lin_i %>% 
+  rr_evo_food <- rr_food_lin %>% 
     rowwise() %>% 
-    mutate(year_n = list(seq(from = min(rr_food_lin_i$year), 
-                             to = max(rr_food_lin_i$year)))) %>%
+    mutate(year_n = list(seq(from = min(rr_food_lin$year), 
+                             to = max(rr_food_lin$year)))) %>%
     unnest(year_n) %>% 
     mutate(rr_n = case_when(
       year_n < year ~ NA_real_,
@@ -67,9 +81,86 @@ pacman::p_load(
   rr_evo_food_combined <- rr_evo_food %>% 
     group_by(scenario, year_n, food_group) %>% 
     summarize(mean_rr = mean(rr_n, na.rm = TRUE), .groups = 'drop')
-
+  
 ################################################################################################################################
-#                                             3. Combinaison des RR                                                            #
+#                                             5. Calcul des RR avec ttfe par interpolation cosinus                             #
+################################################################################################################################
+  
+# Implémentation linéaire des régimes 
+# Time to full effect = 20 ans 
+  
+# RR de chaque aliment
+  rr_evo_food <- rr_food_lin %>% 
+    rowwise() %>% 
+    mutate(year_n = list(seq(from = min(rr_food_lin$year), 
+                             to = max(rr_food_lin$year)))) %>%
+    unnest(year_n) %>% 
+    mutate(rr_n = case_when(
+      year_n < year ~ NA_real_,
+      year_n >= year & year_n <= year + max(ttfe_lin$x) ~ 
+        1 + (RR_interpolated - 1) * ((1 - cos((pi * ttfe_lin$ttfe[match(year_n - year, ttfe_lin$x)])^p)) / 2),
+      year_n > year + max(ttfe_lin$x) ~ RR_interpolated
+    )) %>% 
+    ungroup() %>%
+    rename("year_i" = "year")
+  
+  rr_evo_food_combined <- rr_evo_food %>% 
+    group_by(scenario, year_n, food_group) %>% 
+    summarize(mean_rr = mean(rr_n, na.rm = TRUE), .groups = 'drop')
+  
+################################################################################################################################
+#                                             6. Calcul des RR avec ttfe sigmoïdal                                             #
+################################################################################################################################
+  
+  # Implémentation linéaire des régimes 
+  # Time to full effect = 20 ans 
+  
+  # RR de chaque aliment
+  rr_evo_food <- rr_food_lin %>% 
+    rowwise() %>% 
+    mutate(year_n = list(seq(from = min(rr_food_lin$year), 
+                             to = max(rr_food_lin$year)))) %>%
+    unnest(year_n) %>% 
+    mutate(rr_n = case_when(
+      year_n < year ~ NA_real_,
+      year_n >= year & year_n <= year + max(ttfe_lin$x) ~ 
+        (1 + RR_interpolated)/2 + (RR_interpolated -1) * (1 / (1 + exp(-lambda * (ttfe_lin$ttfe[match(year_n - year, ttfe_lin$x)] - 1/2)))- 1/2) * (-1 / (2 / (1 + exp(lambda/2)) - 1)),
+      year_n > year + max(ttfe_lin$x) ~ RR_interpolated
+    )) %>% 
+    ungroup() %>%
+    rename("year_i" = "year")
+  
+  rr_evo_food_combined <- rr_evo_food %>% 
+    group_by(scenario, year_n, food_group) %>% 
+    summarize(mean_rr = mean(rr_n, na.rm = TRUE), .groups = 'drop')
+################################################################################################################################
+#                                             7. Calcul des RR avec ttfe logarithmique                                         #
+################################################################################################################################
+  
+# Implémentation linéaire des régimes 
+# Time to full effect = 20 ans 
+  
+# RR de chaque aliment
+  rr_evo_food <- rr_food_lin %>% 
+    rowwise() %>% 
+    mutate(year_n = list(seq(from = min(rr_food_lin$year), 
+                             to = max(rr_food_lin$year)))) %>%
+    unnest(year_n) %>% 
+    mutate(rr_n = case_when(
+      year_n < year ~ NA_real_,
+      year_n >= year & year_n <= year + max(ttfe_lin$x) ~ 
+        1 + (RR_interpolated - 1) * log(1 + eta * ttfe_lin$ttfe[match(year_n - year, ttfe_lin$x)]) / log(1 + eta),
+      year_n > year + max(ttfe_lin$x) ~ RR_interpolated
+    )) %>% 
+    ungroup() %>%
+    rename("year_i" = "year")
+  
+  rr_evo_food_combined <- rr_evo_food %>% 
+    group_by(scenario, year_n, food_group) %>% 
+    summarize(mean_rr = mean(rr_n, na.rm = TRUE), .groups = 'drop')
+  
+################################################################################################################################
+#                                             5. Combinaison des RR                                                            #
 ################################################################################################################################
   
   calc_combined_rr <- function(df) {
