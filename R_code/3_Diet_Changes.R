@@ -244,7 +244,7 @@ lambda_values <- seq(0, 20, by = 2) # séquence de valeurs de lambda de 0 à 20 
   diets_evo_cos_filt$food_group <- factor(diets_evo_cos_filt$food_group, levels = order_food_groups)
   diets_evo_sig_filt$food_group <- factor(diets_evo_sig_filt$food_group, levels = order_food_groups)
     
-# Graphique : Implémentation linéaire des régimes de 2019 à 2050 (S0 à S5)
+# Graphique : Implémentation linéaire des régimes
   graph_diets_evo_lin <- ggplot(data = diets_evo_lin_filt, aes(x = year,
                                                                  y = quantity,
                                                                  fill = food_group))+
@@ -263,7 +263,7 @@ lambda_values <- seq(0, 20, by = 2) # séquence de valeurs de lambda de 0 à 20 
          y = "Quantities (g/day/pers)",
          fill = "Food type")
 
-# Graphique : Implémentation par interpolation cosinus des régimes de 2019 à 2050 (S0 à S5)
+# Graphique : Implémentation par interpolation cosinus des régimes 
   graph_diets_evo_cos <- ggplot(data = diets_evo_cos_filt, aes(x = year,
                                                                y = quantity,
                                                                fill = food_group))+
@@ -282,7 +282,7 @@ lambda_values <- seq(0, 20, by = 2) # séquence de valeurs de lambda de 0 à 20 
          y = "Quantities (g/day/pers)",
          fill = "Food type")
 
-# Graphique : Implémentation sigmoïdale des régimes de 2019 à 2050 (S0 à S5)
+# Graphique : Implémentation sigmoïdale des régimes
   graph_diets_evo_sig <- ggplot(data = diets_evo_sig_filt, aes(x = year,
                                                                y = quantity,
                                                                fill = food_group))+
@@ -306,7 +306,7 @@ lambda_values <- seq(0, 20, by = 2) # séquence de valeurs de lambda de 0 à 20 
 ################################################################################################################################
 
 # Implémentation linéaire des régimes
-  export(diets_evo_lin, here("data_clean", "diets_evo_lin.xlsx"))                     # Tous les scénarios et régimes
+  export(diets_evo_lin, here("data_clean", "diets_evo_lin.xlsx"))                 # Tous les scénarios et régimes
   export(diets_evo_lin_filt, here("data_clean", "diets_evo_lin_scenarios.xlsx"))  # Seulement les scénarios de l'ADEME
 
   ggsave(here("results", "diets_evo_lin.pdf"), plot = graph_diets_evo_lin)
