@@ -21,7 +21,7 @@ pacman::p_load(
 diets <- import(here("data", "DOUGLAS_diets.xlsx"))
 
 # Bornes temporelles du modèle
-year_i <- 2019 # Année initiale
+year_i <- 2020 # Année initiale
 year_f <- 2050 # Année finale
 
 # paramètre de modulation de la courbe d'interpolation cosinus d'implémentation des régimes dans le temps
@@ -53,7 +53,7 @@ lambda_values <- seq(0, 20, by = 2) # séquence de valeurs de lambda de 0 à 20 
   
 # Quantités consommées de chaque aliment par année dans chaque scénario
   
-    # Création d'un vecteur avec les années de 2019 à 2050
+    # Création d'un vecteur temporel contenant toutes les années d'étude du modèle
       years <- tibble(year = year_i:year_f) 
 
     # Fonction calculant les quantités consommées par année pour un scénario donné
@@ -73,9 +73,8 @@ lambda_values <- seq(0, 20, by = 2) # séquence de valeurs de lambda de 0 à 20 
           select(food_group, year, quantity)
       }
     
-    # Scénarios à traiter (exclure "Actuel" car ce n'est pas un scénario futur)
+    # Scénarios à traiter 
       scenarios <- colnames(diets)[-1]
-      #scenarios <- setdiff(scenarios, "actuel")
       
     # Calculer les doses consommées pour chaque scénario
       scenario_q <- map(scenarios, calc_food_q)
