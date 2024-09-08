@@ -24,6 +24,9 @@ MR <- import(here("data_clean", "MR_table.xlsx"))
 # RR combinés par année pour chaque scénario (implémentation sigmoïdale)
 combined_rr_sig <- import(here("data_clean", "combined_rr_sig_2.xlsx"))
 
+# RR combinés par année pour chaque scénario (implémentation linéaire et TTFE linéaire = 20 ans)
+combined_rr_lin <- import(here("data_clean", "combined_rr_lin_ttfe_lin_20.xlsx"))
+
 # Bornes temporelles du modèle
 year_i <- 2020 # Année initiale
 year_c <- 2050 # Année d'intérêt
@@ -52,13 +55,16 @@ year_c <- 2050 # Année d'intérêt
     select("age", !!sym(as.character(year_c))) %>% 
     rename("population" = !!sym(as.character(year_c)))
   
-# RR combinés de l'année initiale et l'année d'intérêt pour chaque scénario
+# RR combinés de l'année initiale et l'année d'intérêt pour chaque scénario (sig)
   rr <- combined_rr_sig %>% 
     filter(year %in% c(year_i, year_c)) %>% 
     select("scenario", "year","combined_rr")
   
-# RR de référence
-  rr_ref <- combined_rr_sig$combined_rr[1]
+# RR combinés de l'année initiale et l'année d'intérêt pour chaque scénario (sig)
+  rr <- combined_rr_lin %>% 
+    filter(year_n %in% c(year_i, year_c)) %>% 
+    select("scenario", "year_n","combined_rr") %>% 
+    rename("year" = "year_n")
   
 # Charte graphique
   col_scenario <- c("actuel" = "azure4",
@@ -86,7 +92,7 @@ year_c <- 2050 # Année d'intérêt
   MR_adjusted_c <- MR_year_c %>% 
     crossing(rr) %>% 
     group_by(scenario) %>% 
-    mutate(adjusted_mr = mr_year_c * combined_rr / combined_rr[year == year_c]) %>%
+    mutate(adjusted_mr = mr_year_c * combined_rr / combined_rr[scenario == "actuel"]) %>%
     select("age", "year", "scenario", "adjusted_mr")
   
   

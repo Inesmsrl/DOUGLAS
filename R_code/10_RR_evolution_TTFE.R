@@ -72,8 +72,8 @@ pacman::p_load(
     mutate(rr_n = case_when(
       year_n < year ~ NA_real_,
       year_n >= year & year_n <= year + max(ttfe_lin$x) ~ 
-        1 + (RR_interpolated - 1) * ttfe_lin$ttfe[match(year_n - year, ttfe_lin$x)],
-      year_n > year + max(ttfe_lin$x) ~ RR_interpolated
+        1 + (rr_interpolated - 1) * ttfe_lin$ttfe[match(year_n - year, ttfe_lin$x)],
+      year_n > year + max(ttfe_lin$x) ~ rr_interpolated
     )) %>% 
     ungroup() %>%
     rename("year_i" = "year")
@@ -98,8 +98,8 @@ pacman::p_load(
     mutate(rr_n = case_when(
       year_n < year ~ NA_real_,
       year_n >= year & year_n <= year + max(ttfe_lin$x) ~ 
-        1 + (RR_interpolated - 1) * ((1 - cos((pi * ttfe_lin$ttfe[match(year_n - year, ttfe_lin$x)])^p)) / 2),
-      year_n > year + max(ttfe_lin$x) ~ RR_interpolated
+        1 + (rr_interpolated - 1) * ((1 - cos((pi * ttfe_lin$ttfe[match(year_n - year, ttfe_lin$x)])^p)) / 2),
+      year_n > year + max(ttfe_lin$x) ~ rr_interpolated
     )) %>% 
     ungroup() %>%
     rename("year_i" = "year")
@@ -124,8 +124,8 @@ pacman::p_load(
     mutate(rr_n = case_when(
       year_n < year ~ NA_real_,
       year_n >= year & year_n <= year + max(ttfe_lin$x) ~ 
-        (1 + RR_interpolated)/2 + (RR_interpolated -1) * (1 / (1 + exp(-lambda * (ttfe_lin$ttfe[match(year_n - year, ttfe_lin$x)] - 1/2)))- 1/2) * (-1 / (2 / (1 + exp(lambda/2)) - 1)),
-      year_n > year + max(ttfe_lin$x) ~ RR_interpolated
+        (1 + rr_interpolated)/2 + (rr_interpolated -1) * (1 / (1 + exp(-lambda * (ttfe_lin$ttfe[match(year_n - year, ttfe_lin$x)] - 1/2)))- 1/2) * (-1 / (2 / (1 + exp(lambda/2)) - 1)),
+      year_n > year + max(ttfe_lin$x) ~ rr_interpolated
     )) %>% 
     ungroup() %>%
     rename("year_i" = "year")
@@ -149,8 +149,8 @@ pacman::p_load(
     mutate(rr_n = case_when(
       year_n < year ~ NA_real_,
       year_n >= year & year_n <= year + max(ttfe_lin$x) ~ 
-        1 + (RR_interpolated - 1) * log(1 + eta * ttfe_lin$ttfe[match(year_n - year, ttfe_lin$x)]) / log(1 + eta),
-      year_n > year + max(ttfe_lin$x) ~ RR_interpolated
+        1 + (rr_interpolated - 1) * log(1 + eta * ttfe_lin$ttfe[match(year_n - year, ttfe_lin$x)]) / log(1 + eta),
+      year_n > year + max(ttfe_lin$x) ~ rr_interpolated
     )) %>% 
     ungroup() %>%
     rename("year_i" = "year")
@@ -160,7 +160,7 @@ pacman::p_load(
     summarize(mean_rr = mean(rr_n, na.rm = TRUE), .groups = 'drop')
   
 ################################################################################################################################
-#                                             5. Combinaison des RR                                                            #
+#                                             8. Combinaison des RR                                                            #
 ################################################################################################################################
   
   calc_combined_rr <- function(df) {
@@ -172,4 +172,44 @@ pacman::p_load(
 
 # rr en fonction de l'implémentation linéaire des régimes 
   combined_rr_table_lin <- calc_combined_rr(rr_evo_food_combined)
+  
+################################################################################################################################
+#                                             9. Représentations graphiques                                                    #
+################################################################################################################################
+  
+# Charte graphique
+  col_scenario <- c("actuel" = "azure4",
+                    "sc0" = "royalblue2",
+                    "sc1" = "darkseagreen4",
+                    "sc2" = "aquamarine2",
+                    "sc3" = "lightpink",
+                    "sc4" = "maroon",
+                    "sc5" = "royalblue4")
+  
+# Implémentation linéaire des régimes
+  graph_rr_evo_lin <- ggplot(combined_rr_table_lin, aes(x = year_n,
+                                                        y = combined_rr,
+                                                        colour = scenario))+
+    geom_line(size = 1)+
+    scale_color_manual(values = col_scenario)+
+    labs(title = "Whole diet RR evolution in each scenario",
+         subtitle = "linear implementation of diets from 2019 to 2050",
+         x = "",
+         y = "Diet RR") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+  
+################################################################################################################################
+#                                             10. Exportation des données                                                       #
+################################################################################################################################
+  
+# Implémentation linéaire des régimes et ttfe linéaire sur 20 ans
+  
+  # Valeurs des RR de chaque aliment apar année, après chaque changement
+    export(rr_evo_food, here("data_clean", "rr_fg_lin_ttfe_lin_20.xlsx"))
+    
+  # Moyenne des RR de chaque aliment par année
+    export(rr_evo_food_combined, here("data_clean", "rr_fg_lin_ttfe_lin_20_mean.xlsx"))
+  
+  # RR des régimes complets par année
+    export(combined_rr_table_lin, here("data_clean", "*"))
   

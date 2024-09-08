@@ -41,7 +41,6 @@ pacman::p_load(
 # Dataframe contenant toutes les valeurs de x (période temporelle depuis le changement de régime)
   xn <- tibble(x0:xf) %>% 
     rename("x" = "x0:xf")
-  
 
 ################################################################################################################################
 #                                             3. Time to full effect linéaire                                                  #

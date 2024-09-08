@@ -330,4 +330,5 @@ lambda_values <- seq(0, 20, by = 2) # séquence de valeurs de lambda de 0 à 20 
   # Variation du paramètre lambda de la courbe d'implémentation d'un changement de consommation d'un aliment
   ggsave(here("results", "diet_sig_lambda_variation.pdf"), plot = graph_sig_variation)
 
+
   

@@ -167,4 +167,3 @@ export(combined_rr_table_sig, here("data_clean", "combined_rr_sig_2.xlsx"))
 ggsave(here("results", "Diets_RR_evo_lin_2.pdf"), plot = graph_rr_evo_lin)
 ggsave(here("results", "Diets_RR_evo_cos_2.pdf"), plot = graph_rr_evo_cos)
 ggsave(here("results", "Diets_RR_evo_sig_2.pdf"), plot = graph_rr_evo_sig)
-
