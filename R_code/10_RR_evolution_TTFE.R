@@ -211,5 +211,5 @@ pacman::p_load(
     export(rr_evo_food_combined, here("data_clean", "rr_fg_lin_ttfe_lin_20_mean.xlsx"))
   
   # RR des régimes complets par année
-    export(combined_rr_table_lin, here("data_clean", "*"))
+    export(combined_rr_table_lin, here("data_clean", "combined_rr_lin_ttfe_lin_20.xlsx"))
   

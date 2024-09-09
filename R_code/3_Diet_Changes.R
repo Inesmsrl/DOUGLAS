@@ -253,7 +253,7 @@ lambda_values <- seq(0, 20, by = 2) # séquence de valeurs de lambda de 0 à 20 
     theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 5),
           axis.text.y = element_text(size = 5),
           strip.text = element_text(face = "bold",size = rel(0.6)),
-          legend.position = c(0.5,0.1),
+          legend.position.inside = c(0.5,0.1),
           legend.text = element_text(size = 4),
           legend.title = element_text(face = "bold", size = 5),
           legend.key.size = unit(0.1, "cm"))+
@@ -272,7 +272,7 @@ lambda_values <- seq(0, 20, by = 2) # séquence de valeurs de lambda de 0 à 20 
     theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 5),
           axis.text.y = element_text(size = 5),
           strip.text = element_text(face = "bold",size = rel(0.6)),
-          legend.position = c(0.5,0.1),
+          legend.position.inside = c(0.5,0.1),
           legend.text = element_text(size = 4),
           legend.title = element_text(face = "bold", size = 5),
           legend.key.size = unit(0.1, "cm"))+
@@ -291,7 +291,7 @@ lambda_values <- seq(0, 20, by = 2) # séquence de valeurs de lambda de 0 à 20 
     theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 5),
           axis.text.y = element_text(size = 5),
           strip.text = element_text(face = "bold",size = rel(0.6)),
-          legend.position = c(0.5,0.1),
+          legend.position.inside =  c(0.5,0.1),
           legend.text = element_text(size = 4),
           legend.title = element_text(face = "bold", size = 5),
           legend.key.size = unit(0.1, "cm"))+

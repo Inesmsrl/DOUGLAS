@@ -67,4 +67,3 @@ deaths <- import(here("data", "INSEE_Deaths.xlsx"))
 
 # Projection des décès par âge et par année
   export(deaths,here("data_clean","deaths_clean.xlsx"))
-

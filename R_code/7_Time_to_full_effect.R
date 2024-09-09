@@ -63,7 +63,7 @@ graph_ttfe_lin <- ggplot(ttfe_lin, aes(x = year,
        x = "",
        y = "")
 
-# Evolution du time ti full effect avec le temps (croissant)
+# Evolution du time to full effect avec le temps (croissant)
 calc_ttfe_lin_2 <- function(year_i, year_n, delta){
   year_n/(delta) - year_i/delta
 }

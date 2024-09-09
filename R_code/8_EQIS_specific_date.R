@@ -60,7 +60,7 @@ year_c <- 2050 # Année d'intérêt
     filter(year %in% c(year_i, year_c)) %>% 
     select("scenario", "year","combined_rr")
   
-# RR combinés de l'année initiale et l'année d'intérêt pour chaque scénario (sig)
+# RR combinés de l'année initiale et l'année d'intérêt pour chaque scénario (lin)
   rr <- combined_rr_lin %>% 
     filter(year_n %in% c(year_i, year_c)) %>% 
     select("scenario", "year_n","combined_rr") %>% 
