@@ -249,19 +249,23 @@ lambda_values <- seq(0, 20, by = 2) # séquence de valeurs de lambda de 0 à 20 
                                                                  y = quantity,
                                                                  fill = food_group))+
     geom_area(colour = "black", linewidth = 0.2, alpha = 0.6)+
-    facet_wrap(~ scenario)+
-    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 5),
-          axis.text.y = element_text(size = 5),
-          strip.text = element_text(face = "bold",size = rel(0.6)),
-          legend.position.inside = c(0.5,0.1),
-          legend.text = element_text(size = 4),
-          legend.title = element_text(face = "bold", size = 5),
-          legend.key.size = unit(0.1, "cm"))+
+    facet_wrap(~ scenario, ncol = 4)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.8)),
+          legend.position = "bottom",
+          legend.text = element_text(size = 6),
+          legend.title = element_text(face = "bold", size = 7),
+          legend.key.size = unit(0.2, "cm"),
+          plot.margin = margin(1, 1, 1, 1, "cm"))+
     scale_fill_manual(values = col_food_groups)+
     labs(title = "Diet changes",
          x = "",
          y = "Quantities (g/day/pers)",
-         fill = "Food type")
+         fill = "Food type")+
+    guides(fill = guide_legend(nrow = 2, 
+                               title.position = "top",
+                               title.hjust = 0.5))
 
 # Graphique : Implémentation par interpolation cosinus des régimes 
   graph_diets_evo_cos <- ggplot(data = diets_evo_cos_filt, aes(x = year,
