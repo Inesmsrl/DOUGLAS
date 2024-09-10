@@ -82,6 +82,75 @@ pacman::p_load(
     group_by(scenario, year_n, food_group) %>% 
     summarize(mean_rr = mean(rr_n, na.rm = TRUE), .groups = 'drop')
   
+# Exemple d'évolution d'un RR : Viande rouge dans S1 après changement en 2025
+  
+  rr_lin_red_meat_sc1_2025 <- rr_evo_food %>% 
+    filter(scenario == "sc1",
+           food_group == "red_meat",
+           year_i == 2025) %>% 
+    select(year_n, rr_n) %>% 
+    rename("year" = "year_n",
+           "rr" = "rr_n")
+  
+  graph_rr_red_meat_sc1_2025 <- ggplot(rr_lin_red_meat_sc1_2025, aes(x = year,
+                                                                     y = rr))+
+    geom_line(color = "indianred4", size = 1)+
+    labs(title = "RR associated with red meat consumption change in 2025 in S1",
+         x = "",
+         y = "RR")+
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+# Exemple, évolution des RR à partir du changement en 2025 dans S1
+  
+  rr_lin_sc1 <- rr_evo_food %>% 
+    filter(scenario == "sc1",
+           year_i == 2025,
+           year_n %in% c(2025:2050)) %>% 
+    select(food_group, year_n, rr_n) %>% 
+    rename("year" = "year_n",
+           "rr" = "rr_n")
+  
+  col_food_groups <- c("red_meat" = "#F60239",
+                       "processed_meat" = "#A40122",
+                       "white_meat" = "#FF9DC8",
+                       "dairy" = "#00489E",
+                       "fish" = "#790149",
+                       "eggs" = "#EF0096",
+                       "fruits" = "#00735C",
+                       "nuts" = "#FFAC3B",
+                       "vegetables" = "#86FFDE",
+                       "legumes" = "#00CBA7",
+                       "whole_grains" = "#0079FA",
+                       "reffined_grains" = "#00E5F8",
+                       "added_plant_oils" = "#FF6E3A",
+                       "sugar_sweetened_beverages" = "#004002")
+  
+  order_food_groups <- c("red_meat", "processed_meat", "white_meat", "fish", "eggs", "dairy", 
+                         "fruits", "vegetables", "legumes", "nuts","whole_grains", "reffined_grains",
+                         "added_plant_oils", "sugar_sweetened_beverages")
+  
+  rr_lin_sc1$food_group <- factor(rr_lin_sc1$food_group, levels = order_food_groups)
+  
+  graph_rr_sc1_2025 <- ggplot(rr_lin_sc1, aes(x = year,
+                                              y = rr,
+                                              color = as.factor(food_group)))+
+    geom_line(size = 1, alpha = 0.8)+
+    scale_color_manual(values = col_food_groups)+
+    labs(title = "RR associated with 2025 changes in diet in S1",
+         x = "",
+         y = "RR",
+         color = "Food Group")+
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+# RR des changements de consommation de viande rouge dans S1 de 2020 à 2050
+  
+  rr_lin_red_meat_sc1 <- rr_evo_food %>% 
+    filter(scenario == "sc1",
+           food_group == "red_meat") %>% 
+    select(year_i ,year_n, rr_n) %>% 
+    pivot_wider(names_from = year_n, values_from = rr_n)
+  
+
 ################################################################################################################################
 #                                             5. Calcul des RR avec ttfe par interpolation cosinus                             #
 ################################################################################################################################
@@ -193,7 +262,7 @@ pacman::p_load(
     geom_line(size = 1)+
     scale_color_manual(values = col_scenario)+
     labs(title = "Whole diet RR evolution in each scenario",
-         subtitle = "linear implementation of diets from 2019 to 2050",
+         subtitle = "linear implementation of diets from 2020 to 2050",
          x = "",
          y = "Diet RR") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))  
@@ -212,4 +281,12 @@ pacman::p_load(
   
   # RR des régimes complets par année
     export(combined_rr_table_lin, here("data_clean", "combined_rr_lin_ttfe_lin_20.xlsx"))
-  
+    
+    ggsave(here("results", "Diets_RR_evo_lin_ttfe_lin20.pdf"), plot = graph_rr_evo_lin)
+    
+  # Exemple de l'évolution du RR de la viande rouge après changement en 2025
+    ggsave(here("results", "RR_red_meat_S1_2025.pdf"), plot = graph_rr_red_meat_sc1_2025)
+
+  # Exemple de l'évolution de tous les RR de S1 après changement en 2025
+    ggsave(here("results", "RR_S1_2025.pdf"), plot = graph_rr_sc1_2025)
+    

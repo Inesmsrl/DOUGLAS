@@ -170,7 +170,7 @@ lambda_values <- seq(0, 20, by = 2) # séquence de valeurs de lambda de 0 à 20 
       
  # Fonction pour calculer la quantité consommée d'un aliment pour une année donnée (q_n)
     calc_food_q_sig <- function(q_i, q_f, year_n, year_i, year_f, lambda) {
-      (q_i+q_f)/2 + (q_f - q_i)* (1 / (1 + exp(-lambda*(year_n - year_i-(year_f - year_i)/2)/(year_f - year_i)))-0.5)*(-1/(2*(1/(1+exp(lambda/2))-0.5)))
+      (q_i+q_f)/2 + (q_f - q_i) * (1 / (1 + exp(-lambda*((year_n - year_i)/(year_f - year_i)-1/2)))-1/2)*(-1/(2*(1/(1+exp(lambda/2))-1/2)))
     }
     
     # Appliquer la fonction sur chaque combinaison d'année et scénario
@@ -272,38 +272,46 @@ lambda_values <- seq(0, 20, by = 2) # séquence de valeurs de lambda de 0 à 20 
                                                                y = quantity,
                                                                fill = food_group))+
     geom_area(colour = "black", linewidth = 0.2, alpha = 0.6)+
-    facet_wrap(~ scenario)+
-    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 5),
-          axis.text.y = element_text(size = 5),
-          strip.text = element_text(face = "bold",size = rel(0.6)),
-          legend.position.inside = c(0.5,0.1),
-          legend.text = element_text(size = 4),
-          legend.title = element_text(face = "bold", size = 5),
-          legend.key.size = unit(0.1, "cm"))+
+    facet_wrap(~ scenario, ncol = 4)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.8)),
+          legend.position = "bottom",
+          legend.text = element_text(size = 6),
+          legend.title = element_text(face = "bold", size = 7),
+          legend.key.size = unit(0.2, "cm"),
+          plot.margin = margin(1, 1, 1, 1, "cm"))+
     scale_fill_manual(values = col_food_groups)+
     labs(title = "Diet changes",
          x = "",
          y = "Quantities (g/day/pers)",
-         fill = "Food type")
+         fill = "Food type")+
+    guides(fill = guide_legend(nrow = 2, 
+                               title.position = "top",
+                               title.hjust = 0.5))
 
 # Graphique : Implémentation sigmoïdale des régimes
   graph_diets_evo_sig <- ggplot(data = diets_evo_sig_filt, aes(x = year,
                                                                y = quantity,
                                                                fill = food_group))+
     geom_area(colour = "black", linewidth = 0.2, alpha = 0.6)+
-    facet_wrap(~ scenario)+
-    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 5),
-          axis.text.y = element_text(size = 5),
-          strip.text = element_text(face = "bold",size = rel(0.6)),
-          legend.position.inside =  c(0.5,0.1),
-          legend.text = element_text(size = 4),
-          legend.title = element_text(face = "bold", size = 5),
-          legend.key.size = unit(0.1, "cm"))+
+    facet_wrap(~ scenario, ncol = 4)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.8)),
+          legend.position = "bottom",
+          legend.text = element_text(size = 6),
+          legend.title = element_text(face = "bold", size = 7),
+          legend.key.size = unit(0.2, "cm"),
+          plot.margin = margin(1, 1, 1, 1, "cm"))+
     scale_fill_manual(values = col_food_groups)+
     labs(title = "Diet changes",
          x = "",
          y = "Quantities (g/day/pers)",
-         fill = "Food type")
+         fill = "Food type")+
+    guides(fill = guide_legend(nrow = 2, 
+                               title.position = "top",
+                               title.hjust = 0.5))
   
 ################################################################################################################################
 #                                             6. Exportation des données                                                       #
