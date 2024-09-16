@@ -122,6 +122,25 @@ diets_sig <- import(here("data_clean", "diets_evo_sig_scenarios.xlsx"))
          y = "RR")+
     theme(legend.position = "none")
   
+  dose_rep_red_meat_200 <- dose_rep %>% 
+    filter(food_group == "red_meat",
+           quantity %in% 0:200) %>% 
+    pivot_longer(cols = starts_with("rr_"),
+                 names_to = "IC95",
+                 values_to = "rr")
+  
+  graph_dose_rep_red_meat_200 <- ggplot(dose_rep_red_meat_200, aes(x = quantity,
+                                                                   y = rr,
+                                                                   color = IC95,
+                                                                   linetype = IC95))+
+    geom_line(na.rm = TRUE)+
+    scale_linetype_manual(values = c("dashed", "solid", "dashed"))+
+    scale_color_manual(values = c("black", "black", "black"))+
+    labs(title = "dose-response curve for red meat intake",
+         x = "intake (g/d/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
 # Processed meat
   dose_rep_processed_meat <- dose_rep %>% 
     filter(food_group == "processed_meat") %>% 
@@ -140,6 +159,26 @@ diets_sig <- import(here("data_clean", "diets_evo_sig_scenarios.xlsx"))
          x = "intake (g/d/pers)",
          y = "RR")+
     theme(legend.position = "none")
+  
+  dose_rep_processed_meat_200 <- dose_rep %>% 
+    filter(food_group == "processed_meat",
+           quantity %in% 0:200) %>% 
+    pivot_longer(cols = starts_with("rr_"),
+                 names_to = "IC95",
+                 values_to = "rr")
+  
+  graph_dose_rep_processed_meat_200 <- ggplot(dose_rep_processed_meat_200, aes(x = quantity,
+                                                                               y = rr,
+                                                                               color = IC95,
+                                                                               linetype = IC95))+
+    geom_line(na.rm = TRUE)+
+    scale_linetype_manual(values = c("dashed", "solid", "dashed"))+
+    scale_color_manual(values = c("black", "black", "black"))+
+    labs(title = "dose-response curve for processed meat intake",
+         x = "intake (g/d/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
   
 # White meat
   dose_rep_white_meat <- dose_rep %>% 
@@ -198,6 +237,25 @@ diets_sig <- import(here("data_clean", "diets_evo_sig_scenarios.xlsx"))
          y = "RR")+
     theme(legend.position = "none")
   
+  dose_rep_fish_250 <- dose_rep %>% 
+    filter(food_group == "fish",
+           quantity %in% 0:250) %>% 
+    pivot_longer(cols = starts_with("rr_"),
+                 names_to = "IC95",
+                 values_to = "rr")
+  
+  graph_dose_rep_fish_250 <- ggplot(dose_rep_fish_250, aes(x = quantity,
+                                                           y = rr,
+                                                           color = IC95,
+                                                           linetype = IC95))+
+    geom_line(na.rm = TRUE)+
+    scale_linetype_manual(values = c("dashed", "solid", "dashed"))+
+    scale_color_manual(values = c("black", "black", "black"))+
+    labs(title = "dose-response curve for fish intake",
+         x = "intake (g/d/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
 # Eggs
   dose_rep_eggs <- dose_rep %>% 
     filter(food_group == "eggs") %>% 
@@ -209,6 +267,25 @@ diets_sig <- import(here("data_clean", "diets_evo_sig_scenarios.xlsx"))
                                                    y = rr,
                                                    color = IC95,
                                                    linetype = IC95))+
+    geom_line(na.rm = TRUE)+
+    scale_linetype_manual(values = c("dashed", "solid", "dashed"))+
+    scale_color_manual(values = c("black", "black", "black"))+
+    labs(title = "dose-response curve for eggs intake",
+         x = "intake (g/d/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
+  dose_rep_eggs_70 <- dose_rep %>% 
+    filter(food_group == "eggs",
+           quantity %in% 0:70) %>% 
+    pivot_longer(cols = starts_with("rr_"),
+                 names_to = "IC95",
+                 values_to = "rr")
+  
+  graph_dose_rep_eggs_70 <- ggplot(dose_rep_eggs_70, aes(x = quantity,
+                                                         y = rr,
+                                                         color = IC95,
+                                                         linetype = IC95))+
     geom_line(na.rm = TRUE)+
     scale_linetype_manual(values = c("dashed", "solid", "dashed"))+
     scale_color_manual(values = c("black", "black", "black"))+
@@ -236,6 +313,25 @@ diets_sig <- import(here("data_clean", "diets_evo_sig_scenarios.xlsx"))
          y = "RR")+
     theme(legend.position = "none")
   
+  dose_rep_fruits_600 <- dose_rep %>% 
+    filter(food_group == "fruits",
+           quantity %in% 0:600) %>% 
+    pivot_longer(cols = starts_with("rr_"),
+                 names_to = "IC95",
+                 values_to = "rr")
+  
+  graph_dose_rep_fruits_600 <- ggplot(dose_rep_fruits_600, aes(x = quantity,
+                                                               y = rr,
+                                                               color = IC95,
+                                                               linetype = IC95))+
+    geom_line(na.rm = TRUE)+
+    scale_linetype_manual(values = c("dashed", "solid", "dashed"))+
+    scale_color_manual(values = c("black", "black", "black"))+
+    labs(title = "dose-response curve for fruits intake",
+         x = "intake (g/d/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
 # Nuts
   dose_rep_nuts <- dose_rep %>% 
     filter(food_group == "nuts") %>% 
@@ -254,6 +350,26 @@ diets_sig <- import(here("data_clean", "diets_evo_sig_scenarios.xlsx"))
          x = "intake (g/d/pers)",
          y = "RR")+
     theme(legend.position = "none")
+  
+  dose_rep_nuts_30 <- dose_rep %>% 
+    filter(food_group == "nuts",
+           quantity %in% 0:30) %>% 
+    pivot_longer(cols = starts_with("rr_"),
+                 names_to = "IC95",
+                 values_to = "rr")
+  
+  graph_dose_rep_nuts_30 <- ggplot(dose_rep_nuts_30, aes(x = quantity,
+                                                         y = rr,
+                                                         color = IC95,
+                                                         linetype = IC95))+
+    geom_line(na.rm = TRUE)+
+    scale_linetype_manual(values = c("dashed", "solid", "dashed"))+
+    scale_color_manual(values = c("black", "black", "black"))+
+    labs(title = "dose-response curve for nuts intake",
+         x = "intake (g/d/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
   
 # Vegetables
   dose_rep_veg <- dose_rep %>% 
@@ -274,6 +390,26 @@ diets_sig <- import(here("data_clean", "diets_evo_sig_scenarios.xlsx"))
          y = "RR")+
     theme(legend.position = "none")
   
+  dose_rep_veg_600 <- dose_rep %>% 
+    filter(food_group == "vegetables",
+           quantity %in% 0:600) %>% 
+    pivot_longer(cols = starts_with("rr_"),
+                 names_to = "IC95",
+                 values_to = "rr")
+  
+  graph_dose_rep_veg_600 <- ggplot(dose_rep_veg_600, aes(x = quantity,
+                                                         y = rr,
+                                                         color = IC95,
+                                                         linetype = IC95))+
+    geom_line(na.rm = TRUE)+
+    scale_linetype_manual(values = c("dashed", "solid", "dashed"))+
+    scale_color_manual(values = c("black", "black", "black"))+
+    labs(title = "dose-response curve for vegatables intake",
+         x = "intake (g/d/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
+  
 # Legumes
   dose_rep_leg <- dose_rep %>% 
     filter(food_group == "legumes") %>% 
@@ -285,6 +421,25 @@ diets_sig <- import(here("data_clean", "diets_evo_sig_scenarios.xlsx"))
                                                  y = rr,
                                                  color = IC95,
                                                  linetype = IC95))+
+    geom_line(na.rm = TRUE)+
+    scale_linetype_manual(values = c("dashed", "solid", "dashed"))+
+    scale_color_manual(values = c("black", "black", "black"))+
+    labs(title = "dose-response curve for legumes intake",
+         x = "intake (g/d/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
+  dose_rep_leg_200 <- dose_rep %>% 
+    filter(food_group == "legumes",
+           quantity %in% 0:200) %>% 
+    pivot_longer(cols = starts_with("rr_"),
+                 names_to = "IC95",
+                 values_to = "rr")
+  
+  graph_dose_rep_leg_200 <- ggplot(dose_rep_leg_200, aes(x = quantity,
+                                                         y = rr,
+                                                         color = IC95,
+                                                         linetype = IC95))+
     geom_line(na.rm = TRUE)+
     scale_linetype_manual(values = c("dashed", "solid", "dashed"))+
     scale_color_manual(values = c("black", "black", "black"))+
@@ -312,6 +467,25 @@ diets_sig <- import(here("data_clean", "diets_evo_sig_scenarios.xlsx"))
          y = "RR")+
     theme(legend.position = "none")
   
+  dose_rep_wg_250 <- dose_rep %>% 
+    filter(food_group == "whole_grains",
+           quantity %in% 0:250) %>% 
+    pivot_longer(cols = starts_with("rr_"),
+                 names_to = "IC95",
+                 values_to = "rr")
+  
+  graph_dose_rep_wg_250 <- ggplot(dose_rep_wg_250, aes(x = quantity,
+                                                       y = rr,
+                                                       color = IC95,
+                                                       linetype = IC95))+
+    geom_line(na.rm = TRUE)+
+    scale_linetype_manual(values = c("dashed", "solid", "dashed"))+
+    scale_color_manual(values = c("black", "black", "black"))+
+    labs(title = "dose-response curve for whole grains intake",
+         x = "intake (g/d/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
 # Refined grains
   dose_rep_rg <- dose_rep %>% 
     filter(food_group == "reffined_grains") %>% 
@@ -330,6 +504,26 @@ diets_sig <- import(here("data_clean", "diets_evo_sig_scenarios.xlsx"))
          x = "intake (g/d/pers)",
          y = "RR")+
     theme(legend.position = "none")
+  
+  dose_rep_rg_150 <- dose_rep %>% 
+    filter(food_group == "reffined_grains",
+           quantity %in% 0:150) %>% 
+    pivot_longer(cols = starts_with("rr_"),
+                 names_to = "IC95",
+                 values_to = "rr")
+  
+  graph_dose_rep_rg_150 <- ggplot(dose_rep_rg_150, aes(x = quantity,
+                                                       y = rr,
+                                                       color = IC95,
+                                                       linetype = IC95))+
+    geom_line(na.rm = TRUE)+
+    scale_linetype_manual(values = c("dashed", "solid", "dashed"))+
+    scale_color_manual(values = c("black", "black", "black"))+
+    labs(title = "dose-response curve for refined grains intake",
+         x = "intake (g/d/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
   
 # Added plant oils
   dose_rep_apo <- dose_rep %>% 
@@ -361,6 +555,25 @@ diets_sig <- import(here("data_clean", "diets_evo_sig_scenarios.xlsx"))
                                                  y = rr,
                                                  color = IC95,
                                                  linetype = IC95))+
+    geom_line(na.rm = TRUE)+
+    scale_linetype_manual(values = c("dashed", "solid", "dashed"))+
+    scale_color_manual(values = c("black", "black", "black"))+
+    labs(title = "dose-response curve for sugar-sweetened beverages intake",
+         x = "intake (g/d/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
+  dose_rep_ssb_300 <- dose_rep %>% 
+    filter(food_group == "sugar_sweetened_beverages",
+           quantity %in% 0:300) %>% 
+    pivot_longer(cols = starts_with("rr_"),
+                 names_to = "IC95",
+                 values_to = "rr")
+  
+  graph_dose_rep_ssb_300 <- ggplot(dose_rep_ssb_300, aes(x = quantity,
+                                                         y = rr,
+                                                         color = IC95,
+                                                         linetype = IC95))+
     geom_line(na.rm = TRUE)+
     scale_linetype_manual(values = c("dashed", "solid", "dashed"))+
     scale_color_manual(values = c("black", "black", "black"))+
@@ -479,18 +692,28 @@ export(rr_table_up_interpolated_wide ,here("data_clean", "rr_table_up_interpolat
 # Courbes dose-réponse
 ggsave(here("results", "dose_response_curves", "dr_curve_apo.pdf"), plot = graph_dose_rep_apo)
 ggsave(here("results", "dose_response_curves", "dr_curve_red_meat.pdf"), plot = graph_dose_rep_red_meat)
+ggsave(here("results", "dose_response_curves", "dr_curve_red_meat_200.pdf"), plot = graph_dose_rep_red_meat_200)
 ggsave(here("results", "dose_response_curves", "dr_curve_processed_meat.pdf"), plot = graph_dose_rep_processed_meat)
+ggsave(here("results", "dose_response_curves", "dr_curve_processed_meat_200.pdf"), plot = graph_dose_rep_processed_meat_200)
 ggsave(here("results", "dose_response_curves", "dr_curve_white_meat.pdf"), plot = graph_dose_rep_white_meat)
 ggsave(here("results", "dose_response_curves", "dr_curve_dairy.pdf"), plot = graph_dose_rep_dairy)
 ggsave(here("results", "dose_response_curves", "dr_curve_fish.pdf"), plot = graph_dose_rep_fish)
+ggsave(here("results", "dose_response_curves", "dr_curve_fish_250.pdf"), plot = graph_dose_rep_fish_250)
 ggsave(here("results", "dose_response_curves", "dr_curve_eggs.pdf"), plot = graph_dose_rep_eggs)
+ggsave(here("results", "dose_response_curves", "dr_curve_eggs_70.pdf"), plot = graph_dose_rep_eggs_70)
 ggsave(here("results", "dose_response_curves", "dr_curve_fruits.pdf"), plot = graph_dose_rep_fruits)
+ggsave(here("results", "dose_response_curves", "dr_curve_fruits_600.pdf"), plot = graph_dose_rep_fruits_600)
 ggsave(here("results", "dose_response_curves", "dr_curve_nuts.pdf"), plot = graph_dose_rep_nuts)
+ggsave(here("results", "dose_response_curves", "dr_curve_nuts_30.pdf"), plot = graph_dose_rep_nuts_30)
 ggsave(here("results", "dose_response_curves", "dr_curve_vegetables.pdf"), plot = graph_dose_rep_veg)
+ggsave(here("results", "dose_response_curves", "dr_curve_vegetables_600.pdf"), plot = graph_dose_rep_veg_600)
 ggsave(here("results", "dose_response_curves", "dr_curve_legumes.pdf"), plot = graph_dose_rep_leg)
 ggsave(here("results", "dose_response_curves", "dr_curve_whole_grains.pdf"), plot = graph_dose_rep_wg)
+ggsave(here("results", "dose_response_curves", "dr_curve_whole_grains_250.pdf"), plot = graph_dose_rep_wg_250)
 ggsave(here("results", "dose_response_curves", "dr_curve_refined_grains.pdf"), plot = graph_dose_rep_rg)
+ggsave(here("results", "dose_response_curves", "dr_curve_refined_grains_150.pdf"), plot = graph_dose_rep_rg_150)
 ggsave(here("results", "dose_response_curves", "dr_curve_ssb.pdf"), plot = graph_dose_rep_ssb)
+ggsave(here("results", "dose_response_curves", "dr_curve_ssb_300.pdf"), plot = graph_dose_rep_ssb_300)
 
 # rr par scénario, par année et pour chaque aliment selon la dose consomée
 export(rr_evo_lin, here("data_clean", "rr_evo_lin_2.xlsx"))
