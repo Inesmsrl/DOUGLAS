@@ -82,6 +82,11 @@ pacman::p_load(
     group_by(scenario, year_n, food_group) %>% 
     summarize(mean_rr = mean(rr_n, na.rm = TRUE), .groups = 'drop')
   
+  rr_evo_food_combined_2 <- rr_evo_food %>% 
+    group_by(scenario, year_n, food_group) %>% 
+    summarize(prod_rr = prod(rr_n, na.rm = TRUE), .groups = 'drop')
+  
+  
 # Exemple d'évolution d'un RR : Viande rouge dans S1 après changement en 2025
   
   rr_lin_red_meat_sc1_2025 <- rr_evo_food %>% 
@@ -241,6 +246,17 @@ pacman::p_load(
 
 # rr en fonction de l'implémentation linéaire des régimes 
   combined_rr_table_lin <- calc_combined_rr(rr_evo_food_combined)
+  
+  calc_combined_rr_2 <- function(df) {
+    df %>%
+      group_by(scenario, year_n) %>%
+      summarize(combined_rr = prod(prod_rr, na.rm = TRUE)) %>%
+      ungroup()
+  }  
+  
+  # rr en fonction de l'implémentation linéaire des régimes 
+  combined_rr_table_lin_2 <- calc_combined_rr_2(rr_evo_food_combined_2)
+  
   
 ################################################################################################################################
 #                                             9. Représentations graphiques                                                    #
