@@ -304,4 +304,3 @@ ggsave(here("results", "ttfe_red_meat_S1_2025_sig.pdf"), plot = graph_ttfe_sig_e
 ggsave(here("results", "full_effect_ln.pdf"), plot = graph_ttfe_ln)
 ggsave(here("results", 'full_effect_ln_var_eta.pdf'), plot = graph_ttfe_ln_var)
 ggsave(here("results", "ttfe_red_meat_S1_2025_log.pdf"), plot = graph_ttfe_log_ex_var)
-
