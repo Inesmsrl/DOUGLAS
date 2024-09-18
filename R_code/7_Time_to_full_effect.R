@@ -22,7 +22,7 @@ pacman::p_load(
   year_n <- tibble(year_i:year_f) %>% 
     rename("year" = "year_i:year_f")
 
-# Time to full effect
+# Time to full effect (years)
   delta = 20
 
 # Paramètre de modulation de la courbe logistique
@@ -41,6 +41,9 @@ pacman::p_load(
 # Dataframe contenant toutes les valeurs de x (période temporelle depuis le changement de régime)
   xn <- tibble(x0:xf) %>% 
     rename("x" = "x0:xf")
+  
+# Exemple de valeur de RR quant TTFE = 100% : quantité de viande rouge dans S1 consommée en 2025 (75g)
+  rr_read_meat_s1_2025 <- 1.135
 
 ################################################################################################################################
 #                                             3. Time to full effect linéaire                                                  #
@@ -92,10 +95,23 @@ ttfe_lin_3 <- xn %>%
 
 graph_ttfe_lin_3 <- ggplot(ttfe_lin_3, aes(x = x,
                                            y = ttfe))+
-  geom_line(color = "darkseagreen", size = 1, alpha = 0.8)+
+  geom_line(color = "darkseagreen", linewidth = 1, alpha = 0.8)+
   labs(title = "% of RR since diet change",
        x = "",
        y = "")
+
+# Exemple : viande rouge dans S1 de 2025 à 2045
+rr_ttfe_ex <- xn %>% 
+  mutate(rr = (rr_read_meat_s1_2025-1)/delta*x +1,
+         year = 2025 + x)
+
+graph_ttfe_lin_ex <- ggplot(rr_ttfe_ex, aes(x = year,
+                                            y = rr))+
+  geom_line(color = "indianred4", linewidth = 1, alpha = 0.8)+
+  labs(title = "RR value evolution of red meat consomption in 2025 in S1",
+       subtitle = "Linear time to full effect of 20 years",
+       x = "",
+       y = "RR")
 
 
 ################################################################################################################################
@@ -135,6 +151,23 @@ graph_ttfe_cos_var <- ggplot(ttfe_cos_var, aes(x = year,
          color = "p")+
     scale_color_scico_d(palette = "managua")
 
+# Exemple : viande rouge dans S1 de 2025 à 2045
+rr_ttfe_ex_cos <-  expand_grid(ttfe = xn$x, p = p_values) %>%
+  rename("x" = "ttfe") %>% 
+  mutate(rr = 1 + (rr_read_meat_s1_2025 - 1) * ((1 - cos(pi * (x / delta)^p)))/2,
+         year = 2025+x)
+
+graph_ttfe_cos_ex_var <- ggplot(rr_ttfe_ex_cos, aes(x = year,
+                                               y = rr,
+                                               color = as.factor(p)))+
+  geom_line(size = 1, alpha = 0.8)+
+  labs(title = "RR value evolution of red meat consomption in 2025 in S1",
+       subtitle = "Cosine interpolation time to full effect of 20 years",
+       x = "",
+       y = "RR",
+       color = "p")+
+  scale_color_scico_d(palette = "managua")
+
 
 ################################################################################################################################
 #                                             5. Time to full effect sigmoidal                                                #
@@ -172,6 +205,24 @@ graph_ttfe_sig <- ggplot(ttfe_sig, aes(x = year,
            y = "",
            color = "lambda")+
       scale_color_scico_d(palette = "managua")
+  
+# Exemple : viande rouge dans S1 de 2025 à 2045
+  rr_ttfe_ex_sig <-  expand_grid(ttfe = xn$x, lambda = lambda_values) %>%
+    rename("x" = "ttfe") %>% 
+    mutate(rr = (1 + rr_read_meat_s1_2025)/2 + (rr_read_meat_s1_2025 - 1) * (1/(1 + exp(-lambda * (x/delta - 1/2))) -1/2) * (-1/ (2/(1 + exp(lambda/2)) - 1)),
+           year = 2025+x)
+  
+  graph_ttfe_sig_ex_var <- ggplot(rr_ttfe_ex_sig, aes(x = year,
+                                                      y = rr,
+                                                      color = as.factor(lambda)))+
+    geom_line(size = 1, alpha = 0.8)+
+    labs(title = "RR value evolution of red meat consomption in 2025 in S1",
+         subtitle = "Sigmoïdal time to full effect of 20 years",
+         x = "",
+         y = "RR",
+         color = "lambda")+
+    scale_color_scico_d(palette = "managua")
+  
 
 ################################################################################################################################
 #                                             5. Time to full effect logarithmique                                             #
@@ -210,6 +261,24 @@ graph_ttfe_ln_var <- ggplot(ttfe_ln_var, aes(x = year,
        color = "eta")+
   scale_color_scico_d(palette = "managua")
 
+# Exemple : viande rouge dans S1 de 2025 à 2045
+rr_ttfe_ex_log <-  expand_grid(ttfe = xn$x, eta = eta_values) %>%
+  rename("x" = "ttfe") %>% 
+  mutate(rr = 1 + (rr_read_meat_s1_2025 -1) * log(1 + eta*x/delta)/log(1 + eta),
+         year = 2025+x)
+
+graph_ttfe_log_ex_var <- ggplot(rr_ttfe_ex_log, aes(x = year,
+                                                    y = rr,
+                                                    color = as.factor(eta)))+
+  geom_line(size = 1, alpha = 0.8)+
+  labs(title = "RR value evolution of red meat consomption in 2025 in S1",
+       subtitle = "Logarithmic time to full effect of 20 years",
+       x = "",
+       y = "RR",
+       color = "eta")+
+  scale_color_scico_d(palette = "managua")
+
+
 ################################################################################################################################
 #                                             §. Exportation des données                                                       #
 ################################################################################################################################
@@ -218,15 +287,21 @@ graph_ttfe_ln_var <- ggplot(ttfe_ln_var, aes(x = year,
 export(ttfe_lin_3, here("data_clean", "ttfe_lin_20.xlsx"))
 
 ggsave(here("results", "full_effect_lin.pdf"), plot = graph_ttfe_lin)
+ggsave(here("results", "ttfe_red_meat_S1_2025_lin.pdf"), plot = graph_ttfe_lin_ex)
 
 # Time to full effect par interpolation cosinus
 ggsave(here("results", "full_effect_cos.pdf"), plot = graph_ttfe_cos)
 ggsave(here("results", "full_effect_cos_var_p.pdf"), plot = graph_ttfe_cos_var)
+ggsave(here("results", "ttfe_red_meat_S1_2025_cos.pdf"), plot = graph_ttfe_cos_ex_var)
 
 # Time to full effect sigmoïdal
 ggsave(here("results", "full_effect_sig.pdf"), plot = graph_ttfe_sig)
 ggsave(here("results", "full_effect_sig_var_lambda.pdf"), plot = graph_ttfe_sig_var)
+ggsave(here("results", "ttfe_red_meat_S1_2025_sig.pdf"), plot = graph_ttfe_sig_ex_var)
+
 
 # Time to full effect logarithmique
 ggsave(here("results", "full_effect_ln.pdf"), plot = graph_ttfe_ln)
 ggsave(here("results", 'full_effect_ln_var_eta.pdf'), plot = graph_ttfe_ln_var)
+ggsave(here("results", "ttfe_red_meat_S1_2025_log.pdf"), plot = graph_ttfe_log_ex_var)
+
