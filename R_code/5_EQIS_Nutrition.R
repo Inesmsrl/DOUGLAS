@@ -38,31 +38,32 @@ pacman::p_load(
 # Bornes temporelles du modèle
   year_i <- 2020 # Année initiale
   year_f <- 2050 # Année finale
+  
+# Limite inféieure d'age (années)
+  age_limit <- 18
 
 ################################################################################################################################
 #                                             3. Préparation des données                                                       #
 ################################################################################################################################
   
-# Sélectionner les MR entre les bornes temporelles du modèle et pivoter le dataframe en format long
+# Sélectionner les MR entre les bornes temporelles du modèle et au dessus de la limite d'age et pivoter le dataframe en format long
   MR_2050 <- MR %>% 
     select(age, !!sym(as.character(year_i)) : !!sym(as.character(year_f))) %>%
+    filter(age >= age_limit) %>% 
     pivot_longer(cols = !!sym(as.character(year_i)) : !!sym(as.character(year_f)), 
                  names_to = "year", 
                  values_to = "MR") %>% 
     mutate(year = as.numeric(year))
   
-# Sélectionner les effectifs de population de 2019 à 2050 et pivoter le dataframe en format long
+# Sélectionner les effectifs de population entre les bornes temporelles du modèle et au dessus de la limite d'age et pivoter le dataframe en format long
   population_2050 <- population %>% 
-    select("age", !!sym(as.character(year_i)) : !!sym(as.character(year_f))) %>% 
+    select(age, !!sym(as.character(year_i)) : !!sym(as.character(year_f))) %>% 
+    filter(age >= age_limit) %>% 
     pivot_longer(cols = !!sym(as.character(year_i)) : !!sym(as.character(year_f)), 
                  names_to = "year", 
                  values_to = "population") %>% 
     mutate(year = as.numeric(year)) %>% 
     arrange(age)
-
-# Renommer la colonne year dans le tableau des RR
-  combined_rr_lin <- combined_rr_lin %>% 
-    rename("year" = "year_n")
  
 # Charte graphique
   col_scenario <- c("actuel" = "azure4",
