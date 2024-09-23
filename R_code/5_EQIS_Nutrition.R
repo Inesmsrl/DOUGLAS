@@ -19,7 +19,7 @@ pacman::p_load(
   combined_rr_lin <- import(here("data_clean", "combined_rr_lin_ttfe_lin_20.xlsx"))
   
 # RR combinés par année pour chaque scénario (implémentation par interpolation cosinus)
-  combined_rr_cos <- import(here("data_clean", "combined_rr_cos.xlsx"))
+  combined_rr_cos <- import(here("data_clean", "combined_rr_cos_ttfe_lin_20.xlsx"))
   
 # RR combinés par année pour chaque scénario (implémentation sigmoïdale)
   combined_rr_sig <- import(here("data_clean", "combined_rr_sig.xlsx"))
@@ -64,6 +64,9 @@ pacman::p_load(
                  values_to = "population") %>% 
     mutate(year = as.numeric(year)) %>% 
     arrange(age)
+  
+  combined_rr_cos <- combined_rr_cos %>% 
+    rename("year" = "year_n")
  
 # Charte graphique
   col_scenario <- c("actuel" = "azure4",
@@ -109,7 +112,7 @@ pacman::p_load(
            select("age", "year", "scenario", "adjusted_mr") %>% 
            pivot_wider(names_from = "year", values_from = "adjusted_mr")
        
-    # Implémentation sigmoïdale des régimes 
+  # Implémentation sigmoïdale des régimes 
          
         # MR (/age/année), RR(/année/scénario), MR ajustés (/age/année/scénario)
          mr_table_sig <- MR_2050 %>% 
@@ -247,26 +250,26 @@ pacman::p_load(
        select("age", "year", "scenario", "deaths") %>% 
        pivot_wider(names_from = "year", values_from = "deaths")
      
-# Nombre de décès total par année et sur 2019-2050 par scénario
+# Nombre de décès total par année par scénario
      
     total_deaths_cos <- deaths_evo_cos %>% 
-       group_by(scenario) %>%                                 
-       summarise(across("2019":"2050", sum)) %>%              
-       rowwise() %>%                                          
-       mutate(total_deaths = sum(c_across("2019":"2050")))    
+      group_by(scenario) %>%                                 
+      summarise(across(!!sym(as.character(year_i)) : !!sym(as.character(year_f)), sum)) %>%
+      rowwise() %>%
+      mutate(total_deaths = sum(c_across(!!sym(as.character(year_i)) : !!sym(as.character(year_f)))))    
     
-# Nombre total de décès évités dans chaque scénario par rapport au scénario tendanciel
+    # Nombre total de décès évités par rapport au scénario actuel
     
-  # Extraire les décès par année et totaux du scénario tendanciel
-    total_deaths_sc0_cos <- total_deaths_cos %>% 
-      filter(scenario == "sc0")
+    # Extraire les décès par année et totaux du scénario actuel
+    total_deaths_actuel_cos <- total_deaths_cos %>% 
+      filter(scenario == "actuel")
     
     total_avoided_deaths_cos <- total_deaths_cos %>% 
-      filter(scenario %in% c("sc1", "sc2", "sc3", "sc4", "sc5")) %>% 
+      filter(scenario %in% c("sc0", "sc1", "sc2", "sc3", "sc4", "sc5")) %>% 
       mutate(across(-"scenario",
-                    ~ total_deaths_sc0_cos[[cur_column()]] - .)) %>% 
+                    ~ total_deaths_actuel_cos[[cur_column()]] - .)) %>% 
       rename("avoided_deaths" = "total_deaths")
-
+    
 # Nombre de décès évités par age et par année par rapport au scénario tendanciel
     
   # Filtrer les décès du scénario "Tendanciel"

@@ -7,18 +7,25 @@ pacman::p_load(
   here,                # Localisation des fichiers dans le dossier du projet
   dplyr,               # Manipulation des données
   tidyr,               # Manipulation des données
-  purrr                # Opérations itératives
+  purrr,               # Opérations itératives
+  psych                # Contient fonction moyenne géométrique
 )
 
 ################################################################################################################################
 #                                             2. Importation des données                                                       #
 ################################################################################################################################
 
-# RR des régimes complets de chaque scénario par année
+# RR des régimes complets de chaque scénario par année (implémentation linéaire)
   rr_diet_lin <- import(here("data_clean", "combined_rr_lin_2.xlsx"))
   
-# RR de chaque aliment par année
+# RR des régimes complets de chaque scénario par année (implémentation par interpolation cosinus)
+  rr_diet_cos <- import(here("data_clean", "combined_rr_cos_2.xlsx"))
+  
+# RR de chaque aliment par année (implémentation linéaire des régimes)
   rr_food_lin <-  import(here("data_clean", "rr_evo_lin_2.xlsx"))
+  
+# RR de chaque aliment par année (implémentation par interpolation cosinus des régimes)
+  rr_food_cos <-  import(here("data_clean", "rr_evo_cos_2.xlsx"))
   
 # Time to full effect linéaire sur 20 ans
   ttfe_lin <- import(here("data_clean", "ttfe_lin_20.xlsx"))
@@ -35,7 +42,6 @@ pacman::p_load(
   
 # Paramètre de modulation de la courbe logarithmique
   eta <- 1
-  
   
 ################################################################################################################################
 #                                             4. Calcul des RR avec ttfe linéaire                                              #
@@ -85,6 +91,11 @@ pacman::p_load(
   rr_evo_food_combined_2 <- rr_evo_food %>% 
     group_by(scenario, year_n, food_group) %>% 
     summarize(prod_rr = prod(rr_n, na.rm = TRUE), .groups = 'drop')
+  
+  rr_evo_food_combined <- rr_evo_food %>% 
+    group_by(scenario, year_n, food_group) %>% 
+    summarize(mean_rr = geometric.mean(rr_n[year_i >= (year_n - max(ttfe_lin$x))], na.rm = TRUE), .groups = 'drop')
+  
   
   
 # Exemple d'évolution d'un RR : Viande rouge dans S1 après changement en 2025
@@ -154,6 +165,27 @@ pacman::p_load(
            food_group == "red_meat") %>% 
     select(year_i ,year_n, rr_n) %>% 
     pivot_wider(names_from = year_n, values_from = rr_n)
+  
+# Implémentation par interpolation cosinus des régimes 
+# Time to full effect linéaire sur 20 ans 
+  
+  rr_evo_food_cos <- rr_food_cos %>% 
+    rowwise() %>% 
+    mutate(year_n = list(seq(from = min(rr_food_cos$year), 
+                             to = max(rr_food_cos$year)))) %>%
+    unnest(year_n) %>% 
+    mutate(rr_n = case_when(
+      year_n < year ~ NA_real_,
+      year_n >= year & year_n <= year + max(ttfe_lin$x) ~ 
+        1 + (rr_interpolated - 1) * ttfe_lin$ttfe[match(year_n - year, ttfe_lin$x)],
+      year_n > year + max(ttfe_lin$x) ~ rr_interpolated
+    )) %>% 
+    ungroup() %>%
+    rename("year_i" = "year")
+  
+  rr_evo_food_cos_combined <- rr_evo_food_cos %>% 
+    group_by(scenario, year_n, food_group) %>% 
+    summarize(mean_rr = geometric.mean(rr_n[year_i >= (year_n - max(ttfe_lin$x))], na.rm = TRUE), .groups = 'drop')
   
 
 ################################################################################################################################
@@ -254,9 +286,11 @@ pacman::p_load(
       ungroup()
   }  
   
-  # rr en fonction de l'implémentation linéaire des régimes 
+# rr en fonction de l'implémentation linéaire des régimes 
   combined_rr_table_lin_2 <- calc_combined_rr_2(rr_evo_food_combined_2)
   
+# rr en fonction de l'implémentation par interpolation cosinus des régimes
+  combined_rr_table_cos <- calc_combined_rr(rr_evo_food_cos_combined)
   
 ################################################################################################################################
 #                                             9. Représentations graphiques                                                    #
@@ -271,7 +305,7 @@ pacman::p_load(
                     "sc4" = "maroon",
                     "sc5" = "royalblue4")
   
-# Implémentation linéaire des régimes
+# Implémentation linéaire des régimes et TTFE linéaire
   graph_rr_evo_lin <- ggplot(combined_rr_table_lin, aes(x = year_n,
                                                         y = combined_rr,
                                                         colour = scenario))+
@@ -282,6 +316,19 @@ pacman::p_load(
          x = "",
          y = "Diet RR") +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+  
+# Implémentation par interpolation cosinus des régimes et TTFE linéaire
+  graph_rr_evo_cos <- ggplot(combined_rr_table_cos, aes(x = year_n,
+                                                        y = combined_rr,
+                                                        colour = scenario))+
+    geom_line(size = 1)+
+    scale_color_manual(values = col_scenario)+
+    labs(title = "Whole diet RR evolution in each scenario",
+         subtitle = "Cosine interpolation implementation of diets from 2020 to 2050, lineat TTFE of 20 years",
+         x = "",
+         y = "Diet RR") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+  
   
 ################################################################################################################################
 #                                             10. Exportation des données                                                       #
@@ -305,4 +352,17 @@ pacman::p_load(
 
   # Exemple de l'évolution de tous les RR de S1 après changement en 2025
     ggsave(here("results", "RR_S1_2025.pdf"), plot = graph_rr_sc1_2025)
+    
+# Implémentation par interpolation cosinus des régimes et ttfe linéaire sur 20 ans
+    
+    # Valeurs des RR de chaque aliment apar année, après chaque changement
+    export(rr_evo_food_cos, here("data_clean", "rr_fg_cos_ttfe_lin_20.xlsx"))
+    
+    # Moyenne des RR de chaque aliment par année
+    export(rr_evo_food_cos_combined, here("data_clean", "rr_fg_cos_ttfe_lin_20_mean.xlsx"))
+    
+    # RR des régimes complets par année
+    export(combined_rr_table_cos, here("data_clean", "combined_rr_cos_ttfe_lin_20.xlsx"))
+    
+    ggsave(here("results", "Diets_RR_evo_cos_ttfe_lin20.pdf"), plot = graph_rr_evo_cos)
     
