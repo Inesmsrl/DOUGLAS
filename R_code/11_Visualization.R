@@ -173,27 +173,27 @@ pacman::p_load(
   diets_evo$food_group <- factor(diets_evo$food_group, levels = order_food_groups)
 
 # Visualisation graphique
-  ggplot(data = diets_evo, aes(x = year,
-                               y = quantity,
-                               fill = food_group))+
-    geom_area(colour = "black", linewidth = 0.2, alpha = 0.6)+
-    facet_wrap(~ scenario, ncol = 4)+
-    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-          axis.text.y = element_text(size = 7),
-          strip.text = element_text(face = "bold",size = rel(0.8)),
-          legend.position = "bottom",
-          legend.text = element_text(size = 6),
-          legend.title = element_text(face = "bold", size = 7),
-          legend.key.size = unit(0.2, "cm"),
-          plot.margin = margin(1, 1, 1, 1, "cm"))+
-    scale_fill_manual(values = col_food_groups)+
-    labs(title = "Diet changes",
-         x = "",
-         y = "Quantities (g/day/pers)",
-         fill = "Food type")+
-    guides(fill = guide_legend(nrow = 2, 
-                               title.position = "top",
-                               title.hjust = 0.5))
+ graph_diets_evo <- ggplot(data = diets_evo, aes(x = year,
+                                                 y = quantity,
+                                                 fill = food_group))+
+                        geom_area(colour = "black", linewidth = 0.2, alpha = 0.6)+
+                        facet_wrap(~ scenario, ncol = 4)+
+                        theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+                              axis.text.y = element_text(size = 7),
+                              strip.text = element_text(face = "bold",size = rel(0.8)),
+                              legend.position = "bottom",
+                              legend.text = element_text(size = 6),
+                              legend.title = element_text(face = "bold", size = 7),
+                              legend.key.size = unit(0.2, "cm"),
+                              plot.margin = margin(1, 1, 1, 1, "cm"))+
+                        scale_fill_manual(values = col_food_groups)+
+                        labs(title = "Diet changes",
+                             x = "",
+                             y = "Quantities (g/day/pers)",
+                             fill = "Food type")+
+                        guides(fill = guide_legend(nrow = 2, 
+                                                   title.position = "top",
+                                                   title.hjust = 0.5))
   
 ################################################################################################################################
 #                                             7. Attribution des RR à chaque régime                                            #
@@ -209,10 +209,13 @@ pacman::p_load(
   
 # % du RR chaque année sur la période du time to full effect
   ttfe <- tibble(0:ttfe_time) %>% 
-    rename("time" = "0:ttfe_time") %>% 
+    rename("time" = "0:ttfe_time")
+  
+  ttfe <- ttfe %>% 
     mutate(ttfe = case_when(
       ttfe_time == 0 ~ 1,
-      ttfe_dynamics == "immediate" ~ 1,
+      ttfe_dynamics == "immediate" & ttfe$time == 0 ~ 1,
+      ttfe_dynamics == "immediate" & ttfe$time > 0 ~ NA_real_,
       ttfe_dynamics == "linear" ~ time/ttfe_time,
       ttfe_dynamics == "cosine" ~ (1 - cos(pi * (time/ttfe_time)^p_ttfe))/2,
       ttfe_dynamics == "sigmoidal" ~ (1 / (1 + exp(-lambda_ttfe * (time / ttfe_time - 1/2))) - 1 / (1 + exp(lambda_ttfe / 2))) / 
@@ -222,12 +225,12 @@ pacman::p_load(
     ))
 
 # Représentation graphique 
-  ggplot(ttfe, aes(x = time,
-                   y = ttfe))+
-    geom_line(color = "darkseagreen", size = 1, alpha = 0.8)+
-    labs(title = "Time to full effect",
-         x = "",
-         y = "")  
+graph_ttfe  <- ggplot(ttfe, aes(x = time,
+                                y = ttfe))+
+                  geom_line(color = "darkseagreen", size = 1, alpha = 0.8)+
+                  labs(title = "Time to full effect",
+                       x = "",
+                       y = "")  
   
 ################################################################################################################################
 #                                             9. Calcul des RR avec TTFE                                                       #
@@ -263,16 +266,16 @@ pacman::p_load(
   rr_sc1$food_group <- factor(rr_sc1$food_group, levels = order_food_groups)
 
 # Visualisation graphique
-  ggplot(rr_sc1, aes(x = year,
-                         y = rr,
-                         color = as.factor(food_group)))+
-    geom_line(size = 1, alpha = 0.8, na.rm = TRUE)+
-    scale_color_manual(values = col_food_groups)+
-    labs(title = "RR associated with 2025 changes in diet in S1",
-         x = "",
-         y = "RR",
-         color = "Food Group")+
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+  graph_rr_evo_sc1_2025  <- ggplot(rr_sc1, aes(x = year,
+                                               y = rr,
+                                               color = as.factor(food_group)))+
+                                geom_line(size = 1, alpha = 0.8, na.rm = TRUE)+
+                                scale_color_manual(values = col_food_groups)+
+                                labs(title = "RR associated with 2025 changes in diet in S1",
+                                     x = "",
+                                     y = "RR",
+                                     color = "Food Group")+
+                                theme(axis.text.x = element_text(angle = 45, hjust = 1))  
 
 ################################################################################################################################
 #                                             11. Combinaison des RR de chaque aliment par année                               #
@@ -287,28 +290,28 @@ pacman::p_load(
     )
   
 # Visualisation graphique
-  ggplot(data = rr_evo_food_combined, aes(x = year_n,
-                               y = mean_rr,
-                               color = as.factor(food_group)))+
-    geom_line(size = 1, alpha = 0.8, na.rm = TRUE)+
-    scale_color_manual(values = col_food_groups)+
-    facet_wrap(~ scenario, ncol = 4)+
-    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-          axis.text.y = element_text(size = 7),
-          strip.text = element_text(face = "bold",size = rel(0.8)),
-          legend.position = "bottom",
-          legend.text = element_text(size = 6),
-          legend.title = element_text(face = "bold", size = 7),
-          legend.key.size = unit(0.2, "cm"),
-          plot.margin = margin(1, 1, 1, 1, "cm"))+
-    labs(title = "Evolution of RR of each food group",
-         x = "",
-         y = "RR",
-         color = "Food group")+
-    guides(fill = guide_legend(nrow = 2, 
-                               title.position = "top",
-                               title.hjust = 0.5))
-  
+  graph_rr_evo_fg <-  ggplot(data = rr_evo_food_combined, aes(x = year_n,
+                                                              y = mean_rr,
+                                                              color = as.factor(food_group)))+
+                        geom_line(size = 1, alpha = 0.8, na.rm = TRUE)+
+                        scale_color_manual(values = col_food_groups)+
+                        facet_wrap(~ scenario, ncol = 4)+
+                        theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+                              axis.text.y = element_text(size = 7),
+                              strip.text = element_text(face = "bold",size = rel(0.8)),
+                              legend.position = "bottom",
+                              legend.text = element_text(size = 6),
+                              legend.title = element_text(face = "bold", size = 7),
+                              legend.key.size = unit(0.2, "cm"),
+                              plot.margin = margin(1, 1, 1, 1, "cm"))+
+                        labs(title = "Evolution of RR of each food group",
+                             x = "",
+                             y = "RR",
+                             color = "Food group")+
+                        guides(fill = guide_legend(nrow = 2, 
+                                                   title.position = "top",
+                                                   title.hjust = 0.5))
+    
 ################################################################################################################################
 #                                             12. Combinaison des RR de chaque régime par année                                #
 ################################################################################################################################
@@ -326,15 +329,15 @@ pacman::p_load(
     rename("year" = "year_n")
   
 # Visualisation graphique
-  ggplot(rr_evo_diets, aes(x = year,
-                           y = combined_rr,
-                           color = scenario))+
-    geom_line(size = 1)+
-    scale_color_manual(values = col_scenario)+
-    labs(title = "Whole diet RR evolution in each scenario",
-         x = "",
-         y = "RR") +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+  graph_rr_evo_diets <- ggplot(rr_evo_diets, aes(x = year,
+                                                 y = combined_rr,
+                                                 color = scenario))+
+                          geom_line(size = 1)+
+                          scale_color_manual(values = col_scenario)+
+                          labs(title = "Whole diet RR evolution in each scenario",
+                               x = "",
+                               y = "RR") +
+                          theme(axis.text.x = element_text(angle = 45, hjust = 1))  
 
 ################################################################################################################################
 #                                             13. Evaluation d'impact sanitaire par rapport au régime Actuel                   #
@@ -403,7 +406,7 @@ pacman::p_load(
     select(age, scenario, "2035") %>% 
     rename("avoided_deaths" = "2035")
   
-  # Décès évités par age et par scénario en 2050
+# Décès évités par age et par scénario en 2050
   avoided_deaths_2050 <- avoided_deaths %>% 
     select(age, scenario, "2050") %>% 
     rename("avoided_deaths" = "2050")
@@ -414,57 +417,106 @@ pacman::p_load(
 ################################################################################################################################
   
 # Nombre de décès total par scénario
-  ggplot(data = total_deaths, aes(x = scenario, 
-                                  y = total_deaths, 
-                                  fill = scenario))+
-    geom_bar(stat = "identity", alpha = 0.8)+
-    labs(title =  "Total number of deaths in each scenario",
-         x = "Scenario", 
-         y = "Number of deaths")+
-    scale_fill_manual(values = col_scenario)+
-    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  graph_total_deaths  <- ggplot(data = total_deaths, aes(x = scenario, 
+                                                         y = total_deaths, 
+                                                         fill = scenario))+
+                                geom_bar(stat = "identity", alpha = 0.8)+
+                                labs(title =  "Total number of deaths in each scenario",
+                                     x = "Scenario", 
+                                     y = "Number of deaths")+
+                                scale_fill_manual(values = col_scenario)+
+                                theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 # Nombre total de décès évités par scénario
-  ggplot(data = total_avoided_deaths, aes(x = scenario, 
-                                          y = avoided_deaths, 
-                                          fill = scenario))+
-      geom_bar(stat = "identity", alpha = 0.8)+
-      labs(title = "Total avoided deaths compared to keeping the current diet",
-           x = "",
-           y = "number of deaths avoided")+
-      scale_fill_manual(values = col_scenario)+
-      theme(axis.text.x = element_text(angle = 45, hjust = 1))
-  
+  graph_total_avoided_deaths <- ggplot(data = total_avoided_deaths, aes(x = scenario, 
+                                                                        y = avoided_deaths, 
+                                                                        fill = scenario))+
+                                    geom_bar(stat = "identity", alpha = 0.8)+
+                                    labs(title = "Total avoided deaths compared to keeping the current diet",
+                                         x = "",
+                                         y = "number of deaths avoided")+
+                                    scale_fill_manual(values = col_scenario)+
+                                    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+                                
 # Nombre de décès évités par âge et par année, dans chaque scénario
-  ggplot(avoided_deaths_long, aes(x = year,
-                                  y = age,
-                                  fill = avoided_deaths)) +
-    geom_tile()+
-    facet_wrap(~ scenario, scales = "fixed") +
-    scale_fill_gradient2(low = "dodgerblue4", mid = "grey80", high = "firebrick", limits = c(0,12000)) +
-    labs(title = "Avoided deaths compared to keeping the current diet",
-         x = "",
-         y = "Age",
-         fill = "Avoided deaths") +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1),
-          strip.text = element_text(face = "bold",size = rel(0.8)))
+  heat_map_avoided_deaths  <- ggplot(avoided_deaths_long, aes(x = year,
+                                                              y = age,
+                                                              fill = avoided_deaths)) +
+                                geom_tile()+
+                                facet_wrap(~ scenario, scales = "fixed") +
+                                scale_fill_gradient2(low = "dodgerblue4", mid = "grey80", high = "firebrick", limits = c(0,12000)) +
+                                labs(title = "Avoided deaths compared to keeping the current diet",
+                                     x = "",
+                                     y = "Age",
+                                     fill = "Avoided deaths") +
+                                theme(axis.text.x = element_text(angle = 45, hjust = 1),
+                                      strip.text = element_text(face = "bold",size = rel(0.8)))
 
 # Nombre de décès évités par âge et par scénario en 2035
- ggplot(avoided_deaths_2035, aes(x = age,
-                                 y = avoided_deaths))+
-    facet_wrap(~ scenario, scales = "fixed")+
-    geom_bar(stat = "identity" ,
-             fill = "maroon")+
-    labs(title = "Avoided deaths in 2035 compared to keeping the current diet",
-         x = "Age",
-         y = "Avoided deaths")
-  
+ graph_avoided_deaths_2035 <- ggplot(avoided_deaths_2035, aes(x = age,
+                                                              y = avoided_deaths))+
+                                facet_wrap(~ scenario, scales = "fixed")+
+                                geom_bar(stat = "identity" ,
+                                         fill = "maroon")+
+                                labs(title = "Avoided deaths in 2035 compared to keeping the current diet",
+                                     x = "Age",
+                                     y = "Avoided deaths")
+                              
 # Nombre de décès évités par âge et par scénario en 2050
-  ggplot(avoided_deaths_2050, aes(x = age,
-                                  y = avoided_deaths))+
-    facet_wrap(~ scenario, scales = "fixed")+
-    geom_bar(stat = "identity" ,
-             fill = "darkseagreen4")+
-    labs(title = "Avoided deaths in 2050 compared to keeping the current diet",
-         x = "Age",
-         y = "Avoided deaths")
+ graph_avoided_deaths_2050 <- ggplot(avoided_deaths_2050, aes(x = age,
+                                                              y = avoided_deaths))+
+                                facet_wrap(~ scenario, scales = "fixed")+
+                                geom_bar(stat = "identity" ,
+                                         fill = "darkseagreen4")+
+                                labs(title = "Avoided deaths in 2050 compared to keeping the current diet",
+                                     x = "Age",
+                                     y = "Avoided deaths")
+                              
+################################################################################################################################
+#                                             15. Exportation des données                                                      #
+################################################################################################################################
+  
+# Régimes, valeurs des RR 100% et RR par année
+  export(diets_evo, here("results", "visualization_tool", "diets_rr_evo.xlsx"))
+  
+# Evolution des régimes dans le temps
+  ggsave(here("results", "visualization_tool", "diets_evo.pdf"), plot = graph_diets_evo)
+
+# Time to full effect
+  ggsave(here("results", "visualization_tool", "ttfe.pdf"), plot = graph_ttfe)
+  
+# Exemple : Evolution des RR du régime de S1 en 2025
+  ggsave(here("results", "visualization_tool", "rr_evo_sc1_2025.pdf"), plot = graph_rr_evo_sc1_2025)
+  
+# Evolution des RR de chaque groupe alimentaire 
+  export(rr_evo_food_combined, here("results", "visualization_tool","rr_evo_fg.xlsx"))
+  ggsave(here("results", "visualization_tool", "rr_evo_fg.pdf"), plot = graph_rr_evo_fg)
+
+# Evolution des RR de chaque régime complet
+  export(rr_evo_diets, here("results", "visualization_tool","rr_evo_diets.xlsx"))
+  ggsave(here("results", "visualization_tool", "rr_evo_diets.pdf"), plot = graph_rr_evo_diets)
+
+# Nombre de décès dans chaque scénario
+  export(deaths_wide, here("results", "visualization_tool", "deaths.xlsx"))
+
+# Nombre total de décès
+  export(total_deaths, here("results", "visualization_tool", "total_deaths.xlsx"))
+  ggsave(here("results", "visualization_tool", "total_deaths.pdf"), plot = graph_total_deaths)
+
+# Nombre total de décès évités  
+  export(total_avoided_deaths, here("results", "visualization_tool", "total_avoided_deaths.xlsx"))
+  ggsave(here("results", "visualization_tool", "total_avoided_deaths.pdf"), plot = graph_total_avoided_deaths)
+
+# Nombre de décès évités par age et année
+  export(avoided_deaths, here("results", "visualization_tool", "avoided_deaths.xlsx"))
+  ggsave(here("results", "visualization_tool", "avoided_deaths.pdf"), plot = heat_map_avoided_deaths)
+
+# Nombre de décès évités par age en 2035
+  export(avoided_deaths_2035, here("results", "visualization_tool", "avoided_deaths_2035.xlsx"))
+  ggsave(here("results", "visualization_tool", "avoided_deaths_2035.pdf"), plot = graph_avoided_deaths_2035)
+  
+# Nombre de décès évités par age en 2050
+  export(avoided_deaths_2050, here("results", "visualization_tool", "avoided_deaths_2050.xlsx"))
+  ggsave(here("results", "visualization_tool", "avoided_deaths_2050.pdf"), plot = graph_avoided_deaths_2050)
+  
+  
