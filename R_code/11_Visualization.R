@@ -50,10 +50,10 @@ pacman::p_load(
 
 #  Time to full effect
   # durée (années)
-  ttfe_time <- 10
+  ttfe_time <- 20
   
   # Dynamique (immediate, linear, cosine, sigmoidal, log)
-  ttfe_dynamics <- "immediate"
+  ttfe_dynamics <- "sigmoidal"
   
   # paramètre de la courbe d'interpolation cosinus
   p_ttfe <- 1
