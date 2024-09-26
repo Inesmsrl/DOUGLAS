@@ -18,5 +18,7 @@
 
 9. RR_evolution_2 : Calcul de la valeur du risque relatif (RR) associé au niveau de consommation de chaque aliment, chaque année, dans chaque scénario. Ce calcul est fait à partir des valeurs du tableau des RR de Fadnes et al., 2022 et 2024. On prend donc ici en compte des relations dose-réponse non monotones. Interpolation linéaire entre les bornes renseignées, de sorte à reproduire une courbe dose-réponse (avec IC95), pour chaque g d'aliment consommé.
 
-10. RR_evolution_TTFE : Les valeurs de RR de RR_evolution_2 sont modifiées pour prendre en compte un time to full effect. 
+10. RR_evolution_TTFE : Les valeurs de RR de RR_evolution_2 sont modifiées pour prendre en compte un time to full effect.
+
+11. Visualization : Outil de visualisation des sorties du modèle DOUGLAS, permettant de changer rapidement les paramètres du modèle (bornes temporelles, borne inférieur de l'âge de la population d'intérêt, dynamique d'implémentation des régimes, dynamique de time to full effect,...)
 
