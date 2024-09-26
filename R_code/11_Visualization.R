@@ -33,7 +33,7 @@ pacman::p_load(
 ################################################################################################################################
   
 # Bornes temporelles du modèle (années)
-  year_i <- 2020 # Année initiale
+  year_i <- 2025 # Année initiale
   year_f <- 2050 # Année finale
 
 # Borne inférieure de l'âge de la population du modèle (années)
@@ -65,7 +65,7 @@ pacman::p_load(
   eta_ttfe <- 1
   
 # Combinaison des RR de chaque aliment par année (arithmetic mean, geometric mean)
-  combinaison_rr_type <- "geometric mean"
+  combinaison_rr_type <- "arithmetic mean"
   
 # Charte graphique
   col_scenario <- c("actuel" = "azure4",
@@ -338,6 +338,25 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
                                x = "",
                                y = "RR") +
                           theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+  
+# Valeur des RR des régimes relativement aux RR du régime actuel
+  rr_evo_diets <- rr_evo_diets %>% 
+    group_by("scenario", "year") %>% 
+    mutate(relative_rr = combined_rr/combined_rr[scenario == "actuel"]) %>% 
+    ungroup() %>% 
+    select(scenario, year, combined_rr, relative_rr)
+  
+# Visualisation graphique
+  graph_rr_evo_diets_relative <- ggplot(rr_evo_diets, aes(x = year,
+                                                          y = relative_rr,
+                                                          color = scenario))+
+                                    geom_line(size = 1)+
+                                    scale_color_manual(values = col_scenario)+
+                                    labs(title = "Whole diet RR evolution in each scenario",
+                                         x = "",
+                                         y = "RR") +
+                                    theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+    
 
 ################################################################################################################################
 #                                             13. Evaluation d'impact sanitaire par rapport au régime Actuel                   #
@@ -495,6 +514,7 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
 # Evolution des RR de chaque régime complet
   export(rr_evo_diets, here("results", "visualization_tool","rr_evo_diets.xlsx"))
   ggsave(here("results", "visualization_tool", "rr_evo_diets.pdf"), plot = graph_rr_evo_diets)
+  ggsave(here("results", "visualization_tool", "rr_evo_diets_relative.pdf"), plot = graph_rr_evo_diets_relative)
 
 # Nombre de décès dans chaque scénario
   export(deaths_wide, here("results", "visualization_tool", "deaths.xlsx"))
