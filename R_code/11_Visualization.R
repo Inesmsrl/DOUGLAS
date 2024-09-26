@@ -43,7 +43,7 @@ pacman::p_load(
   age_limit <- 18
   
 # Dynamique d'implémentation des régimes (immediate, linear, cosine, sigmoidal)
-  implementation <- "immediate"
+  implementation <- "sigmoidal"
   
   # paramètre de la courbe d'interpolation cosinus
   p <- 1
@@ -56,7 +56,7 @@ pacman::p_load(
   ttfe_time <- 20
   
   # Dynamique (immediate, linear, cosine, sigmoidal, log)
-  ttfe_dynamics <- "immediate"
+  ttfe_dynamics <- "linear"
   
   # paramètre de la courbe d'interpolation cosinus
   p_ttfe <- 1
@@ -470,6 +470,14 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
                   ~ total_deaths_actuel[[cur_column()]] - .)) %>% 
     rename("avoided_deaths" = "total_deaths")
   
+  # Format long pour représentation graphique
+  total_avoided_deaths_long <-  total_avoided_deaths %>% 
+    select(-avoided_deaths) %>% 
+    pivot_longer(cols = !!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time)),
+                 names_to = "year",
+                 values_to = "avoided_deaths") %>% 
+    mutate(year = as.numeric(year))
+  
   # Sur la période de changement de régime
   total_deaths_actuel_shift <- total_deaths_shift %>% 
     filter(scenario == "actuel")
@@ -479,6 +487,14 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
     mutate(across(-"scenario",
                   ~ total_deaths_actuel[[cur_column()]] - .)) %>% 
     rename("avoided_deaths" = "total_deaths")
+  
+  total_avoided_deaths_shift_long <-  total_avoided_deaths_shift %>% 
+    select(-avoided_deaths) %>% 
+    pivot_longer(cols = !!sym(as.character(year_i)) : !!sym(as.character(year_f)),
+                 names_to = "year",
+                 values_to = "avoided_deaths") %>% 
+    mutate(year = as.numeric(year))
+  
   
 # Nombre de décès évités par age et par année
   
@@ -539,6 +555,29 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
                                          y = "number of deaths avoided")+
                                     scale_fill_manual(values = col_scenario)+
                                     theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+  # Nombre total de décès évités par an dans chaque scénario
+  graph_total_avoided_deaths_yearly <- ggplot(total_avoided_deaths_long, aes(x = year,
+                                                                             y = avoided_deaths,
+                                                                             color = scenario))+
+                                          geom_line(size = 1)+
+                                          scale_color_manual(values = col_scenario)+
+                                          labs(title = "Total avoided deaths compared to keeping the current diet",
+                                               x = "",
+                                               y = "Avoided deaths") +
+                                          theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+  
+  graph_total_avoided_deaths_yearly_shift <- ggplot(total_avoided_deaths_shift_long, aes(x = year,
+                                                                                         y = avoided_deaths,
+                                                                                         color = scenario))+
+                                                geom_line(size = 1)+
+                                                scale_color_manual(values = col_scenario)+
+                                                labs(title = "Total avoided deaths compared to keeping the current diet",
+                                                     x = "",
+                                                     y = "Avoided deaths") +
+                                                theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+                                              
+  
                                 
 # Nombre de décès évités par âge et par année, dans chaque scénario
   heat_map_avoided_deaths  <- ggplot(avoided_deaths_long, aes(x = year,
@@ -613,6 +652,10 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
   export(total_avoided_deaths, here("results", "visualization_tool", "total_avoided_deaths.xlsx"))
   export(total_avoided_deaths_shift, here("results", "visualization_tool", "total_avoided_deaths_shift.xlsx"))
   ggsave(here("results", "visualization_tool", "total_avoided_deaths.pdf"), plot = graph_total_avoided_deaths)
+  
+# Nombre total de décès évités par an
+  ggsave(here("results", "visualization_tool", "total_avoided_deaths_yearly.pdf"), plot = graph_total_avoided_deaths_yearly)
+  ggsave(here("results", "visualization_tool", "total_avoided_deaths_yearly_shift.pdf"), plot = graph_total_avoided_deaths_yearly_shift)
 
 # Nombre de décès évités par age et année
   export(avoided_deaths, here("results", "visualization_tool", "avoided_deaths.xlsx"))
