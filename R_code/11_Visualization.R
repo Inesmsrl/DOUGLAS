@@ -32,15 +32,18 @@ pacman::p_load(
 #                                             3. Initialisation des paramètres                                                 #
 ################################################################################################################################
   
-# Bornes temporelles du modèle (années)
+# Bornes temporelles des changements de régime alimentaire (années)
   year_i <- 2025 # Année initiale
   year_f <- 2050 # Année finale
+  
+# Temps pendant lequel le régime reste stationnaire avant et après le changement de régime (années)
+  stability_time <- 25
 
 # Borne inférieure de l'âge de la population du modèle (années)
   age_limit <- 18
   
 # Dynamique d'implémentation des régimes (immediate, linear, cosine, sigmoidal)
-  implementation <- "cosine"
+  implementation <- "immediate"
   
   # paramètre de la courbe d'interpolation cosinus
   p <- 1
@@ -53,7 +56,7 @@ pacman::p_load(
   ttfe_time <- 20
   
   # Dynamique (immediate, linear, cosine, sigmoidal, log)
-  ttfe_dynamics <- "sigmoidal"
+  ttfe_dynamics <- "immediate"
   
   # paramètre de la courbe d'interpolation cosinus
   p_ttfe <- 1
@@ -65,7 +68,7 @@ pacman::p_load(
   eta_ttfe <- 1
   
 # Combinaison des RR de chaque aliment par année (arithmetic mean, geometric mean)
-  combinaison_rr_type <- "arithmetic mean"
+  combinaison_rr_type <- "geometric mean"
   
 # Charte graphique
   col_scenario <- c("actuel" = "azure4",
@@ -103,9 +106,9 @@ pacman::p_load(
   # Sélectionner les MR entre les bornes temporelles du modèle et au dessus de la limite d'age
   # Pivoter le dataframe en format long
   MR_select <- MR %>% 
-    select(age, !!sym(as.character(year_i)) : !!sym(as.character(year_f))) %>%
+    select(age, !!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time))) %>%
     filter(age >= age_limit) %>% 
-    pivot_longer(cols = !!sym(as.character(year_i)) : !!sym(as.character(year_f)), 
+    pivot_longer(cols = !!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time)), 
                  names_to = "year", 
                  values_to = "MR") %>% 
     mutate(year = as.numeric(year))
@@ -113,9 +116,9 @@ pacman::p_load(
   # Sélectionner les effectifs de population entre les bornes temporelles du modèle et au dessus de la limite d'age 
   # Pivoter le dataframe en format long
   population_select <- population %>% 
-    select(age, !!sym(as.character(year_i)) : !!sym(as.character(year_f))) %>% 
+    select(age, !!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time))) %>% 
     filter(age >= age_limit) %>% 
-    pivot_longer(cols = !!sym(as.character(year_i)) : !!sym(as.character(year_f)), 
+    pivot_longer(cols = !!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time)), 
                  names_to = "year", 
                  values_to = "population") %>% 
     mutate(year = as.numeric(year)) %>% 
@@ -159,12 +162,19 @@ pacman::p_load(
     pivot_longer(cols = c("actuel", "sc0", "sc1", "sc2", "sc3", "sc4", "sc5"), 
                  names_to = "scenario", 
                  values_to = "q_f") %>%  
-    crossing(year_n = year_i:year_f) %>%
+    crossing(year_n = (year_i - stability_time) : (year_f + stability_time)) %>%
     mutate(quantity = case_when(
-      implementation == "immediate" ~ q_f,
-      implementation == "linear" ~ mapply(calc_food_q_lin, q_i, q_f, year_n, year_i, year_f),
-      implementation == "cosine" ~ mapply(calc_food_q_cos, q_i, q_f, year_n, year_i, year_f, p),
-      implementation == "sigmoidal" ~ mapply(calc_food_q_sig, q_i, q_f, year_n, year_i, year_f, lambda)
+      implementation == "immediate" & year_n < year_i ~ q_i,
+      implementation == "immediate" & year_n >= year_i ~ q_f,
+      implementation == "linear" & year_n < year_i ~ q_i,
+      implementation == "linear" & year_n %in% c(year_i : year_f) ~ mapply(calc_food_q_lin, q_i, q_f, year_n, year_i, year_f),
+      implementation == "linear" & year_n > year_f ~ q_f,
+      implementation == "cosine" & year_n < year_i ~ q_i,
+      implementation == "cosine" & year_n %in% c(year_i : year_f) ~ mapply(calc_food_q_cos, q_i, q_f, year_n, year_i, year_f, p),
+      implementation == "cosine" & year_n > year_f ~ q_f,
+      implementation == "sigmoidal" & year_n < year_i ~ q_i,
+      implementation == "sigmoidal" & year_n %in% c(year_i : year_f) ~ mapply(calc_food_q_sig, q_i, q_f, year_n, year_i, year_f, lambda),
+      implementation == "sigmoidal" & year_n > year_f ~ q_f
     )) %>% 
     select("food_group", "scenario", "year_n", "quantity") %>% 
     rename("year" = "year_n")
@@ -172,7 +182,7 @@ pacman::p_load(
 # Ordonnner les groupes alimentaires
   diets_evo$food_group <- factor(diets_evo$food_group, levels = order_food_groups)
 
-# Visualisation graphique
+# Visualisation graphique sur toute la période
  graph_diets_evo <- ggplot(data = diets_evo, aes(x = year,
                                                  y = quantity,
                                                  fill = food_group))+
@@ -194,6 +204,32 @@ pacman::p_load(
                         guides(fill = guide_legend(nrow = 2, 
                                                    title.position = "top",
                                                    title.hjust = 0.5))
+ 
+# Visualisation graphique sur toute la période de changement de régimes
+ diets_evo_shift <- diets_evo %>% 
+   filter(year %in% c(year_i:year_f))
+ 
+ graph_diets_evo_shift <- ggplot(data = diets_evo_shift, aes(x = year,
+                                                             y = quantity,
+                                                             fill = food_group))+
+                             geom_area(colour = "black", linewidth = 0.2, alpha = 0.6)+
+                             facet_wrap(~ scenario, ncol = 4)+
+                             theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+                                   axis.text.y = element_text(size = 7),
+                                   strip.text = element_text(face = "bold",size = rel(0.8)),
+                                   legend.position = "bottom",
+                                   legend.text = element_text(size = 6),
+                                   legend.title = element_text(face = "bold", size = 7),
+                                   legend.key.size = unit(0.2, "cm"),
+                                   plot.margin = margin(1, 1, 1, 1, "cm"))+
+                             scale_fill_manual(values = col_food_groups)+
+                             labs(title = "Diet changes",
+                                  x = "",
+                                  y = "Quantities (g/day/pers)",
+                                  fill = "Food type")+
+                             guides(fill = guide_legend(nrow = 2, 
+                                                        title.position = "top",
+                                                        title.hjust = 0.5))
   
 ################################################################################################################################
 #                                             7. Attribution des RR à chaque régime                                            #
@@ -240,7 +276,7 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
 # Après le time to full effect : RR = NA
   diets_evo <- diets_evo %>% 
     rowwise() %>% 
-    mutate(year_n = list(seq(from = year_i, to = year_f))) %>% 
+    mutate(year_n = list(seq(from = (year_i - stability_time), to = (year_f + stability_time)))) %>% 
     unnest(year_n) %>% 
     mutate(rr_n = case_when(
       year_n < year ~ NA_real_,
@@ -316,7 +352,7 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
 #                                             12. Combinaison des RR de chaque régime par année                                #
 ################################################################################################################################
   
-# Produit des RR de chaque aliment par année
+# Fonction produit des RR de chaque aliment par année
   calc_combined_rr <- function(df) {
     df %>%
       group_by(scenario, year_n) %>%
@@ -327,6 +363,7 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
 # Calcul des RR des régimes de chaque scénario par année
   rr_evo_diets <- calc_combined_rr(rr_evo_food_combined) %>% 
     rename("year" = "year_n")
+  
   
 # Visualisation graphique
   graph_rr_evo_diets <- ggplot(rr_evo_diets, aes(x = year,
@@ -339,12 +376,14 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
                                y = "RR") +
                           theme(axis.text.x = element_text(angle = 45, hjust = 1))  
   
+  
 # Valeur des RR des régimes relativement aux RR du régime actuel
   rr_evo_diets <- rr_evo_diets %>% 
     group_by("scenario", "year") %>% 
     mutate(relative_rr = combined_rr/combined_rr[scenario == "actuel"]) %>% 
     ungroup() %>% 
     select(scenario, year, combined_rr, relative_rr)
+  
   
 # Visualisation graphique
   graph_rr_evo_diets_relative <- ggplot(rr_evo_diets, aes(x = year,
@@ -356,6 +395,32 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
                                          x = "",
                                          y = "RR") +
                                     theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+  
+# RR de chaque scénario, sur la période de changement de régime
+  rr_evo_diets_shift <-  rr_evo_diets %>% 
+    filter(year %in% c(year_i:year_f))
+  
+# Visualisation graphique de la valeur absolue des RR de chaque régime
+  graph_rr_evo_diets_shift <- ggplot(rr_evo_diets_shift, aes(x = year,
+                                                             y = combined_rr,
+                                                             color = scenario))+
+                                geom_line(size = 1)+
+                                scale_color_manual(values = col_scenario)+
+                                labs(title = "Whole diet RR evolution in each scenario",
+                                     x = "",
+                                     y = "RR") +
+                                theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+  
+# Visualisation graphique des RR des régimes relativement aux RR du régime actuel
+  graph_rr_evo_diets_relative_shift <- ggplot(rr_evo_diets_shift, aes(x = year,
+                                                                      y = relative_rr,
+                                                                      color = scenario))+
+                                  geom_line(size = 1)+
+                                  scale_color_manual(values = col_scenario)+
+                                  labs(title = "Whole diet RR evolution in each scenario",
+                                       x = "",
+                                       y = "RR") +
+                                  theme(axis.text.x = element_text(angle = 45, hjust = 1))  
     
 
 ################################################################################################################################
@@ -366,7 +431,7 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
   MR_adjusted <- MR_select %>% 
     inner_join(rr_evo_diets, by = "year", relationship = "many-to-many") %>%
     group_by(age, year) %>% 
-    mutate(adjusted_mr = MR*combined_rr/combined_rr[scenario == "actuel"]) %>% 
+    mutate(adjusted_mr = MR*relative_rr) %>% 
     ungroup()
   
 # Décès dans chaque scénario 
@@ -381,9 +446,17 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
 # Nombre total de décès par année et par scénario
   total_deaths <- deaths_wide %>% 
     group_by(scenario) %>%                                 
+    summarise(across(!!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time)), sum)) %>%
+    rowwise() %>%
+    mutate(total_deaths = sum(c_across(!!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time)))))  
+  
+  # Sur la période de changement de régime
+  total_deaths_shift <- deaths_wide %>% 
+    group_by(scenario) %>%                                 
     summarise(across(!!sym(as.character(year_i)) : !!sym(as.character(year_f)), sum)) %>%
     rowwise() %>%
     mutate(total_deaths = sum(c_across(!!sym(as.character(year_i)) : !!sym(as.character(year_f)))))    
+  
   
 # Nombre total de décès évités
   
@@ -397,9 +470,19 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
                   ~ total_deaths_actuel[[cur_column()]] - .)) %>% 
     rename("avoided_deaths" = "total_deaths")
   
+  # Sur la période de changement de régime
+  total_deaths_actuel_shift <- total_deaths_shift %>% 
+    filter(scenario == "actuel")
+  
+  total_avoided_deaths_shift <- total_deaths_shift %>% 
+    filter(scenario %in% c("sc0", "sc1", "sc2", "sc3", "sc4", "sc5")) %>% 
+    mutate(across(-"scenario",
+                  ~ total_deaths_actuel[[cur_column()]] - .)) %>% 
+    rename("avoided_deaths" = "total_deaths")
+  
 # Nombre de décès évités par age et par année
   
-  # Filtrer les décès du scénario "Tendanciel"
+  # Filtrer les décès du scénario actuel
   deaths_actuel <- deaths_wide %>% 
     filter(scenario == "actuel") %>%
     select(-scenario) %>% 
@@ -500,6 +583,7 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
   
 # Evolution des régimes dans le temps
   ggsave(here("results", "visualization_tool", "diets_evo.pdf"), plot = graph_diets_evo)
+  ggsave(here("results", "visualization_tool", "diets_evo_shift.pdf"), plot = graph_diets_evo_shift)
 
 # Time to full effect
   ggsave(here("results", "visualization_tool", "ttfe.pdf"), plot = graph_ttfe)
@@ -515,6 +599,8 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
   export(rr_evo_diets, here("results", "visualization_tool","rr_evo_diets.xlsx"))
   ggsave(here("results", "visualization_tool", "rr_evo_diets.pdf"), plot = graph_rr_evo_diets)
   ggsave(here("results", "visualization_tool", "rr_evo_diets_relative.pdf"), plot = graph_rr_evo_diets_relative)
+  ggsave(here("results", "visualization_tool", "rr_evo_diets_shift.pdf"), plot = graph_rr_evo_diets_shift)
+  ggsave(here("results", "visualization_tool", "rr_evo_diets_relative_shift.pdf"), plot = graph_rr_evo_diets_relative_shift)
 
 # Nombre de décès dans chaque scénario
   export(deaths_wide, here("results", "visualization_tool", "deaths.xlsx"))
@@ -525,6 +611,7 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
 
 # Nombre total de décès évités  
   export(total_avoided_deaths, here("results", "visualization_tool", "total_avoided_deaths.xlsx"))
+  export(total_avoided_deaths_shift, here("results", "visualization_tool", "total_avoided_deaths_shift.xlsx"))
   ggsave(here("results", "visualization_tool", "total_avoided_deaths.pdf"), plot = graph_total_avoided_deaths)
 
 # Nombre de décès évités par age et année
