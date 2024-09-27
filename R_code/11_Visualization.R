@@ -50,6 +50,11 @@ pacman::p_load(
   
   # paramètre de la courbe sigmoïdale
   lambda <- 5
+  
+# Paramètre de modification d'effet des RR 
+  # 0.5 à 1 = réduction d'effet, modèle conservateur
+  # 1 à 1.5 = augmentation d'effet, modèle radical
+  m <- 0.75
 
 #  Time to full effect
   # durée (années)
@@ -103,8 +108,8 @@ pacman::p_load(
 #                                             4. Préparation des données                                                       #
 ################################################################################################################################
   
-  # Sélectionner les MR entre les bornes temporelles du modèle et au dessus de la limite d'age
-  # Pivoter le dataframe en format long
+# Sélectionner les MR entre les bornes temporelles du modèle et au dessus de la limite d'age
+# Pivoter le dataframe en format long
   MR_select <- MR %>% 
     select(age, !!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time))) %>%
     filter(age >= age_limit) %>% 
@@ -113,8 +118,8 @@ pacman::p_load(
                  values_to = "MR") %>% 
     mutate(year = as.numeric(year))
   
-  # Sélectionner les effectifs de population entre les bornes temporelles du modèle et au dessus de la limite d'age 
-  # Pivoter le dataframe en format long
+# Sélectionner les effectifs de population entre les bornes temporelles du modèle et au dessus de la limite d'age 
+# Pivoter le dataframe en format long
   population_select <- population %>% 
     select(age, !!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time))) %>% 
     filter(age >= age_limit) %>% 
@@ -124,7 +129,7 @@ pacman::p_load(
     mutate(year = as.numeric(year)) %>% 
     arrange(age)
   
-  # Pivoter le dataframe des RR en format long
+# Pivoter le dataframe des RR en format long
   rr_table <- rr_table %>% 
     pivot_longer(cols = "0":"800",
                  names_to = "quantity",
@@ -230,9 +235,20 @@ pacman::p_load(
                              guides(fill = guide_legend(nrow = 2, 
                                                         title.position = "top",
                                                         title.hjust = 0.5))
-  
+ 
 ################################################################################################################################
-#                                             7. Attribution des RR à chaque régime                                            #
+#                                             7. Modification d'effet des RR                                                         #
+################################################################################################################################
+ rr_table <- rr_table %>% 
+   mutate(rr_a = case_when(
+     rr < 1 ~ rr + (1 - rr) * (1 - m),
+     rr >= 1 ~ 1 / (1/rr + (1 - 1/rr) * (1 - m))
+   )) %>% 
+   select("food_group", "quantity", "rr_a") %>% 
+   rename("rr" = "rr_a")
+ 
+################################################################################################################################
+#                                             8. Attribution des RR à chaque régime                                            #
 ################################################################################################################################
   
   diets_evo <- diets_evo %>% 
@@ -240,7 +256,7 @@ pacman::p_load(
     left_join(rr_table, by = c("food_group", "quantity"))
   
 ################################################################################################################################
-#                                             8. Time to full effect                                                           #
+#                                             9. Time to full effect                                                           #
 ################################################################################################################################
   
 # % du RR chaque année sur la période du time to full effect
@@ -269,7 +285,7 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
                        y = "")  
   
 ################################################################################################################################
-#                                             9. Calcul des RR avec TTFE                                                       #
+#                                             10. Calcul des RR avec TTFE                                                       #
 ################################################################################################################################
   
 # Calcul de la valeur des RR sur la durée du time to full effect
@@ -286,7 +302,7 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
     ungroup()
 
 ################################################################################################################################
-#                                             10. Exemple : RR du régime de 2025 dans S1                                       #
+#                                             11. Exemple : RR du régime de 2025 dans S1                                       #
 ################################################################################################################################
   
 # Sélection du régime de S1 en 2025 et les valeurs des RR associées, jusqu'en 2050
@@ -314,7 +330,7 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
                                 theme(axis.text.x = element_text(angle = 45, hjust = 1))  
 
 ################################################################################################################################
-#                                             11. Combinaison des RR de chaque aliment par année                               #
+#                                             12. Combinaison des RR de chaque aliment par année                               #
 ################################################################################################################################
   
 # Calcul des RR de chaque aliment pour chaque année, par moyenne géométrique
@@ -349,7 +365,7 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
                                                    title.hjust = 0.5))
     
 ################################################################################################################################
-#                                             12. Combinaison des RR de chaque régime par année                                #
+#                                             13. Combinaison des RR de chaque régime par année                                #
 ################################################################################################################################
   
 # Fonction produit des RR de chaque aliment par année
@@ -424,7 +440,7 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
     
 
 ################################################################################################################################
-#                                             13. Evaluation d'impact sanitaire par rapport au régime Actuel                   #
+#                                             14. Evaluation d'impact sanitaire par rapport au régime Actuel                   #
 ################################################################################################################################
   
 # Ajustement des taux de mortalité
@@ -531,7 +547,7 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
   
   
 ################################################################################################################################
-#                                             14. Graphiques : Evaluation d'impact sanitaire par rapport au régime Actuel      #
+#                                             15. Graphiques : Evaluation d'impact sanitaire par rapport au régime Actuel      #
 ################################################################################################################################
   
 # Nombre de décès total par scénario
@@ -614,7 +630,7 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
                                      y = "Avoided deaths")
                               
 ################################################################################################################################
-#                                             15. Exportation des données                                                      #
+#                                             16. Exportation des données                                                      #
 ################################################################################################################################
   
 # Régimes, valeurs des RR 100% et RR par année
