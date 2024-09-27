@@ -43,7 +43,7 @@ pacman::p_load(
   age_limit <- 18
   
 # Dynamique d'implémentation des régimes (immediate, linear, cosine, sigmoidal)
-  implementation <- "sigmoidal"
+  implementation <- "cosine"
   
   # paramètre de la courbe d'interpolation cosinus
   p <- 1
@@ -58,7 +58,7 @@ pacman::p_load(
 
 #  Time to full effect
   # durée (années)
-  ttfe_time <- 20
+  ttfe_time <- 10
   
   # Dynamique (immediate, linear, cosine, sigmoidal, log)
   ttfe_dynamics <- "linear"
@@ -77,11 +77,11 @@ pacman::p_load(
   
 # Charte graphique
   col_scenario <- c("actuel" = "azure4",
-                    "sc0" = "royalblue2",
-                    "sc1" = "darkseagreen4",
-                    "sc2" = "aquamarine2",
-                    "sc3" = "lightpink",
-                    "sc4" = "maroon",
+                    "sc0" = "palevioletred3",
+                    "sc1" = "aquamarine2",
+                    "sc2" = "#DDCC77",
+                    "sc3" = "lightskyblue3",
+                    "sc4" = "#882255",
                     "sc5" = "royalblue4")
   
   col_food_groups <- c("red_meat" = "#F60239",
