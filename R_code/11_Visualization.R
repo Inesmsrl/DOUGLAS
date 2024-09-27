@@ -43,7 +43,7 @@ pacman::p_load(
   age_limit <- 18
   
 # Dynamique d'implémentation des régimes (immediate, linear, cosine, sigmoidal)
-  implementation <- "cosine"
+  implementation <- "linear"
   
   # paramètre de la courbe d'interpolation cosinus
   p <- 1
@@ -58,10 +58,10 @@ pacman::p_load(
 
 #  Time to full effect
   # durée (années)
-  ttfe_time <- 10
+  ttfe_time <- 20
   
   # Dynamique (immediate, linear, cosine, sigmoidal, log)
-  ttfe_dynamics <- "linear"
+  ttfe_dynamics <- "immediate"
   
   # paramètre de la courbe d'interpolation cosinus
   p_ttfe <- 1
