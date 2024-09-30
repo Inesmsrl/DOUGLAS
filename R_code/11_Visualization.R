@@ -333,7 +333,7 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
 #                                             12. Combinaison des RR de chaque aliment par année                               #
 ################################################################################################################################
   
-# Calcul des RR de chaque aliment pour chaque année, par moyenne géométrique
+# Calcul des RR de chaque aliment pour chaque année
   rr_evo_food_combined <- diets_evo %>% 
     group_by(scenario, year_n, food_group) %>% 
     summarize(mean_rr = case_when(
