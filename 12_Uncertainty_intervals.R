@@ -257,7 +257,7 @@ pacman::p_load(
   set.seed(123)
   
 # Fonction de simulation
-  simulate_rr <- function(distribution, N = 10) {
+  simulate_rr <- function(distribution, N = 20) {
     sample(distribution, size = N, replace = TRUE)
   }
 
@@ -610,7 +610,7 @@ diets_evo <- diets_evo %>%
   # Fonction produit des RR de chaque aliment par année
   calc_combined_rr <- function(df) {
     df %>%
-      group_by(scenario, year, simulation_id) %>%
+      group_by(scenario, year_n, simulation_id) %>%
       summarize(combined_rr = prod(mean_rr, na.rm = TRUE)) %>%
       ungroup()
   }  
