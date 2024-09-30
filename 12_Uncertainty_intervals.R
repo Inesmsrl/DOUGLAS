@@ -8,7 +8,8 @@ pacman::p_load(
   dplyr,               # Manipulation des données
   tidyr,               # Manipulation des données
   tidyverse,           # Data management, inclus ggplot
-  purrr                # Opérations itératives
+  purrr,               # Opérations itératives
+  psych                # Contient fonction moyenne géométrique
 )
 
 ################################################################################################################################
@@ -256,7 +257,7 @@ pacman::p_load(
   set.seed(123)
   
 # Fonction de simulation
-  simulate_rr <- function(distribution, N = 200) {
+  simulate_rr <- function(distribution, N = 10) {
     sample(distribution, size = N, replace = TRUE)
   }
 
@@ -413,6 +414,260 @@ diets_evo <- diets_evo %>%
             axis.text.y = element_text(size = 7),
             strip.text = element_text(face = "bold",size = rel(0.5)))
      
+################################################################################################################################
+#                                             12. TTFE                                                                         #
+################################################################################################################################
+    
+# % du RR chaque année sur la période du time to full effect
+  ttfe <- tibble(0:ttfe_time) %>% 
+    rename("time" = "0:ttfe_time")
+    
+  ttfe <- ttfe %>% 
+      mutate(ttfe = case_when(
+        ttfe_time == 0 ~ 1,
+        ttfe_dynamics == "immediate" & ttfe$time == 0 ~ 1,
+        ttfe_dynamics == "immediate" & ttfe$time > 0 ~ NA_real_,
+        ttfe_dynamics == "linear" ~ time/ttfe_time,
+        ttfe_dynamics == "cosine" ~ (1 - cos(pi * (time/ttfe_time)^p_ttfe))/2,
+        ttfe_dynamics == "sigmoidal" ~ (1 / (1 + exp(-lambda_ttfe * (time / ttfe_time - 1/2))) - 1 / (1 + exp(lambda_ttfe / 2))) / 
+          (1 - 2 / (1 + exp(lambda_ttfe / 2))),
+        ttfe_dynamics == "log" ~ log(1 + eta_ttfe * time/ttfe_time) / log(1 + eta_ttfe),
+        TRUE ~ NA_real_
+      ))
+    
+################################################################################################################################
+#                                             13. Calcul des RR avec TTFE                                                      #
+################################################################################################################################
   
-    
-    
+# Calcul de la valeur des RR sur la durée du time to full effect
+# Après le time to full effect : RR = NA
+    simulations_long <- simulations_long %>% 
+      rowwise() %>% 
+      mutate(year_n = list(seq(from = (year_i - stability_time), to = (year_f + stability_time)))) %>% 
+      unnest(year_n) %>% 
+      mutate(simulated_rr_n = case_when(
+        year_n < year ~ NA_real_,
+        year_n >= year & year_n <= year + max(ttfe$time) ~ 1 + (simulated_rr - 1) * ttfe$ttfe[match(year_n - year, ttfe$time)],
+        year_n > year + max(ttfe$time) ~ NA_real_
+      )) %>%
+      ungroup()
+
+################################################################################################################################
+#                                             14. Combinaison des RR de chaque aliment par année                               #
+################################################################################################################################
+  
+# Calcul des RR de chaque aliment pour chaque année
+  rr_evo_food_combined <- simulations_long %>% 
+    group_by(scenario, year_n, food_group, simulation_id) %>% 
+    summarize(mean_rr = case_when(
+      combinaison_rr_type == "arithmetic mean" ~ mean(simulated_rr_n, na.rm = TRUE),
+      combinaison_rr_type == "geometric mean"~ geometric.mean(simulated_rr_n, na.rm = TRUE))
+    )
+  
+# Calculer la moyenne et les IC95 pour chaque année
+  simulations_summary_rr_fg_combined <- rr_evo_food_combined %>%
+    group_by(food_group, scenario, year_n) %>%
+    summarise(
+      combined_rr = mean(mean_rr, na.rm = TRUE),  # Moyenne des simulations
+      lower_ci = quantile(mean_rr, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
+      upper_ci = quantile(mean_rr, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
+    )
+  
+################################################################################################################################
+#                                             15. Représentations graphiques des simulations des valeurs de RR combinés        #
+################################################################################################################################
+  
+  # S0 = Tendanciel
+  simulations_summary_sc0_c <- simulations_summary_rr_fg_combined %>% 
+    filter(scenario == "sc0")
+  
+  ggplot(simulations_summary_sc0_c, aes(x = year_n,
+                                      y = combined_rr,
+                                      color = food_group)) +
+    facet_wrap(~ food_group)+
+    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
+    geom_line(size = 1, na.rm = TRUE) +  # Moyenne en trait plein
+    labs(
+      title = "RR simulations",
+      x = "",
+      y = "RR"
+    )+
+    scale_color_manual(values = col_food_groups)+
+    scale_fill_manual(values = col_food_groups)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.5)))
+  
+  # S1
+  simulations_summary_sc1_c <- simulations_summary_rr_fg_combined %>% 
+    filter(scenario == "sc1")
+  
+  ggplot(simulations_summary_sc1_c, aes(x = year_n,
+                                      y = combined_rr,
+                                      color = food_group)) +
+    facet_wrap(~ food_group)+
+    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
+    geom_line(size = 1, na.rm = TRUE) +  # Moyenne en trait plein
+    labs(
+      title = "RR simulations",
+      x = "",
+      y = "RR"
+    )+
+    scale_color_manual(values = col_food_groups)+
+    scale_fill_manual(values = col_food_groups)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.5)))
+  
+  # S2
+  simulations_summary_sc2_c <- simulations_summary_rr_fg_combined %>% 
+    filter(scenario == "sc2")
+  
+  ggplot(simulations_summary_sc2_c, aes(x = year_n,
+                                      y = combined_rr,
+                                      color = food_group)) +
+    facet_wrap(~ food_group)+
+    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
+    geom_line(size = 1, na.rm = TRUE) +  # Moyenne en trait plein
+    labs(
+      title = "RR simulations",
+      x = "",
+      y = "RR"
+    )+
+    scale_color_manual(values = col_food_groups)+
+    scale_fill_manual(values = col_food_groups)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.5)))
+  
+  # S3
+  simulations_summary_sc3_c <- simulations_summary_rr_fg_combined %>% 
+    filter(scenario == "sc3")
+  
+  ggplot(simulations_summary_sc3_c, aes(x = year_n,
+                                      y = combined_rr,
+                                      color = food_group)) +
+    facet_wrap(~ food_group)+
+    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
+    geom_line(size = 1, na.rm = TRUE) +  # Moyenne en trait plein
+    labs(
+      title = "RR simulations",
+      x = "",
+      y = "RR"
+    )+
+    scale_color_manual(values = col_food_groups)+
+    scale_fill_manual(values = col_food_groups)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.5)))
+  
+  # S4
+  simulations_summary_sc4_c <- simulations_summary_rr_fg_combined %>% 
+    filter(scenario == "sc4")
+  
+  ggplot(simulations_summary_sc4_c, aes(x = year_n,
+                                      y = combined_rr,
+                                      color = food_group)) +
+    facet_wrap(~ food_group)+
+    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
+    geom_line(size = 1, na.rm = TRUE) +  # Moyenne en trait plein
+    labs(
+      title = "RR simulartions",
+      x = "",
+      y = "RR"
+    )+
+    scale_color_manual(values = col_food_groups)+
+    scale_fill_manual(values = col_food_groups)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.5)))
+  
+  # S5
+  simulations_summary_sc5_c <- simulations_summary_rr_fg_combined %>% 
+    filter(scenario == "sc5")
+  
+  ggplot(simulations_summary_sc5_c, aes(x = year_n,
+                                      y = combined_rr,
+                                      color = food_group)) +
+    facet_wrap(~ food_group)+
+    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
+    geom_line(size = 1, na.rm = TRUE) +  # Moyenne en trait plein
+    labs(
+      title = "RR simulartions",
+      x = "",
+      y = "RR"
+    )+
+    scale_color_manual(values = col_food_groups)+
+    scale_fill_manual(values = col_food_groups)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.5)))
+  
+################################################################################################################################
+#                                             16. Combinaison des RR de chaque régime par année                                #
+################################################################################################################################
+  
+  # Fonction produit des RR de chaque aliment par année
+  calc_combined_rr <- function(df) {
+    df %>%
+      group_by(scenario, year, simulation_id) %>%
+      summarize(combined_rr = prod(mean_rr, na.rm = TRUE)) %>%
+      ungroup()
+  }  
+  
+  # Calcul des RR des régimes de chaque scénario par année
+  rr_evo_diets <- calc_combined_rr(rr_evo_food_combined) %>% 
+    rename("year" = "year_n")
+  
+  # Calculer la moyenne et les IC95 pour chaque année
+  simulations_summary_rr_diets <- rr_evo_diets %>%
+    group_by(scenario, year) %>%
+    summarise(
+      mean_rr = mean(combined_rr, na.rm = TRUE),  # Moyenne des simulations
+      lower_ci = quantile(combined_rr, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
+      upper_ci = quantile(combined_rr, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
+    )
+  
+################################################################################################################################
+#                                             17. Représentations graphiques des simulations des valeurs de RR des régimes     #
+################################################################################################################################
+  
+
+  ggplot(simulations_summary_rr_diets, aes(x = year,
+                                           y = mean_rr,
+                                           color = scenario)) +
+    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5)+
+    facet_wrap(~ scenario)+
+    geom_line(size = 1, na.rm = TRUE)+ 
+    labs(
+      title = "RR simulations",
+      x = "",
+      y = "RR"
+    )+
+    scale_color_manual(values = col_scenario)+
+    scale_fill_manual(values = col_scenario)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.5)))
+  
+################################################################################################################################
+#                                             18. Combinaison des RR de chaque régime par année et calcul relatif au RR actuel #
+################################################################################################################################
+  
+ 
+  # Calcul des RR relatifs aux RR du scénario actuel
+  rr_evo_diets <- rr_evo_diets %>% 
+    group_by(scenario, year, simulation_id) %>% 
+    mutate(relative_rr = combined_rr/combined_rr[scenario == "actuel"]) %>% 
+    ungroup()
+  
+  # Calculer la moyenne et les IC95 pour chaque année
+  simulations_summary_rr_diets <- rr_evo_diets %>%
+    group_by(scenario, year) %>%
+    summarise(
+      mean_rr = mean(combined_rr, na.rm = TRUE),  # Moyenne des simulations
+      lower_ci = quantile(combined_rr, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
+      upper_ci = quantile(combined_rr, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
+    )
+  
+  
