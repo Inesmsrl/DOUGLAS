@@ -249,7 +249,7 @@ pacman::p_load(
     mutate(rr_distrib = list(generate_RR_distrib(rr_mid, rr_low, rr_up)))
   
 ################################################################################################################################
-#                                             10. Simulations                                                                  #
+#                                             10. Simulations des valeurs de RR                                                #
 ################################################################################################################################
   
 # Fixer une graine pour garantir la reproductibilité des simulations
@@ -283,19 +283,136 @@ diets_evo <- diets_evo %>%
       upper_ci = quantile(simulated_rr, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
     )
 
-# Représentation graphique 
-  ggplot(simulations_summary, aes(x = year,
-                                  y = mean_rr,
-                                  color = as.factor(food_group))) +
-    facet_wrap(~ scenario)+
-    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = as.factor(food_group)), alpha = 0.5) +  # Intervalle de confiance
-    geom_line(size = 1) +  # Moyenne en trait plein
-    labs(
-      title = "Simulations de RR par année",
-      x = "Année",
-      y = "Valeur de RR (Simulations)"
-    )+
-    scale_color_manual(values = col_food_groups)+
-    scale_fill_manual(values = col_food_groups)+
-    theme_minimal()
+################################################################################################################################
+#                                             11. Représentations graphiques des simulations des valeurs de RR                 #
+################################################################################################################################
   
+  # S0 = Tendanciel
+    simulations_summary_sc0 <- simulations_summary %>% 
+      filter(scenario == "sc0")
+    
+    ggplot(simulations_summary_sc0, aes(x = year,
+                                    y = mean_rr,
+                                    color = food_group)) +
+      facet_wrap(~ food_group)+
+      geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
+      geom_line(size = 1, na.rm = TRUE) +  # Moyenne en trait plein
+      labs(
+        title = "RR simulartions",
+        x = "",
+        y = "RR"
+      )+
+      scale_color_manual(values = col_food_groups)+
+      scale_fill_manual(values = col_food_groups)+
+      theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+            axis.text.y = element_text(size = 7),
+            strip.text = element_text(face = "bold",size = rel(0.5)))
+    
+    # S1
+    simulations_summary_sc1 <- simulations_summary %>% 
+      filter(scenario == "sc1")
+    
+    ggplot(simulations_summary_sc1, aes(x = year,
+                                        y = mean_rr,
+                                        color = food_group)) +
+      facet_wrap(~ food_group)+
+      geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
+      geom_line(size = 1, na.rm = TRUE) +  # Moyenne en trait plein
+      labs(
+        title = "RR simulartions",
+        x = "",
+        y = "RR"
+      )+
+      scale_color_manual(values = col_food_groups)+
+      scale_fill_manual(values = col_food_groups)+
+      theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+            axis.text.y = element_text(size = 7),
+            strip.text = element_text(face = "bold",size = rel(0.5)))
+    
+    # S2
+    simulations_summary_sc2 <- simulations_summary %>% 
+      filter(scenario == "sc2")
+    
+    ggplot(simulations_summary_sc2, aes(x = year,
+                                        y = mean_rr,
+                                        color = food_group)) +
+      facet_wrap(~ food_group)+
+      geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
+      geom_line(size = 1, na.rm = TRUE) +  # Moyenne en trait plein
+      labs(
+        title = "RR simulartions",
+        x = "",
+        y = "RR"
+      )+
+      scale_color_manual(values = col_food_groups)+
+      scale_fill_manual(values = col_food_groups)+
+      theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+            axis.text.y = element_text(size = 7),
+            strip.text = element_text(face = "bold",size = rel(0.5)))
+    
+    # S3
+    simulations_summary_sc3 <- simulations_summary %>% 
+      filter(scenario == "sc3")
+    
+    ggplot(simulations_summary_sc3, aes(x = year,
+                                        y = mean_rr,
+                                        color = food_group)) +
+      facet_wrap(~ food_group)+
+      geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
+      geom_line(size = 1, na.rm = TRUE) +  # Moyenne en trait plein
+      labs(
+        title = "RR simulartions",
+        x = "",
+        y = "RR"
+      )+
+      scale_color_manual(values = col_food_groups)+
+      scale_fill_manual(values = col_food_groups)+
+      theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+            axis.text.y = element_text(size = 7),
+            strip.text = element_text(face = "bold",size = rel(0.5)))
+
+    # S4
+    simulations_summary_sc4 <- simulations_summary %>% 
+      filter(scenario == "sc4")
+    
+    ggplot(simulations_summary_sc4, aes(x = year,
+                                        y = mean_rr,
+                                        color = food_group)) +
+      facet_wrap(~ food_group)+
+      geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
+      geom_line(size = 1, na.rm = TRUE) +  # Moyenne en trait plein
+      labs(
+        title = "RR simulartions",
+        x = "",
+        y = "RR"
+      )+
+      scale_color_manual(values = col_food_groups)+
+      scale_fill_manual(values = col_food_groups)+
+      theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+            axis.text.y = element_text(size = 7),
+            strip.text = element_text(face = "bold",size = rel(0.5)))
+    
+    # S5
+    simulations_summary_sc5 <- simulations_summary %>% 
+      filter(scenario == "sc5")
+    
+    ggplot(simulations_summary_sc5, aes(x = year,
+                                        y = mean_rr,
+                                        color = food_group)) +
+      facet_wrap(~ food_group)+
+      geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
+      geom_line(size = 1, na.rm = TRUE) +  # Moyenne en trait plein
+      labs(
+        title = "RR simulartions",
+        x = "",
+        y = "RR"
+      )+
+      scale_color_manual(values = col_food_groups)+
+      scale_fill_manual(values = col_food_groups)+
+      theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+            axis.text.y = element_text(size = 7),
+            strip.text = element_text(face = "bold",size = rel(0.5)))
+     
+  
+    
+    
