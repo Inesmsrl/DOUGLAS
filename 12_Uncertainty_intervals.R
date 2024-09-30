@@ -657,17 +657,39 @@ diets_evo <- diets_evo %>%
  
   # Calcul des RR relatifs aux RR du scénario actuel
   rr_evo_diets <- rr_evo_diets %>% 
-    group_by(scenario, year, simulation_id) %>% 
+    group_by(year, simulation_id) %>% 
     mutate(relative_rr = combined_rr/combined_rr[scenario == "actuel"]) %>% 
     ungroup()
   
   # Calculer la moyenne et les IC95 pour chaque année
-  simulations_summary_rr_diets <- rr_evo_diets %>%
+  simulations_summary_rr_diets_relative <- rr_evo_diets %>%
     group_by(scenario, year) %>%
     summarise(
-      mean_rr = mean(combined_rr, na.rm = TRUE),  # Moyenne des simulations
-      lower_ci = quantile(combined_rr, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
-      upper_ci = quantile(combined_rr, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
+      mean_rr = mean(relative_rr, na.rm = TRUE),  # Moyenne des simulations
+      lower_ci = quantile(relative_rr, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
+      upper_ci = quantile(relative_rr, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
     )
+  
+################################################################################################################################
+#                                             19. Représentations graphiques des simulations des valeurs de RR relatives des régimes     #
+################################################################################################################################
+  
+  
+  ggplot(simulations_summary_rr_diets_relative, aes(x = year,
+                                           y = mean_rr,
+                                           color = scenario)) +
+    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5)+
+    facet_wrap(~ scenario)+
+    geom_line(size = 1, na.rm = TRUE)+ 
+    labs(
+      title = "RR simulations",
+      x = "",
+      y = "RR"
+    )+
+    scale_color_manual(values = col_scenario)+
+    scale_fill_manual(values = col_scenario)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.5)))
   
   
