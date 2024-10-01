@@ -64,7 +64,7 @@ pacman::p_load(
 # Paramètre de modification d'effet des RR 
   # 0.5 à 1 = réduction d'effet, modèle conservateur
   # 1 à 1.5 = augmentation d'effet, modèle radical
-  m <- 0.75
+  m <- 1
   
 #  Time to full effect
   # durée (années)
