@@ -43,7 +43,7 @@ pacman::p_load(
   age_limit <- 18
   
 # Dynamique d'implémentation des régimes (immediate, linear, cosine, sigmoidal)
-  implementation <- "linear"
+  implementation <- "cosine"
   
   # paramètre de la courbe d'interpolation cosinus
   p <- 1
@@ -58,10 +58,10 @@ pacman::p_load(
 
 #  Time to full effect
   # durée (années)
-  ttfe_time <- 20
+  ttfe_time <- 10
   
   # Dynamique (immediate, linear, cosine, sigmoidal, log)
-  ttfe_dynamics <- "immediate"
+  ttfe_dynamics <- "linear"
   
   # paramètre de la courbe d'interpolation cosinus
   p_ttfe <- 1
@@ -242,7 +242,7 @@ pacman::p_load(
  rr_table <- rr_table %>% 
    mutate(rr_a = case_when(
      rr < 1 ~ rr + (1 - rr) * (1 - m),
-     rr >= 1 ~ 1 / (1/rr + (1 - 1/rr) * (1 - m))
+     rr >= 1 ~ 1 / (m/rr + 1 - m)
    )) %>% 
    select("food_group", "quantity", "rr_a") %>% 
    rename("rr" = "rr_a")

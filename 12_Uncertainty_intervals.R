@@ -52,7 +52,6 @@ pacman::p_load(
 # Borne inférieure de l'âge de la population du modèle (années)
   age_limit <- 18
   
-  
 # Dynamique d'implémentation des régimes (immediate, linear, cosine, sigmoidal)
   implementation <- "cosine"
   
@@ -221,7 +220,7 @@ pacman::p_load(
   rr_table_low <- rr_table_low %>% 
     mutate(rr_a = case_when(
       rr < 1 ~ rr + (1 - rr) * (1 - m),
-      rr >= 1 ~ 1 / (1/rr + (1 - 1/rr) * (1 - m))
+      rr >= 1 ~ 1 / (m/rr + 1 - m)
     )) %>% 
     select("food_group", "quantity", "rr_a") %>% 
     rename("rr" = "rr_a")
@@ -229,7 +228,7 @@ pacman::p_load(
   rr_table_mid <- rr_table_mid %>% 
     mutate(rr_a = case_when(
       rr < 1 ~ rr + (1 - rr) * (1 - m),
-      rr >= 1 ~ 1 / (1/rr + (1 - 1/rr) * (1 - m))
+      rr >= 1 ~ 1 / (m/rr + 1 - m)
     )) %>% 
     select("food_group", "quantity", "rr_a") %>% 
     rename("rr" = "rr_a")
@@ -237,7 +236,7 @@ pacman::p_load(
   rr_table_up <- rr_table_up %>% 
     mutate(rr_a = case_when(
       rr < 1 ~ rr + (1 - rr) * (1 - m),
-      rr >= 1 ~ 1 / (1/rr + (1 - 1/rr) * (1 - m))
+      rr >= 1 ~ 1 / (m/rr + 1 - m)
     )) %>% 
     select("food_group", "quantity", "rr_a") %>% 
     rename("rr" = "rr_a")
