@@ -30,6 +30,14 @@ pacman::p_load(
   #Upper
   rr_table_up <- import(here("data_clean", "rr_table_up_interpolated.xlsx"))
   
+# Population
+  # Taux de mortalité (INSEE)
+  MR <- import(here("data_clean", "MR_table.xlsx"))
+  
+  # Effectifs de population par age et par année (INSEE)
+  population <- import(here("data_clean", "population_clean.xlsx"))
+  
+  
 ################################################################################################################################
 #                                             3. Initialisation des paramètres                                                 #
 ################################################################################################################################
@@ -41,8 +49,12 @@ pacman::p_load(
 # Temps pendant lequel le régime reste stationnaire avant et après le changement de régime (années)
   stability_time <- 25
   
+# Borne inférieure de l'âge de la population du modèle (années)
+  age_limit <- 18
+  
+  
 # Dynamique d'implémentation des régimes (immediate, linear, cosine, sigmoidal)
-  implementation <- "linear"
+  implementation <- "cosine"
   
 # paramètre de la courbe d'interpolation cosinus
   p <- 1
@@ -53,14 +65,14 @@ pacman::p_load(
 # Paramètre de modification d'effet des RR 
   # 0.5 à 1 = réduction d'effet, modèle conservateur
   # 1 à 1.5 = augmentation d'effet, modèle radical
-  m <- 0.75
+  m <- 1
   
 #  Time to full effect
   # durée (années)
-  ttfe_time <- 20
+  ttfe_time <- 10
   
   # Dynamique (immediate, linear, cosine, sigmoidal, log)
-  ttfe_dynamics <- "immediate"
+  ttfe_dynamics <- "linear"
   
   # paramètre de la courbe d'interpolation cosinus
   p_ttfe <- 1
@@ -128,6 +140,28 @@ pacman::p_load(
                  values_to = "rr") %>% 
     mutate(quantity = as.numeric(quantity),
            rr =as.numeric(rr))
+  
+# Sélectionner les MR entre les bornes temporelles du modèle et au dessus de la limite d'age
+# Pivoter le dataframe en format long
+  MR_select <- MR %>% 
+    select(age, !!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time))) %>%
+    filter(age >= age_limit) %>% 
+    pivot_longer(cols = !!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time)), 
+                 names_to = "year", 
+                 values_to = "MR") %>% 
+    mutate(year = as.numeric(year))
+  
+# Sélectionner les effectifs de population entre les bornes temporelles du modèle et au dessus de la limite d'age 
+# Pivoter le dataframe en format long
+  population_select <- population %>% 
+    select(age, !!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time))) %>% 
+    filter(age >= age_limit) %>% 
+    pivot_longer(cols = !!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time)), 
+                 names_to = "year", 
+                 values_to = "population") %>% 
+    mutate(year = as.numeric(year)) %>% 
+    arrange(age)
+  
   
 ################################################################################################################################
 #                                             5. Fonctions d'implémentation des régimes                                        #
@@ -254,10 +288,10 @@ pacman::p_load(
 ################################################################################################################################
   
 # Fixer une graine pour garantir la reproductibilité des simulations
-  set.seed(123)
+  set.seed(321)
   
 # Fonction de simulation
-  simulate_rr <- function(distribution, N = 20) {
+  simulate_rr <- function(distribution, N = 30) {
     sample(distribution, size = N, replace = TRUE)
   }
 
@@ -655,13 +689,13 @@ diets_evo <- diets_evo %>%
 ################################################################################################################################
   
  
-  # Calcul des RR relatifs aux RR du scénario actuel
+# Calcul des RR relatifs aux RR du scénario actuel
   rr_evo_diets <- rr_evo_diets %>% 
     group_by(year, simulation_id) %>% 
     mutate(relative_rr = combined_rr/combined_rr[scenario == "actuel"]) %>% 
     ungroup()
   
-  # Calculer la moyenne et les IC95 pour chaque année
+# Calculer la moyenne et les IC95 pour chaque année
   simulations_summary_rr_diets_relative <- rr_evo_diets %>%
     group_by(scenario, year) %>%
     summarise(
@@ -685,6 +719,101 @@ diets_evo <- diets_evo %>%
       title = "RR simulations",
       x = "",
       y = "RR"
+    )+
+    scale_color_manual(values = col_scenario)+
+    scale_fill_manual(values = col_scenario)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.5)))
+  
+################################################################################################################################
+#                                             20. Ajustement des taux de mortalité                                             #
+################################################################################################################################
+  
+# Ajustement des taux de mortalité
+  MR_adjusted <- MR_select %>% 
+    inner_join(rr_evo_diets, by = "year", relationship = "many-to-many") %>%
+    group_by(age, year, simulation_id) %>% 
+    mutate(adjusted_mr = MR*relative_rr) %>% 
+    ungroup()
+  
+# Calculer la moyenne et les IC95 pour chaque année
+  simulations_summary_mr_adjusted <- MR_adjusted %>%
+    group_by(age, scenario, year) %>%
+    summarise(
+      mean_rr = mean(adjusted_mr, na.rm = TRUE),  # Moyenne des simulations
+      lower_ci = quantile(adjusted_mr, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
+      upper_ci = quantile(adjusted_mr, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
+    )
+  
+################################################################################################################################
+#                                             21. Nombre de décès                                                              #
+################################################################################################################################
+  
+# Décès dans chaque scénario 
+  deaths <- MR_adjusted %>%
+    left_join(population_select, by = c("age", "year"), relationship = "many-to-many") %>% 
+    mutate(deaths = adjusted_mr*population)
+  
+# Calculer la moyenne et les IC95 pour chaque année
+  simulations_summary_deaths <- deaths %>%
+    group_by(age, scenario, year) %>%
+    summarise(
+      mean_rr = mean(deaths, na.rm = TRUE),  # Moyenne des simulations
+      lower_ci = quantile(deaths, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
+      upper_ci = quantile(deaths, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
+    )
+  
+  deaths_wide <- deaths %>% 
+    select("age", "year", "scenario", "simulation_id", "deaths") %>% 
+    pivot_wider(names_from = "year", values_from = "deaths")
+  
+# Nombre total de décès par année et par scénario
+  total_deaths <- deaths_wide %>% 
+    group_by(scenario, simulation_id) %>%                                 
+    summarise(across(!!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time)), sum)) %>%
+    rowwise() %>%
+    mutate(total_deaths = sum(c_across(!!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time)))))  
+  
+  total_deaths_long <- total_deaths %>% 
+    select(-total_deaths) %>% 
+    pivot_longer(cols = !!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time)),
+                 names_to = "year",
+                 values_to = "total_deaths") %>% 
+    mutate(year = as.numeric(year))
+  
+################################################################################################################################
+#                                             22. Nombre de décès évités                                                       #
+################################################################################################################################
+  
+  total_avoided_deaths <- total_deaths_long %>% 
+    group_by(year, simulation_id) %>% 
+    mutate(avoided_deaths = total_deaths[scenario == "actuel"] - total_deaths)
+  
+# Calculer la moyenne et les IC95 pour chaque année
+  simulations_summary_avoided_deaths <- total_avoided_deaths %>%
+    group_by(scenario, year) %>%
+    summarise(
+      mean_rr = mean(avoided_deaths, na.rm = TRUE),  # Moyenne des simulations
+      lower_ci = quantile(avoided_deaths, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
+      upper_ci = quantile(avoided_deaths, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
+    )
+  
+################################################################################################################################
+#                                             17. Représentations graphiques des simulations des décès évités par année        #
+################################################################################################################################
+  
+  
+  ggplot(simulations_summary_avoided_deaths, aes(x = year,
+                                                 y = mean_rr,
+                                                 color = scenario)) +
+    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5)+
+    facet_wrap(~ scenario)+
+    geom_line(size = 1, na.rm = TRUE)+ 
+    labs(
+      title = "Avoided deaths",
+      x = "",
+      y = "Number of avoided deaths"
     )+
     scale_color_manual(values = col_scenario)+
     scale_fill_manual(values = col_scenario)+
