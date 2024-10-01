@@ -64,7 +64,7 @@ pacman::p_load(
 # Paramètre de modification d'effet des RR 
   # 0.5 à 1 = réduction d'effet, modèle conservateur
   # 1 à 1.5 = augmentation d'effet, modèle radical
-  m <- 1
+  m <- 0.75
   
 #  Time to full effect
   # durée (années)
@@ -260,7 +260,7 @@ pacman::p_load(
 #                                             9. Génération des distributions normales pour chaque RR                          #
 ################################################################################################################################
   
-  generate_RR_distrib = function(RR, low, sup, N=200){
+  generate_RR_distrib = function(RR, low, sup, N=1000){
     #RR, low and sup are the RR and 95%CI of a specific risk ration
     #N is the number of random values from the distrib
     
@@ -273,14 +273,34 @@ pacman::p_load(
     distr_RR = exp(rnorm(N, lRR, sd))
     
     # just need to truncat values
-    distr_RR[distr_RR>1]=1
-    distr_RR[distr_RR<0]=0
+    # distr_RR[distr_RR>1]=1
+    # distr_RR[distr_RR<0]=0
     return(distr_RR)
   }
 
   diets_evo <- diets_evo %>% 
     rowwise() %>% 
     mutate(rr_distrib = list(generate_RR_distrib(rr_mid, rr_low, rr_up)))
+  
+# Exemple des consommations de 2035 dans S1
+  
+  diets_evo_sc1_2035 <- diets_evo %>% 
+    filter(scenario == "sc1",
+           year == 2035) %>% 
+    select(food_group, rr_distrib) %>% 
+    unnest(rr_distrib)
+  
+  ggplot(diets_evo_sc1_2035, aes(x = rr_distrib,
+                                 fill = food_group)) + 
+    facet_wrap(~ food_group)+
+    geom_histogram(binwidth = 0.005, 
+                   position = "dodge",
+                   alpha = 0.7) +
+    scale_fill_manual(values = col_food_groups)+
+    theme(legend.position = "none",
+          axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.5)))
   
 ################################################################################################################################
 #                                             10. Simulations des valeurs de RR                                                #
