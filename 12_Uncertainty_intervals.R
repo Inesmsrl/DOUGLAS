@@ -805,6 +805,7 @@ diets_evo <- diets_evo %>%
 #                                             22. Nombre de décès évités                                                       #
 ################################################################################################################################
   
+# Nombre total de décès évités par an
   total_avoided_deaths <- total_deaths_long %>% 
     group_by(year, simulation_id) %>% 
     mutate(avoided_deaths = total_deaths[scenario == "actuel"] - total_deaths)
@@ -818,11 +819,30 @@ diets_evo <- diets_evo %>%
       upper_ci = quantile(avoided_deaths, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
     )
   
+# Résultats sur la période de changement de régime
+  simulations_summary_avoided_deaths_shift <- simulations_summary_avoided_deaths %>% 
+    filter(year %in% c(year_i:year_f))
+  
+# Nombre de décès évités par an et par age
+  avoided_deaths <-  deaths %>% 
+    group_by(age, year, simulation_id) %>% 
+    mutate(avoided_deaths = deaths[scenario == "actuel"] - deaths)
+  
+# Calculer la moyenne et les IC95 pour chaque année
+  simulations_summary_avoided_deaths_age <- avoided_deaths %>%
+    group_by(age, scenario, year) %>%
+    summarise(
+      mean_rr = mean(avoided_deaths, na.rm = TRUE),  # Moyenne des simulations
+      lower_ci = quantile(avoided_deaths, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
+      upper_ci = quantile(avoided_deaths, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
+    )
+  
+  
 ################################################################################################################################
 #                                             17. Représentations graphiques des simulations des décès évités par année        #
 ################################################################################################################################
   
-  
+# Sur toute la durée du modèle
   ggplot(simulations_summary_avoided_deaths, aes(x = year,
                                                  y = mean_rr,
                                                  color = scenario)) +
@@ -840,4 +860,112 @@ diets_evo <- diets_evo %>%
           axis.text.y = element_text(size = 7),
           strip.text = element_text(face = "bold",size = rel(0.5)))
   
+# Sur la période de changement de régime
+  ggplot(simulations_summary_avoided_deaths_shift, aes(x = year,
+                                                       y = mean_rr,
+                                                       color = scenario)) +
+    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5)+
+    facet_wrap(~ scenario)+
+    geom_line(size = 1, na.rm = TRUE)+ 
+    labs(
+      title = "Avoided deaths",
+      x = "",
+      y = "Number of avoided deaths"
+    )+
+    scale_color_manual(values = col_scenario)+
+    scale_fill_manual(values = col_scenario)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.5)))
+
+################################################################################################################################
+#                                             18. Représentations graphiques des simulations des décès évités par age          #
+################################################################################################################################
+  
+# 2035
+  simulations_summary_deaths_2035 <- simulations_summary_avoided_deaths_age %>% 
+    filter(year == 2035)
+  
+  ggplot(simulations_summary_deaths_2035, aes(x = age,
+                                              y = mean_rr,
+                                              color = scenario)) +
+    facet_wrap(~ scenario)+
+    geom_line(size = 0.8, na.rm = TRUE)+
+    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
+                alpha = 0.5,
+                size = 0.3,
+                linetype = "dashed")+
+    labs(
+      title = "Avoided deaths in 2035",
+      x = "Age",
+      y = "Number of avoided deaths"
+    )+
+    scale_color_manual(values = col_scenario)+
+    scale_fill_manual(values = col_scenario)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.5)))
+  
+  ggplot(simulations_summary_deaths_2035, aes(x = age,
+                                              y = mean_rr,
+                                              group = scenario,
+                                              color = scenario)) +
+    geom_line(size = 1, na.rm = TRUE)+
+    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
+                alpha = 0.1,
+                size = 0.3,
+                linetype = "dashed")+
+    labs(
+      title = "Avoided deaths in 2035",
+      x = "Age",
+      y = "Number of avoided deaths"
+    )+
+    scale_color_manual(values = col_scenario)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.5)))
+  
+# 2050
+  simulations_summary_deaths_2050 <- simulations_summary_avoided_deaths_age %>% 
+    filter(year == 2050)
+  
+  ggplot(simulations_summary_deaths_2050, aes(x = age,
+                                              y = mean_rr,
+                                              color = scenario)) +
+    facet_wrap(~ scenario)+
+    geom_line(size = 0.8, na.rm = TRUE)+
+    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
+                alpha = 0.5,
+                size = 0.3,
+                linetype = "dashed")+
+    labs(
+      title = "Avoided deaths in 2050",
+      x = "Age",
+      y = "Number of avoided deaths"
+    )+
+    scale_color_manual(values = col_scenario)+
+    scale_fill_manual(values = col_scenario)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.5)))
+  
+  ggplot(simulations_summary_deaths_2050, aes(x = age,
+                                              y = mean_rr,
+                                              group = scenario,
+                                              color = scenario)) +
+    geom_line(size = 1, na.rm = TRUE)+
+    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
+                alpha = 0.1,
+                size = 0.3,
+                linetype = "dashed")+
+    labs(
+      title = "Avoided deaths in 2050",
+      x = "Age",
+      y = "Number of avoided deaths"
+    )+
+    scale_color_manual(values = col_scenario)+
+    scale_fill_manual(values = col_scenario)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.5)))
   
