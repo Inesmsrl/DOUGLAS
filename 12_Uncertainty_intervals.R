@@ -837,6 +837,36 @@ diets_evo <- diets_evo %>%
       upper_ci = quantile(avoided_deaths, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
     )
   
+# Nombre de décès évités par age, cumulés sur une période
+  # année initiale du changement - 2035
+  avoided_deaths_cum_2035 <- avoided_deaths %>% 
+    filter(year >= year_i & year <= 2035) %>% 
+    group_by(age, scenario, simulation_id) %>% 
+    summarise(cum_avoided_deaths = sum(avoided_deaths))
+  
+  # Calculer la moyenne et les IC95 pour chaque année
+  simulations_summary_avoided_deaths_cum_2035 <- avoided_deaths_cum_2035 %>%
+    group_by(age, scenario) %>%
+    summarise(
+      mean_rr = mean(cum_avoided_deaths, na.rm = TRUE),  # Moyenne des simulations
+      lower_ci = quantile(cum_avoided_deaths, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
+      upper_ci = quantile(cum_avoided_deaths, 0.975, na.rm = TRUE))   # Limite supérieure de l'IC à 95%
+      
+  
+  # année initiale du changement - 2050
+  avoided_deaths_cum_2050 <- avoided_deaths %>% 
+    filter(year >= year_i & year <= 2050) %>% 
+    group_by(age, scenario, simulation_id) %>% 
+    summarise(cum_avoided_deaths = sum(avoided_deaths))
+  
+  # Calculer la moyenne et les IC95 pour chaque année
+  simulations_summary_avoided_deaths_cum_2050 <- avoided_deaths_cum_2050 %>%
+    group_by(age, scenario) %>%
+    summarise(
+      mean_rr = mean(cum_avoided_deaths, na.rm = TRUE),  # Moyenne des simulations
+      lower_ci = quantile(cum_avoided_deaths, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
+      upper_ci = quantile(cum_avoided_deaths, 0.975, na.rm = TRUE))   # Limite supérieure de l'IC à 95%
+  
   
 ################################################################################################################################
 #                                             17. Représentations graphiques des simulations des décès évités par année        #
@@ -965,6 +995,90 @@ diets_evo <- diets_evo %>%
     )+
     scale_color_manual(values = col_scenario)+
     scale_fill_manual(values = col_scenario)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.5)))
+  
+################################################################################################################################
+#                                             19. Représentations graphiques des simulations des décès évités cumulés par age  #
+################################################################################################################################
+  
+# Année initiale du changement de régime - 2035
+  ggplot(simulations_summary_avoided_deaths_cum_2035, aes(x = age,
+                                                          y = mean_rr,
+                                                          color = scenario)) +
+    facet_wrap(~ scenario)+
+    geom_line(size = 0.8, na.rm = TRUE)+
+    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
+                alpha = 0.5,
+                size = 0.3,
+                linetype = "dashed")+
+    labs(
+      title = "Avoided deaths in 2035",
+      x = "Age",
+      y = "Number of avoided deaths"
+    )+
+    scale_color_manual(values = col_scenario)+
+    scale_fill_manual(values = col_scenario)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.5)))
+  
+  ggplot(simulations_summary_avoided_deaths_cum_2035, aes(x = age,
+                                                          y = mean_rr,
+                                                          group = scenario,
+                                                          color = scenario)) +
+    geom_line(size = 1, na.rm = TRUE)+
+    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
+                alpha = 0.1,
+                size = 0.3,
+                linetype = "dashed")+
+    labs(
+      title = "Avoided deaths in 2035",
+      x = "Age",
+      y = "Number of avoided deaths"
+    )+
+    scale_color_manual(values = col_scenario)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.5)))
+  
+# Année initiale du changement de régime - 2050
+  ggplot(simulations_summary_avoided_deaths_cum_2050, aes(x = age,
+                                                          y = mean_rr,
+                                                          color = scenario)) +
+    facet_wrap(~ scenario)+
+    geom_line(size = 0.8, na.rm = TRUE)+
+    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
+                alpha = 0.5,
+                size = 0.3,
+                linetype = "dashed")+
+    labs(
+      title = "Avoided deaths in 2050",
+      x = "Age",
+      y = "Number of avoided deaths"
+    )+
+    scale_color_manual(values = col_scenario)+
+    scale_fill_manual(values = col_scenario)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.5)))
+  
+  ggplot(simulations_summary_avoided_deaths_cum_2050, aes(x = age,
+                                                          y = mean_rr,
+                                                          group = scenario,
+                                                          color = scenario)) +
+    geom_line(size = 1, na.rm = TRUE)+
+    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
+                alpha = 0.1,
+                size = 0.3,
+                linetype = "dashed")+
+    labs(
+      title = "Avoided deaths in 2050",
+      x = "Age",
+      y = "Number of avoided deaths"
+    )+
+    scale_color_manual(values = col_scenario)+
     theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
           axis.text.y = element_text(size = 7),
           strip.text = element_text(face = "bold",size = rel(0.5)))
