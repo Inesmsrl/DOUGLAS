@@ -89,7 +89,7 @@ pacman::p_load(
 # Charte graphique
   col_scenario <- c("actuel" = "azure4",
                     "sc0" = "palevioletred3",
-                    "sc1" = "aquamarine2",
+                    "sc1" = "aquamarine3",
                     "sc2" = "#DDCC77",
                     "sc3" = "lightskyblue3",
                     "sc4" = "#882255",
@@ -189,9 +189,9 @@ pacman::p_load(
   
 # Calcul des quantités de chaque aliment consommées chaque année 
   diets_evo <- diets %>%
-    select("food_group", "actuel", "sc0", "sc1", "sc2", "sc3", "sc4", "sc5") %>% 
+    select("food_group", "actuel", "sc1", "sc2", "sc3", "sc4") %>% 
     mutate(q_i = actuel) %>% 
-    pivot_longer(cols = c("actuel", "sc0", "sc1", "sc2", "sc3", "sc4", "sc5"), 
+    pivot_longer(cols = c("actuel", "sc1", "sc2", "sc3", "sc4"), 
                  names_to = "scenario", 
                  values_to = "q_f") %>%  
     crossing(year_n = (year_i - ttfe_time) : (year_f + 2*ttfe_time)) %>%
@@ -338,10 +338,10 @@ pacman::p_load(
 ################################################################################################################################
   
 # Fixer une graine pour garantir la reproductibilité des simulations
-  set.seed(321)
+  set.seed(123)
   
 # Fonction de simulation
-  simulate_rr <- function(distribution, N = 30) {
+  simulate_rr <- function(distribution, N = 50) {
     sample(distribution, size = N, replace = TRUE)
   }
   
@@ -391,28 +391,6 @@ pacman::p_load(
 #                                             11. Représentations graphiques des simulations des valeurs de RR                 #
 ################################################################################################################################
   
-  # S0 = Tendanciel
-    simulations_summary_sc0 <- simulations_summary %>% 
-      filter(scenario == "sc0")
-    
-  graph_rr_fg_sim_sc0 <- ggplot(simulations_summary_sc0, aes(x = year,
-                                                             y = mean_rr,
-                                                             color = food_group)) +
-                              facet_wrap(~ food_group)+
-                              geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
-                              geom_line(size = 1, na.rm = TRUE) +  # Moyenne en trait plein
-                              labs(
-                                title = "RR simulations",
-                                x = "",
-                                y = "RR"
-                              )+
-                              scale_color_manual(values = col_food_groups)+
-                              scale_fill_manual(values = col_food_groups)+
-                              theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-                                    axis.text.y = element_text(size = 7),
-                                    strip.text = element_text(face = "bold",size = rel(0.5)),
-                                    legend.position = "none")
-    
     # S1
     simulations_summary_sc1 <- simulations_summary %>% 
       filter(scenario == "sc1")
@@ -503,30 +481,6 @@ pacman::p_load(
             axis.text.y = element_text(size = 7),
             strip.text = element_text(face = "bold",size = rel(0.5)),
             legend.position = "none")
-    
-    
-    # S5
-    simulations_summary_sc5 <- simulations_summary %>% 
-      filter(scenario == "sc5")
-    
-    graph_rr_fg_sim_sc5 <- ggplot(simulations_summary_sc5, aes(x = year,
-                                                               y = mean_rr,
-                                                               color = food_group)) +
-      facet_wrap(~ food_group)+
-      geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
-      geom_line(size = 1, na.rm = TRUE) +  # Moyenne en trait plein
-      labs(
-        title = "RR simulations",
-        x = "",
-        y = "RR"
-      )+
-      scale_color_manual(values = col_food_groups)+
-      scale_fill_manual(values = col_food_groups)+
-      theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-            axis.text.y = element_text(size = 7),
-            strip.text = element_text(face = "bold",size = rel(0.5)),
-            legend.position = "none")
-    
      
 ################################################################################################################################
 #                                             12. TTFE                                                                         #
@@ -614,27 +568,6 @@ pacman::p_load(
 #                                             15. Représentations graphiques des simulations des valeurs de RR combinés        #
 ################################################################################################################################
   
-  # S0 = Tendanciel
-  simulations_summary_sc0_c <- simulations_summary_rr_fg_combined %>% 
-    filter(scenario == "sc0")
-  
-  graph_rr_fg_combined_sim_sc0 <- ggplot(simulations_summary_sc0_c, aes(x = year_n,
-                                                                        y = combined_rr,
-                                                                        color = food_group)) +
-                                      facet_wrap(~ food_group)+
-                                      geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
-                                      geom_line(size = 1, na.rm = TRUE) +  # Moyenne en trait plein
-                                      labs(
-                                        title = "RR simulations",
-                                        x = "",
-                                        y = "RR"
-                                      )+
-                                      scale_color_manual(values = col_food_groups)+
-                                      scale_fill_manual(values = col_food_groups)+
-                                      theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-                                            axis.text.y = element_text(size = 7),
-                                            strip.text = element_text(face = "bold",size = rel(0.5)))
-  
   # S1
   simulations_summary_sc1_c <- simulations_summary_rr_fg_combined %>% 
     filter(scenario == "sc1")
@@ -654,7 +587,8 @@ pacman::p_load(
     scale_fill_manual(values = col_food_groups)+
     theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
           axis.text.y = element_text(size = 7),
-          strip.text = element_text(face = "bold",size = rel(0.5)))
+          strip.text = element_text(face = "bold",size = rel(0.5)),
+          legend.position = "none")
   
   
   # S2
@@ -676,7 +610,8 @@ pacman::p_load(
     scale_fill_manual(values = col_food_groups)+
     theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
           axis.text.y = element_text(size = 7),
-          strip.text = element_text(face = "bold",size = rel(0.5)))
+          strip.text = element_text(face = "bold",size = rel(0.5)),
+          legend.position = "none")
   
   # S3
   simulations_summary_sc3_c <- simulations_summary_rr_fg_combined %>% 
@@ -697,7 +632,8 @@ pacman::p_load(
     scale_fill_manual(values = col_food_groups)+
     theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
           axis.text.y = element_text(size = 7),
-          strip.text = element_text(face = "bold",size = rel(0.5)))
+          strip.text = element_text(face = "bold",size = rel(0.5)),
+          legend.position = "none")
   
   
   # S4
@@ -719,29 +655,8 @@ pacman::p_load(
     scale_fill_manual(values = col_food_groups)+
     theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
           axis.text.y = element_text(size = 7),
-          strip.text = element_text(face = "bold",size = rel(0.5)))
-  
-  
-  # S5
-  simulations_summary_sc5_c <- simulations_summary_rr_fg_combined %>% 
-    filter(scenario == "sc5")
-  
-  graph_rr_fg_combined_sim_sc5 <- ggplot(simulations_summary_sc5_c, aes(x = year_n,
-                                                                        y = combined_rr,
-                                                                        color = food_group)) +
-    facet_wrap(~ food_group)+
-    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
-    geom_line(size = 1, na.rm = TRUE) +  # Moyenne en trait plein
-    labs(
-      title = "RR simulations",
-      x = "",
-      y = "RR"
-    )+
-    scale_color_manual(values = col_food_groups)+
-    scale_fill_manual(values = col_food_groups)+
-    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-          axis.text.y = element_text(size = 7),
-          strip.text = element_text(face = "bold",size = rel(0.5)))
+          strip.text = element_text(face = "bold",size = rel(0.5)),
+          legend.position = "none")
   
   
 ################################################################################################################################
@@ -796,7 +711,8 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
                         scale_fill_manual(values = col_scenario)+
                         theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
                               axis.text.y = element_text(size = 7),
-                              strip.text = element_text(face = "bold",size = rel(0.5)))
+                              strip.text = element_text(face = "bold",size = rel(0.5)),
+                              legend.position = "none")
   
 ################################################################################################################################
 #                                             18. Combinaison des RR de chaque régime par année et calcul relatif au RR actuel #
@@ -830,22 +746,25 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
 ################################################################################################################################
   
   
-  graph_rr_diets_relative_sim <- ggplot(simulations_summary_rr_diets_relative, aes(x = year,
-                                                                                   y = mean_rr,
-                                                                                   color = scenario)) +
-                                            geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5)+
-                                            facet_wrap(~ scenario)+
-                                            geom_line(size = 1, na.rm = TRUE)+ 
-                                            labs(
-                                              title = "RR simulations",
+  graph_rr_diets_relative_sim <- ggplot(simulations_summary_rr_diets_relative %>% 
+                                          filter(scenario != "actuel"),
+                                        aes(x = year,
+                                            y = mean_rr,
+                                            color = scenario)) +
+                                        geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5)+
+                                        facet_wrap(~ scenario)+
+                                        geom_line(size = 1, na.rm = TRUE)+ 
+                                        labs(
+                                              title = "RR values relative to keeping the current diet",
                                               x = "",
                                               y = "RR"
                                             )+
-                                            scale_color_manual(values = col_scenario)+
-                                            scale_fill_manual(values = col_scenario)+
-                                            theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+                                        scale_color_manual(values = col_scenario)+
+                                        scale_fill_manual(values = col_scenario)+
+                                        theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
                                                   axis.text.y = element_text(size = 7),
-                                                  strip.text = element_text(face = "bold",size = rel(0.5)))
+                                                  strip.text = element_text(face = "bold",size = rel(1)),
+                                                  legend.position = "none")
   
 ################################################################################################################################
 #                                             20. Ajustement des taux de mortalité                                             #
@@ -1040,32 +959,16 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
 ################################################################################################################################
   
 # Sur toute la durée du modèle
-  graph_total_avoided_deaths  <- ggplot(simulations_summary_avoided_deaths, aes(x = year,
-                                                                                y = mean_rr,
-                                                                                color = scenario)) +
-                                  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5)+
-                                  facet_wrap(~ scenario)+
-                                  geom_line(size = 1, na.rm = TRUE)+ 
-                                  labs(
-                                    title = "Avoided deaths",
-                                    x = "",
-                                    y = "Number of avoided deaths"
-                                  )+
-                                  scale_color_manual(values = col_scenario)+
-                                  scale_fill_manual(values = col_scenario)+
-                                  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-                                        axis.text.y = element_text(size = 7),
-                                        strip.text = element_text(face = "bold",size = rel(0.5)))
-  
-# Sur la période de changement de régime
-  graph_total_avoided_deaths_shift <- ggplot(simulations_summary_avoided_deaths_shift, aes(x = year,
-                                                                                           y = mean_rr,
-                                                                                           color = scenario)) +
+  graph_total_avoided_deaths  <- ggplot(simulations_summary_avoided_deaths %>% 
+                                          filter(scenario != "actuel"),
+                                        aes(x = year,
+                                            y = mean_rr,
+                                            color = scenario)) +
                                         geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5)+
                                         facet_wrap(~ scenario)+
                                         geom_line(size = 1, na.rm = TRUE)+ 
                                         labs(
-                                          title = "Avoided deaths",
+                                          title = "Avoided deaths compared to keeping the current diet",
                                           x = "",
                                           y = "Number of avoided deaths"
                                         )+
@@ -1073,7 +976,29 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
                                         scale_fill_manual(values = col_scenario)+
                                         theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
                                               axis.text.y = element_text(size = 7),
-                                              strip.text = element_text(face = "bold",size = rel(0.5)))
+                                              strip.text = element_text(face = "bold",size = rel(1)),
+                                              legend.position = "none")
+  
+# Sur la période de changement de régime
+  graph_total_avoided_deaths_shift <- ggplot(simulations_summary_avoided_deaths_shift %>% 
+                                               filter(scenario != "actuel"),
+                                             aes(x = year,
+                                                 y = mean_rr,
+                                                 color = scenario)) +
+                                              geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5)+
+                                              facet_wrap(~ scenario)+
+                                              geom_line(size = 1, na.rm = TRUE)+ 
+                                              labs(
+                                                title = "Avoided deaths compared to keeping the current diet",
+                                                x = "",
+                                                y = "Number of avoided deaths"
+                                              )+
+                                              scale_color_manual(values = col_scenario)+
+                                              scale_fill_manual(values = col_scenario)+
+                                              theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+                                                    axis.text.y = element_text(size = 7),
+                                                    strip.text = element_text(face = "bold",size = rel(1)),
+                                                    legend.position = "none")
 
 ################################################################################################################################
 #                                             18. Représentations graphiques des simulations des décès évités par age          #
@@ -1083,13 +1008,38 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
   simulations_summary_deaths_2035 <- simulations_summary_avoided_deaths_age %>% 
     filter(year == 2035)
   
-  graph_avoided_deaths_2035_facet <- ggplot(simulations_summary_deaths_2035, aes(x = age,
-                                                                                 y = mean_rr,
-                                                                                 color = scenario)) +
-                                      facet_wrap(~ scenario)+
-                                      geom_line(size = 0.8, na.rm = TRUE)+
+  graph_avoided_deaths_2035_facet <- ggplot(simulations_summary_deaths_2035 %>% 
+                                              filter(scenario != "actuel"),
+                                            aes(x = age,
+                                                y = mean_rr,
+                                                color = scenario)) +
+                                            facet_wrap(~ scenario)+
+                                            geom_line(size = 0.8, na.rm = TRUE)+
+                                            geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
+                                                        alpha = 0.5,
+                                                        size = 0.3,
+                                                        linetype = "dashed")+
+                                            labs(
+                                              title = "Avoided deaths in 2035 compared to keeping the current diet",
+                                              x = "Age",
+                                              y = "Number of avoided deaths"
+                                            )+
+                                            scale_color_manual(values = col_scenario)+
+                                            scale_fill_manual(values = col_scenario)+
+                                            theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+                                                  axis.text.y = element_text(size = 7),
+                                                  strip.text = element_text(face = "bold",size = rel(1)),
+                                                  legend.position = "none")
+        
+  graph_avoided_deaths_2035 <- ggplot(simulations_summary_deaths_2035 %>% 
+                                        filter(scenario != "actuel"),
+                                      aes(x = age,
+                                          y = mean_rr,
+                                          group = scenario,
+                                          color = scenario)) +
+                                      geom_line(size = 1, na.rm = TRUE)+
                                       geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
-                                                  alpha = 0.5,
+                                                  alpha = 0.1,
                                                   size = 0.3,
                                                   linetype = "dashed")+
                                       labs(
@@ -1100,56 +1050,41 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
                                       scale_color_manual(values = col_scenario)+
                                       scale_fill_manual(values = col_scenario)+
                                       theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-                                            axis.text.y = element_text(size = 7),
-                                            strip.text = element_text(face = "bold",size = rel(0.5)))
-  
-  graph_avoided_deaths_2035 <- ggplot(simulations_summary_deaths_2035, aes(x = age,
-                                                                           y = mean_rr,
-                                                                           group = scenario,
-                                                                           color = scenario)) +
-                                geom_line(size = 1, na.rm = TRUE)+
-                                geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
-                                            alpha = 0.1,
-                                            size = 0.3,
-                                            linetype = "dashed")+
-                                labs(
-                                  title = "Avoided deaths in 2035",
-                                  x = "Age",
-                                  y = "Number of avoided deaths"
-                                )+
-                                scale_color_manual(values = col_scenario)+
-                                theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-                                      axis.text.y = element_text(size = 7),
-                                      strip.text = element_text(face = "bold",size = rel(0.5)))
+                                            axis.text.y = element_text(size = 7))
   
 # 2050
   simulations_summary_deaths_2050 <- simulations_summary_avoided_deaths_age %>% 
     filter(year == 2050)
   
-  graph_avoided_deaths_2050_facet <- ggplot(simulations_summary_deaths_2050, aes(x = age,
-                                                                                 y = mean_rr,
-                                                                                 color = scenario)) +
-                                      facet_wrap(~ scenario)+
-                                      geom_line(size = 0.8, na.rm = TRUE)+
-                                      geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
-                                                  alpha = 0.5,
-                                                  size = 0.3,
-                                                  linetype = "dashed")+
-                                      labs(
-                                        title = "Avoided deaths in 2050",
-                                        x = "Age",
-                                        y = "Number of avoided deaths"
-                                      )+
-                                      scale_color_manual(values = col_scenario)+
-                                      scale_fill_manual(values = col_scenario)+
-                                      theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-                                            axis.text.y = element_text(size = 7),
-                                            strip.text = element_text(face = "bold",size = rel(0.5)))
+  graph_avoided_deaths_2050_facet <- ggplot(simulations_summary_deaths_2050 %>% 
+                                              filter(scenario != "actuel"),
+                                            aes(x = age,
+                                                y = mean_rr,
+                                                color = scenario)) +
+                                            facet_wrap(~ scenario)+
+                                            geom_line(size = 0.8, na.rm = TRUE)+
+                                            geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
+                                                        alpha = 0.5,
+                                                        size = 0.3,
+                                                        linetype = "dashed")+
+                                            labs(
+                                              title = "Avoided deaths in 2050",
+                                              x = "Age",
+                                              y = "Number of avoided deaths"
+                                            )+
+                                            scale_color_manual(values = col_scenario)+
+                                            scale_fill_manual(values = col_scenario)+
+                                            theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+                                                  axis.text.y = element_text(size = 7),
+                                                  strip.text = element_text(face = "bold",size = rel(1)),
+                                                  legend.position = "none")
   
-  graph_avoided_deaths_2050 <- ggplot(simulations_summary_deaths_2050, aes(x = age,
-                                                                           y = mean_rr,
-                                                                           group = scenario,
-                                                                           color = scenario)) +
+  graph_avoided_deaths_2050 <- ggplot(simulations_summary_deaths_2050 %>% 
+                                        filter(scenario != "actuel"),
+                                      aes(x = age,
+                                          y = mean_rr,
+                                          group = scenario,
+                                          color = scenario)) +
                                 geom_line(size = 1, na.rm = TRUE)+
                                 geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
                                             alpha = 0.1,
@@ -1163,17 +1098,18 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
                                 scale_color_manual(values = col_scenario)+
                                 scale_fill_manual(values = col_scenario)+
                                 theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-                                      axis.text.y = element_text(size = 7),
-                                      strip.text = element_text(face = "bold",size = rel(0.5)))
+                                      axis.text.y = element_text(size = 7))
   
 ################################################################################################################################
 #                                             19. Représentations graphiques des simulations des décès évités cumulés par age  #
 ################################################################################################################################
   
 # Année initiale du changement de régime - 2035
-  graph_avoided_deaths_cum_2035_facet <- ggplot(simulations_summary_avoided_deaths_cum_2035, aes(x = age,
-                                                                                                 y = mean_rr,
-                                                                                                 color = scenario)) +
+  graph_avoided_deaths_cum_2035_facet <- ggplot(simulations_summary_avoided_deaths_cum_2035 %>% 
+                                                  filter(scenario != "actuel"),
+                                                aes(x = age,
+                                                    y = mean_rr,
+                                                    color = scenario)) +
                                           facet_wrap(~ scenario)+
                                           geom_line(size = 0.8, na.rm = TRUE)+
                                           geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
@@ -1189,12 +1125,15 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
                                           scale_fill_manual(values = col_scenario)+
                                           theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
                                                 axis.text.y = element_text(size = 7),
-                                                strip.text = element_text(face = "bold",size = rel(0.5)))
+                                                strip.text = element_text(face = "bold",size = rel(1)),
+                                                legend.position = "none")
                                   
-  graph_avoided_deaths_cum_2035 <- ggplot(simulations_summary_avoided_deaths_cum_2035, aes(x = age,
-                                                                                           y = mean_rr,
-                                                                                           group = scenario,
-                                                                                           color = scenario)) +
+  graph_avoided_deaths_cum_2035 <- ggplot(simulations_summary_avoided_deaths_cum_2035 %>% 
+                                            filter(scenario != "actuel"),
+                                          aes(x = age,
+                                          y = mean_rr,
+                                          group = scenario,
+                                          color = scenario)) +
                                     geom_line(size = 1, na.rm = TRUE)+
                                     geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
                                                 alpha = 0.1,
@@ -1207,17 +1146,41 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
                                     )+
                                     scale_color_manual(values = col_scenario)+
                                     theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-                                          axis.text.y = element_text(size = 7),
-                                          strip.text = element_text(face = "bold",size = rel(0.5)))
+                                          axis.text.y = element_text(size = 7))
                                   
 # Année initiale du changement de régime - 2050
-  graph_avoided_deaths_cum_2050_facet <- ggplot(simulations_summary_avoided_deaths_cum_2050, aes(x = age,
-                                                                                                 y = mean_rr,
-                                                                                                 color = scenario)) +
-                                          facet_wrap(~ scenario)+
-                                          geom_line(size = 0.8, na.rm = TRUE)+
+  graph_avoided_deaths_cum_2050_facet <- ggplot(simulations_summary_avoided_deaths_cum_2050 %>% 
+                                                  filter(scenario != "actuel"),
+                                                aes(x = age,
+                                                    y = mean_rr,
+                                                    color = scenario)) +
+                                                facet_wrap(~ scenario)+
+                                                geom_line(size = 0.8, na.rm = TRUE)+
+                                                geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
+                                                            alpha = 0.5,
+                                                            size = 0.3,
+                                                            linetype = "dashed")+
+                                                labs(
+                                                  title = "Cumulated avoided deaths 2025-2050",
+                                                  x = "Age",
+                                                  y = "Number of avoided deaths"
+                                                )+
+                                                scale_color_manual(values = col_scenario)+
+                                                scale_fill_manual(values = col_scenario)+
+                                                theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+                                                      axis.text.y = element_text(size = 7),
+                                                      strip.text = element_text(face = "bold",size = rel(1)),
+                                                      legend.position = "none")
+  
+  graph_avoided_deaths_cum_2050 <- ggplot(simulations_summary_avoided_deaths_cum_2050 %>% 
+                                            filter(scenario != "actuel"),
+                                          aes(x = age,
+                                              y = mean_rr,
+                                              group = scenario,
+                                              color = scenario)) +
+                                          geom_line(size = 1, na.rm = TRUE)+
                                           geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
-                                                      alpha = 0.5,
+                                                      alpha = 0.1,
                                                       size = 0.3,
                                                       linetype = "dashed")+
                                           labs(
@@ -1228,27 +1191,7 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
                                           scale_color_manual(values = col_scenario)+
                                           scale_fill_manual(values = col_scenario)+
                                           theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-                                                axis.text.y = element_text(size = 7),
-                                                strip.text = element_text(face = "bold",size = rel(0.5)))
-  
-  graph_avoided_deaths_cum_2050 <- ggplot(simulations_summary_avoided_deaths_cum_2050, aes(x = age,
-                                                                                           y = mean_rr,
-                                                                                           group = scenario,
-                                                                                           color = scenario)) +
-                                    geom_line(size = 1, na.rm = TRUE)+
-                                    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
-                                                alpha = 0.1,
-                                                size = 0.3,
-                                                linetype = "dashed")+
-                                    labs(
-                                      title = "Cumulated avoided deaths 2025-2050",
-                                      x = "Age",
-                                      y = "Number of avoided deaths"
-                                    )+
-                                    scale_color_manual(values = col_scenario)+
-                                    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-                                          axis.text.y = element_text(size = 7),
-                                          strip.text = element_text(face = "bold",size = rel(0.5)))
+                                                axis.text.y = element_text(size = 7))
   
 ################################################################################################################################
 #                                             20. Exportation des données                                                      #
@@ -1262,12 +1205,10 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
   ggsave(here("results", "visualization_tool_ic95","norm_rr_ssb_sc1_2035.pdf"), plot = graph_ssb_sc1_2035_norm)
   
 # Graphiques des valeurs de RR simulées par aliment, dans chaque scénario
-  ggsave(here("results", "visualization_tool_ic95", "rr_fg_sim_sc0.pdf"), plot = graph_rr_fg_sim_sc0)
   ggsave(here("results", "visualization_tool_ic95", "rr_fg_sim_sc1.pdf"), plot = graph_rr_fg_sim_sc1)
   ggsave(here("results", "visualization_tool_ic95", "rr_fg_sim_sc2.pdf"), plot = graph_rr_fg_sim_sc2)  
   ggsave(here("results", "visualization_tool_ic95", "rr_fg_sim_sc3.pdf"), plot = graph_rr_fg_sim_sc3)  
   ggsave(here("results", "visualization_tool_ic95", "rr_fg_sim_sc4.pdf"), plot = graph_rr_fg_sim_sc4)  
-  ggsave(here("results", "visualization_tool_ic95", "rr_fg_sim_sc5.pdf"), plot = graph_rr_fg_sim_sc5)  
   
 # Time to full effect
   ggsave(here("results", "visualization_tool_ic95", "ttfe.pdf"), plot = graph_ttfe)
@@ -1280,12 +1221,10 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
   export(rr_evo_food_combined, here("results", "visualization_tool_ic95", "rr_fg_evo_combined.xlsx"))
   export(simulations_summary_rr_fg_combined, here("results", "visualization_tool_ic95", "IC95_rr_fg_evo_combined.xlsx"))
   
-  ggsave(here("results", "visualization_tool_ic95", "rr_fg_combined_sim_sc0.pdf"), plot = graph_rr_fg_combined_sim_sc0)
   ggsave(here("results", "visualization_tool_ic95", "rr_fg_combined_sim_sc1.pdf"), plot = graph_rr_fg_combined_sim_sc1)
   ggsave(here("results", "visualization_tool_ic95", "rr_fg_combined_sim_sc2.pdf"), plot = graph_rr_fg_combined_sim_sc2)  
   ggsave(here("results", "visualization_tool_ic95", "rr_fg_combined_sim_sc3.pdf"), plot = graph_rr_fg_combined_sim_sc3)  
   ggsave(here("results", "visualization_tool_ic95", "rr_fg_combined_sim_sc4.pdf"), plot = graph_rr_fg_combined_sim_sc4)  
-  ggsave(here("results", "visualization_tool_ic95", "rr_fg_combined_sim_sc5.pdf"), plot = graph_rr_fg_combined_sim_sc5)  
   
 # Valeurs des RR des régimes par année
   export(rr_evo_diets, here("results", "visualization_tool_ic95", "rr_evo_diets.xlsx"))
