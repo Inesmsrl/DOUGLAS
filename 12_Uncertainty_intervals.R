@@ -46,9 +46,6 @@ pacman::p_load(
   year_i <- 2025 # Année initiale
   year_f <- 2050 # Année finale
   
-# Temps pendant lequel le régime reste stationnaire avant et après le changement de régime (années)
-  stability_time <- 25
-  
 # Borne inférieure de l'âge de la population du modèle (années)
   age_limit <- 18
   
@@ -69,6 +66,10 @@ pacman::p_load(
 #  Time to full effect
   # durée (années)
   ttfe_time <- 10
+  
+  # Durée du régime stationnaire 
+    # Avant changement de régime : ttfe_time
+    # Après changement de régime : 2 x ttfe_time
   
   # Dynamique (immediate, linear, cosine, sigmoidal, log)
   ttfe_dynamics <- "linear"
@@ -143,9 +144,9 @@ pacman::p_load(
 # Sélectionner les MR entre les bornes temporelles du modèle et au dessus de la limite d'age
 # Pivoter le dataframe en format long
   MR_select <- MR %>% 
-    select(age, !!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time))) %>%
+    select(age, !!sym(as.character(year_i - ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time))) %>%
     filter(age >= age_limit) %>% 
-    pivot_longer(cols = !!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time)), 
+    pivot_longer(cols = !!sym(as.character(year_i - ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)), 
                  names_to = "year", 
                  values_to = "MR") %>% 
     mutate(year = as.numeric(year))
@@ -153,9 +154,9 @@ pacman::p_load(
 # Sélectionner les effectifs de population entre les bornes temporelles du modèle et au dessus de la limite d'age 
 # Pivoter le dataframe en format long
   population_select <- population %>% 
-    select(age, !!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time))) %>% 
+    select(age, !!sym(as.character(year_i - ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time))) %>% 
     filter(age >= age_limit) %>% 
-    pivot_longer(cols = !!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time)), 
+    pivot_longer(cols = !!sym(as.character(year_i - ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)), 
                  names_to = "year", 
                  values_to = "population") %>% 
     mutate(year = as.numeric(year)) %>% 
@@ -274,7 +275,7 @@ pacman::p_load(
     
     # just need to truncat values
     # distr_RR[distr_RR>1]=1
-    # distr_RR[distr_RR<0]=0
+     distr_RR[distr_RR<0]=0
     return(distr_RR)
   }
 
