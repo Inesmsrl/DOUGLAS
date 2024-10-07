@@ -261,7 +261,7 @@ pacman::p_load(
 #                                             9. Génération des distributions normales pour chaque RR                          #
 ################################################################################################################################
   
-  generate_RR_distrib = function(RR, low, sup, N=1000){
+  generate_RR_distrib = function(food_group, RR, low, sup, N=1000){
     #RR, low and sup are the RR and 95%CI of a specific risk ration
     #N is the number of random values from the distrib
     
@@ -274,14 +274,19 @@ pacman::p_load(
     distr_RR = exp(rnorm(N, lRR, sd))
     
     # just need to truncat values
-    # distr_RR[distr_RR>1]=1
-     distr_RR[distr_RR<0]=0
+      distr_RR[distr_RR<0]=0
+      
+      if (food_group %in% c("red_meat", "processed_meat", "sugar_sweetened_beverages"))
+        distr_RR[distr_RR<1]=1
+      if (food_group %in% c("fruits", "vegetables", "legumes", "whole_grains", "nuts"))
+        distr_RR[distr_RR>1]=1
+     
     return(distr_RR)
   }
 
   diets_evo <- diets_evo %>% 
     rowwise() %>% 
-    mutate(rr_distrib = list(generate_RR_distrib(rr_mid, rr_low, rr_up)))
+    mutate(rr_distrib = list(generate_RR_distrib(food_group, rr_mid, rr_low, rr_up)))
   
 # Exemple des consommations de 2035 dans S1
   
