@@ -190,6 +190,9 @@ pacman::p_load(
 # Calcul des quantités de chaque aliment consommées chaque année 
   diets_evo <- diets %>%
     select("food_group", "actuel", "sc1", "sc2", "sc3", "sc4") %>% 
+    filter(food_group %in% c("red_meat", "processed_meat", "white_meat", "fish", "eggs", "dairy", 
+                             "fruits", "vegetables", "legumes", "nuts","whole_grains", "reffined_grains",
+                             "sugar_sweetened_beverages")) %>% 
     mutate(q_i = actuel) %>% 
     pivot_longer(cols = c("actuel", "sc1", "sc2", "sc3", "sc4"), 
                  names_to = "scenario", 
@@ -300,7 +303,7 @@ pacman::p_load(
                                                            y = after_stat(count / sum(count)),
                                                            fill = food_group)) + 
                               facet_wrap(~ food_group)+
-                              geom_histogram(binwidth = 0.01, 
+                              geom_histogram(binwidth = 0.005, 
                                              position = "dodge",
                                              alpha = 0.7) +
                               scale_fill_manual(values = col_food_groups)+
@@ -319,7 +322,7 @@ pacman::p_load(
   graph_ssb_sc1_2035_norm <- ggplot(ssb_norm_sc1_2035, aes(x = rr_distrib,
                                                            y = after_stat(count / sum(count)),
                                                            fill = food_group)) + 
-                              geom_histogram(binwidth = 0.002, 
+                              geom_histogram(binwidth = 0.001, 
                                              position = "dodge",
                                              alpha = 0.7) +
                               scale_fill_manual(values = col_food_groups)+
@@ -341,7 +344,7 @@ pacman::p_load(
   set.seed(123)
   
 # Fonction de simulation
-  simulate_rr <- function(distribution, N = 50) {
+  simulate_rr <- function(distribution, N = 100) {
     sample(distribution, size = N, replace = TRUE)
   }
   
