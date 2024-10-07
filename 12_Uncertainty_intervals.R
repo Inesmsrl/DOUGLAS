@@ -194,7 +194,7 @@ pacman::p_load(
     pivot_longer(cols = c("actuel", "sc0", "sc1", "sc2", "sc3", "sc4", "sc5"), 
                  names_to = "scenario", 
                  values_to = "q_f") %>%  
-    crossing(year_n = (year_i - stability_time) : (year_f + stability_time)) %>%
+    crossing(year_n = (year_i - ttfe_time) : (year_f + 2*ttfe_time)) %>%
     mutate(quantity = case_when(
       implementation == "immediate" & year_n < year_i ~ q_i,
       implementation == "immediate" & year_n >= year_i ~ q_f,
@@ -341,14 +341,27 @@ pacman::p_load(
   set.seed(321)
   
 # Fonction de simulation
-  simulate_rr <- function(distribution, N = 40) {
+  simulate_rr <- function(distribution, N = 30) {
     sample(distribution, size = N, replace = TRUE)
   }
+  
+# Fonction de filtre des simulations pour n'en conserver que les 95% centrales
+  filter_simulations <- function(simulations) {
+    lower_bound <- quantile(simulations, 0.025)
+    upper_bound <- quantile(simulations, 0.975)
+    simulations[simulations >= lower_bound & simulations <= upper_bound]
+  }
 
-diets_evo <- diets_evo %>% 
-  rowwise() %>% 
-  mutate(simulations = list(simulate_rr(rr_distrib))) %>% 
-  ungroup()
+  
+# Simulations
+  diets_evo <- diets_evo %>% 
+    rowwise() %>% 
+    mutate(simulations = list(simulate_rr(rr_distrib)),
+           simulations_filtered = list(filter_simulations(simulations))) %>% 
+    ungroup() %>% 
+    select(-simulations) %>% 
+    rename("simulations" = "simulations_filtered")
+  
 
 # Transformer les simulations en format long
   simulations_long <- diets_evo %>% 
@@ -359,14 +372,20 @@ diets_evo <- diets_evo %>%
       values_to = "simulated_rr"  # Nom de la colonne contenant les valeurs simulées
     )
 
-# Calculer la moyenne et les IC95 pour chaque année
+# Calculer la valeur centrales et les IC95 pour chaque année
   simulations_summary <- simulations_long %>%
     group_by(food_group, scenario, year, quantity) %>%
     summarise(
-      mean_rr = mean(simulated_rr, na.rm = TRUE),  # Moyenne des simulations
+      mean_rr = mean(rr_mid, na.rm = TRUE),  # Moyenne des simulations
       lower_ci = quantile(simulated_rr, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
       upper_ci = quantile(simulated_rr, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
-    )
+    ) %>% 
+    mutate(lower_ci = case_when(
+            lower_ci > mean_rr ~ mean_rr,
+            TRUE ~ lower_ci),
+           upper_ci = case_when(
+            upper_ci < mean_rr ~ mean_rr,
+            TRUE ~ upper_ci))
 
 ################################################################################################################################
 #                                             11. Représentations graphiques des simulations des valeurs de RR                 #
@@ -403,7 +422,7 @@ diets_evo <- diets_evo %>%
                                                                color = food_group)) +
       facet_wrap(~ food_group)+
       geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
-      geom_line(size = 1, na.rm = TRUE) +  # Moyenne en trait plein
+      geom_line(linewidth = 1, na.rm = TRUE) +  # Moyenne en trait plein
       labs(
         title = "RR simulations",
         x = "",
@@ -547,13 +566,18 @@ diets_evo <- diets_evo %>%
 # Après le time to full effect : RR = NA
     simulations_long <- simulations_long %>% 
       rowwise() %>% 
-      mutate(year_n = list(seq(from = (year_i - stability_time), to = (year_f + stability_time)))) %>% 
+      mutate(year_n = list(seq(from = (year_i - ttfe_time), to = (year_f + 2*ttfe_time)))) %>% 
       unnest(year_n) %>% 
       mutate(simulated_rr_n = case_when(
-        year_n < year ~ NA_real_,
-        year_n >= year & year_n <= year + max(ttfe$time) ~ 1 + (simulated_rr - 1) * ttfe$ttfe[match(year_n - year, ttfe$time)],
-        year_n > year + max(ttfe$time) ~ NA_real_
-      )) %>%
+                year_n < year ~ NA_real_,
+                year_n >= year & year_n <= year + max(ttfe$time) ~ 1 + (simulated_rr - 1) * ttfe$ttfe[match(year_n - year, ttfe$time)],
+                year_n > year + max(ttfe$time) ~ NA_real_),
+              rr_mid_n = case_when(
+                year_n < year ~ NA_real_,
+                year_n >= year & year_n <= year + max(ttfe$time) ~ 1 + (rr_mid - 1) * ttfe$ttfe[match(year_n - year, ttfe$time)],
+                year_n > year + max(ttfe$time) ~ NA_real_
+              )) %>%
+    
       ungroup()
 
 ################################################################################################################################
@@ -565,17 +589,26 @@ diets_evo <- diets_evo %>%
     group_by(scenario, year_n, food_group, simulation_id) %>% 
     summarize(mean_rr = case_when(
       combinaison_rr_type == "arithmetic mean" ~ mean(simulated_rr_n, na.rm = TRUE),
-      combinaison_rr_type == "geometric mean"~ geometric.mean(simulated_rr_n, na.rm = TRUE))
-    )
+      combinaison_rr_type == "geometric mean"~ geometric.mean(simulated_rr_n, na.rm = TRUE)),
+      mean_rr_mid = case_when(
+        combinaison_rr_type == "arithmetic mean" ~ mean(rr_mid_n, na.rm = TRUE),
+        combinaison_rr_type == "geometric mean"~ geometric.mean(rr_mid_n, na.rm = TRUE)
+      ))
   
 # Calculer la moyenne et les IC95 pour chaque année
   simulations_summary_rr_fg_combined <- rr_evo_food_combined %>%
     group_by(food_group, scenario, year_n) %>%
     summarise(
-      combined_rr = mean(mean_rr, na.rm = TRUE),  # Moyenne des simulations
+      combined_rr = mean(mean_rr_mid, na.rm = TRUE),
       lower_ci = quantile(mean_rr, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
       upper_ci = quantile(mean_rr, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
-    )
+    ) %>% 
+    mutate(lower_ci = case_when(
+      lower_ci > combined_rr ~ combined_rr,
+      TRUE ~ lower_ci),
+      upper_ci = case_when(
+        upper_ci < combined_rr ~ combined_rr,
+        TRUE ~ upper_ci))
   
 ################################################################################################################################
 #                                             15. Représentations graphiques des simulations des valeurs de RR combinés        #
@@ -719,7 +752,8 @@ diets_evo <- diets_evo %>%
   calc_combined_rr <- function(df) {
     df %>%
       group_by(scenario, year_n, simulation_id) %>%
-      summarize(combined_rr = prod(mean_rr, na.rm = TRUE)) %>%
+      summarize(combined_rr = prod(mean_rr, na.rm = TRUE),
+                combined_rr_mid = prod(mean_rr_mid, na.rm = TRUE)) %>%
       ungroup()
   }  
   
@@ -731,10 +765,16 @@ diets_evo <- diets_evo %>%
   simulations_summary_rr_diets <- rr_evo_diets %>%
     group_by(scenario, year) %>%
     summarise(
-      mean_rr = mean(combined_rr, na.rm = TRUE),  # Moyenne des simulations
+      mean_rr = mean(combined_rr_mid, na.rm = TRUE),  
       lower_ci = quantile(combined_rr, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
       upper_ci = quantile(combined_rr, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
-    )
+    ) %>% 
+    mutate(lower_ci = case_when(
+      lower_ci > mean_rr ~ mean_rr,
+      TRUE ~ lower_ci),
+      upper_ci = case_when(
+        upper_ci < mean_rr ~ mean_rr,
+        TRUE ~ upper_ci))
   
 ################################################################################################################################
 #                                             17. Représentations graphiques des simulations des valeurs de RR des régimes     #
@@ -766,17 +806,24 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
 # Calcul des RR relatifs aux RR du scénario actuel
   rr_evo_diets <- rr_evo_diets %>% 
     group_by(year, simulation_id) %>% 
-    mutate(relative_rr = combined_rr/combined_rr[scenario == "actuel"]) %>% 
+    mutate(relative_rr = combined_rr/combined_rr[scenario == "actuel"],
+           relative_rr_mid = combined_rr_mid/combined_rr_mid[scenario == "actuel"]) %>% 
     ungroup()
   
 # Calculer la moyenne et les IC95 pour chaque année
   simulations_summary_rr_diets_relative <- rr_evo_diets %>%
     group_by(scenario, year) %>%
     summarise(
-      mean_rr = mean(relative_rr, na.rm = TRUE),  # Moyenne des simulations
+      mean_rr = mean(relative_rr_mid, na.rm = TRUE),  
       lower_ci = quantile(relative_rr, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
       upper_ci = quantile(relative_rr, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
-    )
+    ) %>% 
+    mutate(lower_ci = case_when(
+      lower_ci > mean_rr ~ mean_rr,
+      TRUE ~ lower_ci),
+      upper_ci = case_when(
+        upper_ci < mean_rr ~ mean_rr,
+        TRUE ~ upper_ci))
   
 ################################################################################################################################
 #                                             19. Représentations graphiques des simulations des valeurs de RR relatives des régimes     #
@@ -808,17 +855,24 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
   MR_adjusted <- MR_select %>% 
     inner_join(rr_evo_diets, by = "year", relationship = "many-to-many") %>%
     group_by(age, year, simulation_id) %>% 
-    mutate(adjusted_mr = MR*relative_rr) %>% 
+    mutate(adjusted_mr = MR*relative_rr,
+           adjusted_mr_mid = MR*relative_rr_mid) %>% 
     ungroup()
   
 # Calculer la moyenne et les IC95 pour chaque année
   simulations_summary_mr_adjusted <- MR_adjusted %>%
     group_by(age, scenario, year) %>%
     summarise(
-      mean_rr = mean(adjusted_mr, na.rm = TRUE),  # Moyenne des simulations
+      mean_rr = mean(adjusted_mr_mid, na.rm = TRUE),  
       lower_ci = quantile(adjusted_mr, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
       upper_ci = quantile(adjusted_mr, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
-    )
+    ) %>% 
+    mutate(lower_ci = case_when(
+      lower_ci > mean_rr ~ mean_rr,
+      TRUE ~ lower_ci),
+      upper_ci = case_when(
+        upper_ci < mean_rr ~ mean_rr,
+        TRUE ~ upper_ci))
   
 ################################################################################################################################
 #                                             21. Nombre de décès                                                              #
@@ -827,34 +881,62 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
 # Décès dans chaque scénario 
   deaths <- MR_adjusted %>%
     left_join(population_select, by = c("age", "year"), relationship = "many-to-many") %>% 
-    mutate(deaths = adjusted_mr*population)
+    mutate(deaths = adjusted_mr*population,
+           deaths_mid = adjusted_mr_mid*population)
   
 # Calculer la moyenne et les IC95 pour chaque année
   simulations_summary_deaths <- deaths %>%
     group_by(age, scenario, year) %>%
     summarise(
-      mean_rr = mean(deaths, na.rm = TRUE),  # Moyenne des simulations
+      mean_rr = mean(deaths_mid, na.rm = TRUE),  # Moyenne des simulations
       lower_ci = quantile(deaths, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
       upper_ci = quantile(deaths, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
-    )
+    ) %>% 
+    mutate(lower_ci = case_when(
+      lower_ci > mean_rr ~ mean_rr,
+      TRUE ~ lower_ci),
+      upper_ci = case_when(
+        upper_ci < mean_rr ~ mean_rr,
+        TRUE ~ upper_ci))
   
   deaths_wide <- deaths %>% 
     select("age", "year", "scenario", "simulation_id", "deaths") %>% 
     pivot_wider(names_from = "year", values_from = "deaths")
   
+  deaths_mid_wide <- deaths %>% 
+    select("age", "year", "scenario", "simulation_id", "deaths_mid") %>% 
+    pivot_wider(names_from = "year", values_from = "deaths_mid")
+    
+  
 # Nombre total de décès par année et par scénario
   total_deaths <- deaths_wide %>% 
     group_by(scenario, simulation_id) %>%                                 
-    summarise(across(!!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time)), sum)) %>%
+    summarise(across(!!sym(as.character(year_i - ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)), sum)) %>%
     rowwise() %>%
-    mutate(total_deaths = sum(c_across(!!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time)))))  
+    mutate(total_deaths = sum(c_across(!!sym(as.character(year_i - ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)))))  
+  
+  total_deaths_mid <- deaths_mid_wide %>% 
+    group_by(scenario, simulation_id) %>%                                 
+    summarise(across(!!sym(as.character(year_i - ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)), sum)) %>%
+    rowwise() %>%
+    mutate(total_deaths = sum(c_across(!!sym(as.character(year_i - ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)))))  
   
   total_deaths_long <- total_deaths %>% 
     select(-total_deaths) %>% 
-    pivot_longer(cols = !!sym(as.character(year_i - stability_time)) : !!sym(as.character(year_f + stability_time)),
+    pivot_longer(cols = !!sym(as.character(year_i - ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)),
                  names_to = "year",
                  values_to = "total_deaths") %>% 
     mutate(year = as.numeric(year))
+  
+  total_deaths_mid_long <- total_deaths_mid %>% 
+    select(-total_deaths) %>% 
+    pivot_longer(cols = !!sym(as.character(year_i - ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)),
+                 names_to = "year",
+                 values_to = "total_deaths_mid") %>% 
+    mutate(year = as.numeric(year))
+  
+  total_deaths_long <- total_deaths_long %>% 
+    left_join(total_deaths_mid_long, by = c("scenario", "year", "simulation_id"))
   
 ################################################################################################################################
 #                                             22. Nombre de décès évités                                                       #
@@ -863,16 +945,23 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
 # Nombre total de décès évités par an
   total_avoided_deaths <- total_deaths_long %>% 
     group_by(year, simulation_id) %>% 
-    mutate(avoided_deaths = total_deaths[scenario == "actuel"] - total_deaths)
+    mutate(avoided_deaths = total_deaths[scenario == "actuel"] - total_deaths,
+           avoided_deaths_mid = total_deaths_mid[scenario == "actuel"] - total_deaths_mid)
   
 # Calculer la moyenne et les IC95 pour chaque année
   simulations_summary_avoided_deaths <- total_avoided_deaths %>%
     group_by(scenario, year) %>%
     summarise(
-      mean_rr = mean(avoided_deaths, na.rm = TRUE),  # Moyenne des simulations
+      mean_rr = mean(avoided_deaths_mid, na.rm = TRUE),  
       lower_ci = quantile(avoided_deaths, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
       upper_ci = quantile(avoided_deaths, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
-    )
+    ) %>% 
+    mutate(lower_ci = case_when(
+      lower_ci > mean_rr ~ mean_rr,
+      TRUE ~ lower_ci),
+      upper_ci = case_when(
+        upper_ci < mean_rr ~ mean_rr,
+        TRUE ~ upper_ci))
   
 # Résultats sur la période de changement de régime
   simulations_summary_avoided_deaths_shift <- simulations_summary_avoided_deaths %>% 
@@ -881,46 +970,69 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
 # Nombre de décès évités par an et par age
   avoided_deaths <-  deaths %>% 
     group_by(age, year, simulation_id) %>% 
-    mutate(avoided_deaths = deaths[scenario == "actuel"] - deaths)
+    mutate(avoided_deaths = deaths[scenario == "actuel"] - deaths,
+           avoided_deaths_mid = deaths_mid[scenario == "actuel"] - deaths_mid)
   
 # Calculer la moyenne et les IC95 pour chaque année
   simulations_summary_avoided_deaths_age <- avoided_deaths %>%
     group_by(age, scenario, year) %>%
     summarise(
-      mean_rr = mean(avoided_deaths, na.rm = TRUE),  # Moyenne des simulations
+      mean_rr = mean(avoided_deaths_mid, na.rm = TRUE), 
       lower_ci = quantile(avoided_deaths, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
       upper_ci = quantile(avoided_deaths, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
-    )
+    ) %>% 
+    mutate(lower_ci = case_when(
+      lower_ci > mean_rr ~ mean_rr,
+      TRUE ~ lower_ci),
+      upper_ci = case_when(
+        upper_ci < mean_rr ~ mean_rr,
+        TRUE ~ upper_ci))
   
 # Nombre de décès évités par age, cumulés sur une période
   # année initiale du changement - 2035
   avoided_deaths_cum_2035 <- avoided_deaths %>% 
     filter(year >= year_i & year <= 2035) %>% 
     group_by(age, scenario, simulation_id) %>% 
-    summarise(cum_avoided_deaths = sum(avoided_deaths))
+    summarise(cum_avoided_deaths = sum(avoided_deaths),
+              cum_avoided_deaths_mid = sum(avoided_deaths_mid))
   
   # Calculer la moyenne et les IC95 pour chaque année
   simulations_summary_avoided_deaths_cum_2035 <- avoided_deaths_cum_2035 %>%
     group_by(age, scenario) %>%
     summarise(
-      mean_rr = mean(cum_avoided_deaths, na.rm = TRUE),  # Moyenne des simulations
+      mean_rr = mean(cum_avoided_deaths_mid, na.rm = TRUE),  
       lower_ci = quantile(cum_avoided_deaths, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
-      upper_ci = quantile(cum_avoided_deaths, 0.975, na.rm = TRUE))   # Limite supérieure de l'IC à 95%
+      upper_ci = quantile(cum_avoided_deaths, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
+    ) %>% 
+    mutate(lower_ci = case_when(
+      lower_ci > mean_rr ~ mean_rr,
+      TRUE ~ lower_ci),
+      upper_ci = case_when(
+        upper_ci < mean_rr ~ mean_rr,
+        TRUE ~ upper_ci))
       
   
   # année initiale du changement - 2050
   avoided_deaths_cum_2050 <- avoided_deaths %>% 
     filter(year >= year_i & year <= 2050) %>% 
     group_by(age, scenario, simulation_id) %>% 
-    summarise(cum_avoided_deaths = sum(avoided_deaths))
+    summarise(cum_avoided_deaths = sum(avoided_deaths),
+              cum_avoided_deaths_mid = sum(avoided_deaths_mid))
   
   # Calculer la moyenne et les IC95 pour chaque année
   simulations_summary_avoided_deaths_cum_2050 <- avoided_deaths_cum_2050 %>%
     group_by(age, scenario) %>%
     summarise(
-      mean_rr = mean(cum_avoided_deaths, na.rm = TRUE),  # Moyenne des simulations
+      mean_rr = mean(cum_avoided_deaths_mid, na.rm = TRUE),  # Moyenne des simulations
       lower_ci = quantile(cum_avoided_deaths, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
-      upper_ci = quantile(cum_avoided_deaths, 0.975, na.rm = TRUE))   # Limite supérieure de l'IC à 95%
+      upper_ci = quantile(cum_avoided_deaths, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
+    ) %>% 
+    mutate(lower_ci = case_when(
+      lower_ci > mean_rr ~ mean_rr,
+      TRUE ~ lower_ci),
+      upper_ci = case_when(
+        upper_ci < mean_rr ~ mean_rr,
+        TRUE ~ upper_ci))
   
   
 ################################################################################################################################
