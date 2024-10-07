@@ -8,7 +8,8 @@ pacman::p_load(
   dplyr,               # Manipulation des données
   tidyr,               # Manipulation des données
   tidyverse,           # Data management, inclus ggplot
-  purrr                # Opérations itératives
+  purrr,               # Opérations itératives
+  patchwork            # Combinaison de graphes
 )
 
 
@@ -582,6 +583,63 @@ diets_sig <- import(here("data_clean", "diets_evo_sig_scenarios.xlsx"))
          y = "RR")+
     theme(legend.position = "none")
   
+# 4 aliments clef
+  
+  dose_rep_4 <-  dose_rep %>% 
+    filter(food_group %in% c("red_meat", "processed_meat", "fruits", "vegetables")) %>% 
+    filter(!(food_group == "red_meat" & quantity > 200),
+           !(food_group == "processed_meat" & quantity > 200),
+           !(food_group == "fruits" & quantity > 600),
+           !(food_group == "vegetables" & quantity > 600)) %>%
+    pivot_longer(cols = starts_with("rr_"),
+                 names_to = "IC95",
+                 values_to = "rr") %>% 
+    mutate(food_group = factor(food_group, levels = c("red_meat", "fruits", "processed_meat", "vegetables")))
+  
+  graph_dose_rep_4 <- ggplot(dose_rep_4, aes(x = quantity,
+                                             y = rr,
+                                             color = IC95,
+                                             linetype = IC95))+
+    facet_wrap(~ food_group)+
+    geom_line(na.rm = TRUE)+
+    scale_linetype_manual(values = c("dashed", "solid", "dashed"))+
+    scale_color_manual(values = c("black", "black", "black"))+
+    labs(title = "",
+         x = "intake (g/d/pers)",
+         y = "RR")+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(1)),
+          legend.position = "none")
+  
+  
+  graph_meat <- ggplot(dose_rep_4 %>% filter(food_group %in% c("red_meat", "processed_meat")),
+                       aes(x = quantity, y = rr, color = IC95, linetype = IC95)) +
+    facet_wrap(~ food_group) +
+    geom_line(na.rm = TRUE) +
+    scale_x_continuous(limits = c(0, 200)) +  # Limite de l'axe x à 200
+    scale_linetype_manual(values = c("dashed", "solid", "dashed")) +
+    scale_color_manual(values = c("black", "black", "black")) +
+    labs(title = "", x = "", y = "RR") +
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 10),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold", size = rel(1)),
+          legend.position = "none")
+  
+  graph_fruits_veg <- ggplot(dose_rep_4 %>% filter(food_group %in% c("fruits", "vegetables")),
+                             aes(x = quantity, y = rr, color = IC95, linetype = IC95)) +
+    facet_wrap(~ food_group) +
+    geom_line(na.rm = TRUE) +
+    scale_x_continuous(limits = c(0, 600)) +  # Limite de l'axe x à 600
+    scale_linetype_manual(values = c("dashed", "solid", "dashed")) +
+    scale_color_manual(values = c("black", "black", "black")) +
+    labs(title = "", x = "Intake (g/d/pers)", y = "RR") +
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 10),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold", size = rel(1)),
+          legend.position = "none")
+  
+  combined_graph <- graph_meat / graph_fruits_veg
 ################################################################################################################################
 #                                             5. Attribution des rr à chaque régime                                            #
 ################################################################################################################################
@@ -729,3 +787,7 @@ export(combined_rr_table_sig, here("data_clean", "combined_rr_sig_2.xlsx"))
 ggsave(here("results", "Diets_RR_evo_lin_2.pdf"), plot = graph_rr_evo_lin)
 ggsave(here("results", "Diets_RR_evo_cos_2.pdf"), plot = graph_rr_evo_cos)
 ggsave(here("results", "Diets_RR_evo_sig_2.pdf"), plot = graph_rr_evo_sig)
+
+
+# Courbe dose-rep de 4 aliments clef
+ggsave(here("results", "dose_response_curves", "dr_cruves_4_fg.pdf"), plot = combined_graph)
