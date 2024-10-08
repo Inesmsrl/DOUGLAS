@@ -596,23 +596,6 @@ diets_sig <- import(here("data_clean", "diets_evo_sig_scenarios.xlsx"))
                  values_to = "rr") %>% 
     mutate(food_group = factor(food_group, levels = c("red_meat", "fruits", "processed_meat", "vegetables")))
   
-  graph_dose_rep_4 <- ggplot(dose_rep_4, aes(x = quantity,
-                                             y = rr,
-                                             color = IC95,
-                                             linetype = IC95))+
-    facet_wrap(~ food_group)+
-    geom_line(na.rm = TRUE)+
-    scale_linetype_manual(values = c("dashed", "solid", "dashed"))+
-    scale_color_manual(values = c("black", "black", "black"))+
-    labs(title = "",
-         x = "intake (g/d/pers)",
-         y = "RR")+
-    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-          axis.text.y = element_text(size = 7),
-          strip.text = element_text(face = "bold",size = rel(1)),
-          legend.position = "none")
-  
-  
   graph_meat <- ggplot(dose_rep_4 %>% filter(food_group %in% c("red_meat", "processed_meat")),
                        aes(x = quantity, y = rr, color = IC95, linetype = IC95)) +
     facet_wrap(~ food_group) +
