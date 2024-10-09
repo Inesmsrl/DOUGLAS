@@ -279,17 +279,19 @@ pacman::p_load(
     # just need to truncat values
       distr_RR[distr_RR<0]=0
       
-      if (food_group %in% c("red_meat", "processed_meat", "sugar_sweetened_beverages"))
-        distr_RR[distr_RR<1]=1
-      if (food_group %in% c("fruits", "vegetables", "legumes", "whole_grains", "nuts"))
-        distr_RR[distr_RR>1]=1
+      #if (food_group %in% c("red_meat", "processed_meat", "sugar_sweetened_beverages"))
+        #distr_RR[distr_RR<1]=1
+      #if (food_group %in% c("fruits", "vegetables", "legumes", "whole_grains", "nuts"))
+        #distr_RR[distr_RR>1]=1
      
     return(distr_RR)
   }
+  
 
   diets_evo <- diets_evo %>% 
     rowwise() %>% 
     mutate(rr_distrib = list(generate_RR_distrib(food_group, rr_mid, rr_low, rr_up)))
+  
   
 # Exemple des consommations de 2035 dans S1
   
@@ -955,6 +957,86 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
       upper_ci = case_when(
         upper_ci < mean_rr ~ mean_rr,
         TRUE ~ upper_ci))
+  
+################################################################################################################################
+#                                             17. Report des décès d'une année sur l'autre                                     #
+################################################################################################################################
+  
+  # deaths_report <- MR_adjusted %>%
+  #   left_join(population_select, by = c("age", "year"), relationship = "many-to-many")
+  #   
+  # calc_deaths_report <- function(df) {
+  #   
+  #   # Calcul des décès
+  #   df <- df %>%
+  #     mutate(deaths = adjusted_mr * population,
+  #            deaths_mid = adjusted_mr_mid * population)
+  #   
+  #   # Boucle sur chaque année sauf la dernière
+  #   years <- unique(df$year)
+  #   
+  #   for (yr in years[years != max(years)]) {
+  #     
+  #     # Calcul des décès évités
+  #     df <- df %>%
+  #       group_by(age, year, simulation_id) %>%
+  #       mutate(avoided_deaths = deaths[scenario == "actuel"] - deaths,
+  #              avoided_deaths_mid = deaths_mid[scenario == "actuel"] - deaths_mid) %>%
+  #       ungroup()
+  #     
+  #     # Ajout des décès évités à la population de l'année suivante et de l'âge suivant
+  #     df <- df %>%
+  #       group_by(scenario, simulation_id) %>%
+  #       mutate(
+  #         # Pour chaque ligne sauf les derniers âges et la dernière année
+  #         population_next_year = if_else(year == yr & age < 105, 
+  #                                        if_else(age == 18, 
+  #                                                population + avoided_deaths,  # Utiliser la population actuelle et les décès évités
+  #                                                lag(population) + lag(avoided_deaths, default = 0, order_by = age)), 
+  #                                        population),
+  #         population_next_year_mid = if_else(year == yr & age < 105, 
+  #                                            if_else(age == 18, 
+  #                                                    population + avoided_deaths_mid,  # Utiliser la population actuelle et les décès évités
+  #                                                    lag(population) + lag(avoided_deaths_mid, default = 0, order_by = age)), 
+  #                                            population),
+  #         
+  #         # Cas spécial pour la dernière catégorie d'âge (age = 105)
+  #         population_next_year_105 = if_else(age == 105 & year == yr,
+  #                                            population + avoided_deaths, 
+  #                                            population_next_year),
+  #         population_next_year_105_mid = if_else(age == 105 & year == yr,
+  #                                                population + avoided_deaths_mid, 
+  #                                                population_next_year_mid),
+  #         
+  #         # Calcul final de la population
+  #         population_final = coalesce(population_next_year_105, population_next_year),
+  #         population_final_mid = coalesce(population_next_year_105_mid, population_next_year_mid)
+  #       ) %>%
+  #       ungroup()
+  #     
+  #     # Vérification des mises à jour de population
+  #     print(paste("Année:", yr))
+  #     print(head(df %>% 
+  #                  filter(year == yr,
+  #                         scenario== "sc1",
+  #                         simulation_id == "simulations_90",
+  #                         age %in% c(18,19)) %>% 
+  #                  select(age, population, avoided_deaths, population_final)))
+  #   }
+  #   
+  #   # Supprimer les colonnes intermédiaires inutiles
+  #   df <- df %>%
+  #     select(-population_next_year, -population_next_year_mid, 
+  #            -population_next_year_105, -population_next_year_105_mid)
+  #   
+  #   return(df)
+  # }
+  # 
+  # 
+  # deaths_report_inter <- calc_deaths_report(deaths_report)
+  #   
+  # deaths_report_inter <- deaths_report_inter %>% 
+  #   select(age, year, scenario, simulation_id, population, deaths, avoided_deaths, population_final, deaths_mid, avoided_deaths_mid, population_final_mid)
   
   
 ################################################################################################################################
