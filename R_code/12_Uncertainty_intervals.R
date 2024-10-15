@@ -42,6 +42,9 @@ pacman::p_load(
 #                                             3. Initialisation des paramètres                                                 #
 ################################################################################################################################
 
+# Nombre de simulations des valeurs de RR
+  n <- 30
+  
 # Bornes temporelles des changements de régime alimentaire (années)
   year_i <- 2025 # Année initiale
   year_f <- 2050 # Année finale
@@ -72,7 +75,7 @@ pacman::p_load(
     # Après changement de régime : 2 x ttfe_time
   
   # Dynamique (immediate, linear, cosine, sigmoidal, log)
-  ttfe_dynamics <- "linear"
+  ttfe_dynamics <- "sigmoidal"
   
   # paramètre de la courbe d'interpolation cosinus
   p_ttfe <- 1
@@ -114,6 +117,28 @@ pacman::p_load(
   order_food_groups <- c("red_meat", "processed_meat", "white_meat", "fish", "eggs", "dairy", 
                          "fruits", "vegetables", "legumes", "nuts","whole_grains", "reffined_grains",
                          "added_plant_oils", "sugar_sweetened_beverages")
+  
+# Etiquettes des scénarios et groupes d'aliments
+  labels_scenario <- c("actuel" = "Current diet",
+                          "sc1" = "Scenario 1",
+                          "sc2" = "Scenario 2",
+                          "sc3" = "Scenario 3",
+                          "sc4" = "Scenario 4")
+  
+  labels_food_groups <- c("red_meat" = "Red meat",
+                          "processed_meat" = "Processed meat",
+                          "white_meat" = "White meat",
+                          "dairy" = "Dairy",
+                          "fish" = "Fish",
+                          "eggs" = "Eggs",
+                          "fruits" = "Fruits",
+                          "nuts" = "Nuts",
+                          "vegetables" = "Vegetables",
+                          "legumes" = "Legumes",
+                          "whole_grains" = "Whole grains",
+                          "reffined_grains" = "Refine grains",
+                          "added_plant_oils" = "Added plant oils",
+                          "sugar_sweetened_beverages" = "Sugar-sweetened beverages")
   
 ################################################################################################################################
 #                                             4. Préparation des données                                                       #
@@ -216,6 +241,63 @@ pacman::p_load(
   
 # Ordonnner les groupes alimentaires
   diets_evo$food_group <- factor(diets_evo$food_group, levels = order_food_groups)
+  
+# Visualisation graphique sur toute la période
+  graph_diets_evo <- ggplot(data = diets_evo, aes(x = year,
+                                                  y = quantity,
+                                                  fill = food_group))+
+    geom_area(colour = "black", linewidth = 0.2, alpha = 0.6)+
+    facet_wrap(~ scenario, 
+               ncol = 3,
+               labeller = labeller(scenario = labels_scenario))+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.8)),
+          legend.position = "bottom",
+          legend.text = element_text(size = 7),
+          legend.title = element_text(face = "bold", size = 10),
+          legend.key.size = unit(0.3, "cm"),
+          plot.margin = margin(0.2, 0.5, 0.2, 0.5, "cm"))+
+    scale_fill_manual(values = col_food_groups,
+                      labels = labels_food_groups)+
+    labs(title = "",
+         x = "",
+         y = "Quantities (g/day/pers)",
+         fill = "Food type")+
+    guides(fill = guide_legend(nrow = 3, 
+                               title.position = "top",
+                               title.hjust = 0.5))
+  
+diets_evo_shift <- diets_evo %>% 
+    filter(year %in% c(year_i:year_f))
+
+# Visualisation graphique sur la période de changement de régime
+  graph_diets_evo <- ggplot(data = diets_evo_shift, aes(x = year,
+                                                        y = quantity,
+                                                        fill = food_group))+
+    geom_area(colour = "black", linewidth = 0.2, alpha = 0.6)+
+    facet_wrap(~ scenario, 
+               ncol = 3,
+               labeller = labeller(scenario = labels_scenario))+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.8)),
+          legend.position = "bottom",
+          legend.text = element_text(size = 7),
+          legend.title = element_text(face = "bold", size = 10),
+          legend.key.size = unit(0.3, "cm"),
+          plot.margin = margin(0.2, 0.5, 0.2, 0.5, "cm"))+
+    scale_fill_manual(values = col_food_groups,
+                      labels = labels_food_groups)+
+    labs(title = "",
+         x = "",
+         y = "Quantities (g/day/pers)",
+         fill = "Food type")+
+    guides(fill = guide_legend(nrow = 3, 
+                               title.position = "top",
+                               title.hjust = 0.5))
+
+  
 
 ################################################################################################################################
 #                                             7. Modification d'effet des RR                                                         #
@@ -264,7 +346,7 @@ pacman::p_load(
 #                                             9. Génération des distributions normales pour chaque RR                          #
 ################################################################################################################################
   
-  generate_RR_distrib = function(food_group, RR, low, sup, N=1000){
+  generate_RR_distrib = function(food_group, RR, low, sup, N = n){
     #RR, low and sup are the RR and 95%CI of a specific risk ration
     #N is the number of random values from the distrib
     
@@ -342,37 +424,14 @@ pacman::p_load(
 #                                             10. Simulations des valeurs de RR                                                #
 ################################################################################################################################
   
-# Fixer une graine pour garantir la reproductibilité des simulations
-  set.seed(123)
-  
-# Fonction de simulation
-  simulate_rr <- function(distribution, N = 100) {
-    sample(distribution, size = N, replace = TRUE)
-  }
-  
-# Fonction de filtre des simulations pour n'en conserver que les 95% centrales
-  filter_simulations <- function(simulations) {
-    lower_bound <- quantile(simulations, 0.025)
-    upper_bound <- quantile(simulations, 0.975)
-    simulations[simulations >= lower_bound & simulations <= upper_bound]
-  }
-
-  
-# Simulations
-  diets_evo <- diets_evo %>% 
-    rowwise() %>% 
-    mutate(simulations = list(simulate_rr(rr_distrib)),
-           simulations_filtered = list(filter_simulations(simulations))) %>% 
-    ungroup() %>% 
-    select(-simulations) %>% 
-    rename("simulations" = "simulations_filtered")
-  
+# # Fixer une graine pour garantir la reproductibilité des simulations
+#   set.seed(123)
 
 # Transformer les simulations en format long
   simulations_long <- diets_evo %>% 
-    unnest_wider(simulations, names_sep = "_") %>%  # Séparer les simulations en colonnes distinctes
+    unnest_wider(rr_distrib, names_sep = "_") %>%  # Séparer les simulations en colonnes distinctes
     pivot_longer(
-      cols = starts_with("simulations_"),  # Sélectionner toutes les colonnes de simulations
+      cols = starts_with("rr_distrib_"),  # Sélectionner toutes les colonnes de simulations
       names_to = "simulation_id",  # Nom de la colonne contenant les identifiants de simulation
       values_to = "simulated_rr"  # Nom de la colonne contenant les valeurs simulées
     )
@@ -512,7 +571,7 @@ pacman::p_load(
   graph_ttfe  <- ggplot(ttfe, aes(x = time,
                                   y = ttfe))+
     geom_line(color = "darkseagreen", size = 1, alpha = 0.8)+
-    labs(title = "Time to full effect",
+    labs(title = "",
          x = "years",
          y = "% of RR value")  
   
@@ -723,13 +782,17 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
 #                                             18. Combinaison des RR de chaque régime par année et calcul relatif au RR actuel #
 ################################################################################################################################
   
- 
 # Calcul des RR relatifs aux RR du scénario actuel
   rr_evo_diets <- rr_evo_diets %>% 
     group_by(year, simulation_id) %>% 
     mutate(relative_rr = combined_rr/combined_rr[scenario == "actuel"],
            relative_rr_mid = combined_rr_mid/combined_rr_mid[scenario == "actuel"]) %>% 
     ungroup()
+  
+# Eliminer Les valeurs 5% les plus extrêmes
+  rr_evo_diets <- rr_evo_diets %>% 
+    group_by(scenario, year) %>% 
+    filter(between(relative_rr, quantile(relative_rr, 0.025), quantile(relative_rr, 0.975)))
   
 # Calculer la moyenne et les IC95 pour chaque année
   simulations_summary_rr_diets_relative <- rr_evo_diets %>%
@@ -745,6 +808,9 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
       upper_ci = case_when(
         upper_ci < mean_rr ~ mean_rr,
         TRUE ~ upper_ci))
+  
+
+  
   
 ################################################################################################################################
 #                                             19. Représentations graphiques des simulations des valeurs de RR relatives des régimes     #
@@ -1284,6 +1350,8 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
   
 # Régimes, valeurs des RR et IC95 RR, distribution normale des valeurs de RR et simulations
   export(diets_evo, here("results", "visualization_tool_ic95", "diets_rr_evo.xlsx"))
+  
+  ggsave(here("results", "visualization_tool_ic95", "diets_evo.pdf"), plot = graph_diets_evo)
   
 # Distribution normale des RR de chaque aliment pour chaque année dans chaque scénario
   ggsave(here("results", "visualization_tool_ic95","norm_rr_sc1_2035.pdf"), plot = graph_rr_sc1_2035_norm)
