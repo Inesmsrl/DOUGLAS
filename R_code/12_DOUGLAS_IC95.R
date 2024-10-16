@@ -43,7 +43,7 @@ pacman::p_load(
 ################################################################################################################################
 
 # Nombre de simulations des valeurs de RR
-  n <- 30
+  n <- 50
   
 # Bornes temporelles des changements de régime alimentaire (années)
   year_i <- 2025 # Année initiale
@@ -89,7 +89,11 @@ pacman::p_load(
 # Combinaison des RR de chaque aliment par année (arithmetic mean, geometric mean)
   combinaison_rr_type <- "geometric mean"
   
-# Charte graphique
+################################################################################################################################
+#                                             4. Charte graphique                                                              #
+################################################################################################################################
+  
+# Couleur de chaque scénario
   col_scenario <- c("actuel" = "azure4",
                     "sc0" = "palevioletred3",
                     "sc1" = "aquamarine3",
@@ -98,6 +102,7 @@ pacman::p_load(
                     "sc4" = "#882255",
                     "sc5" = "royalblue4")
   
+# Couleur de chaque groupe d'aliments
   col_food_groups <- c("red_meat" = "#F60239",
                        "processed_meat" = "#A40122",
                        "white_meat" = "#FF9DC8",
@@ -141,7 +146,7 @@ pacman::p_load(
                           "sugar_sweetened_beverages" = "Sugar-sweetened beverages")
   
 ################################################################################################################################
-#                                             4. Préparation des données                                                       #
+#                                             5. Préparation des données                                                       #
 ################################################################################################################################
   
   # Pivoter les dataframes des RR en format long
@@ -189,7 +194,7 @@ pacman::p_load(
   
   
 ################################################################################################################################
-#                                             5. Fonctions d'implémentation des régimes                                        #
+#                                             6. Fonctions d'implémentation des régimes                                        #
 ################################################################################################################################
   
   # Implémentation linéaire
@@ -209,7 +214,7 @@ pacman::p_load(
   
   
 ################################################################################################################################
-#                                             6. Evolution des régimes                                                         #
+#                                             7. Evolution des régimes                                                         #
 ################################################################################################################################
   
 # Calcul des quantités de chaque aliment consommées chaque année 
@@ -246,56 +251,56 @@ pacman::p_load(
   graph_diets_evo <- ggplot(data = diets_evo, aes(x = year,
                                                   y = quantity,
                                                   fill = food_group))+
-    geom_area(colour = "black", linewidth = 0.2, alpha = 0.6)+
-    facet_wrap(~ scenario, 
-               ncol = 3,
-               labeller = labeller(scenario = labels_scenario))+
-    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-          axis.text.y = element_text(size = 7),
-          strip.text = element_text(face = "bold",size = rel(0.8)),
-          legend.position = "bottom",
-          legend.text = element_text(size = 7),
-          legend.title = element_text(face = "bold", size = 10),
-          legend.key.size = unit(0.3, "cm"),
-          plot.margin = margin(0.2, 0.5, 0.2, 0.5, "cm"))+
-    scale_fill_manual(values = col_food_groups,
-                      labels = labels_food_groups)+
-    labs(title = "",
-         x = "",
-         y = "Quantities (g/day/pers)",
-         fill = "Food type")+
-    guides(fill = guide_legend(nrow = 3, 
-                               title.position = "top",
-                               title.hjust = 0.5))
-  
+                        geom_area(colour = "black", linewidth = 0.2, alpha = 0.6)+
+                        facet_wrap(~ scenario, 
+                                   ncol = 3,
+                                   labeller = labeller(scenario = labels_scenario))+
+                        theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+                              axis.text.y = element_text(size = 7),
+                              strip.text = element_text(face = "bold",size = rel(0.8)),
+                              legend.position = "bottom",
+                              legend.text = element_text(size = 7),
+                              legend.title = element_text(face = "bold", size = 10),
+                              legend.key.size = unit(0.3, "cm"),
+                              plot.margin = margin(0.2, 0.5, 0.2, 0.5, "cm"))+
+                        scale_fill_manual(values = col_food_groups,
+                                          labels = labels_food_groups)+
+                        labs(title = "",
+                             x = "",
+                             y = "Quantities (g/day/pers)",
+                             fill = "Food type")+
+                        guides(fill = guide_legend(nrow = 3, 
+                                                   title.position = "top",
+                                                   title.hjust = 0.5))
+                      
 diets_evo_shift <- diets_evo %>% 
     filter(year %in% c(year_i:year_f))
 
 # Visualisation graphique sur la période de changement de régime
-  graph_diets_evo <- ggplot(data = diets_evo_shift, aes(x = year,
-                                                        y = quantity,
-                                                        fill = food_group))+
-    geom_area(colour = "black", linewidth = 0.2, alpha = 0.6)+
-    facet_wrap(~ scenario, 
-               ncol = 3,
-               labeller = labeller(scenario = labels_scenario))+
-    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-          axis.text.y = element_text(size = 7),
-          strip.text = element_text(face = "bold",size = rel(0.8)),
-          legend.position = "bottom",
-          legend.text = element_text(size = 7),
-          legend.title = element_text(face = "bold", size = 10),
-          legend.key.size = unit(0.3, "cm"),
-          plot.margin = margin(0.2, 0.5, 0.2, 0.5, "cm"))+
-    scale_fill_manual(values = col_food_groups,
-                      labels = labels_food_groups)+
-    labs(title = "",
-         x = "",
-         y = "Quantities (g/day/pers)",
-         fill = "Food type")+
-    guides(fill = guide_legend(nrow = 3, 
-                               title.position = "top",
-                               title.hjust = 0.5))
+  graph_diets_evo_shift <- ggplot(data = diets_evo_shift, aes(x = year,
+                                                              y = quantity,
+                                                              fill = food_group))+
+                              geom_area(colour = "black", linewidth = 0.2, alpha = 0.6)+
+                              facet_wrap(~ scenario, 
+                                         ncol = 3,
+                                         labeller = labeller(scenario = labels_scenario))+
+                              theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+                                    axis.text.y = element_text(size = 7),
+                                    strip.text = element_text(face = "bold",size = rel(0.8)),
+                                    legend.position = "bottom",
+                                    legend.text = element_text(size = 7),
+                                    legend.title = element_text(face = "bold", size = 10),
+                                    legend.key.size = unit(0.3, "cm"),
+                                    plot.margin = margin(0.2, 0.5, 0.2, 0.5, "cm"))+
+                              scale_fill_manual(values = col_food_groups,
+                                                labels = labels_food_groups)+
+                              labs(title = "",
+                                   x = "",
+                                   y = "Quantities (g/day/pers)",
+                                   fill = "Food type")+
+                              guides(fill = guide_legend(nrow = 3, 
+                                                         title.position = "top",
+                                                         title.hjust = 0.5))
 
   
 
@@ -387,7 +392,7 @@ diets_evo_shift <- diets_evo %>%
                                                            y = after_stat(count / sum(count)),
                                                            fill = food_group)) + 
                               facet_wrap(~ food_group)+
-                              geom_histogram(binwidth = 0.005, 
+                              geom_histogram(binwidth = 0.004, 
                                              position = "dodge",
                                              alpha = 0.7) +
                               scale_fill_manual(values = col_food_groups)+
@@ -406,7 +411,7 @@ diets_evo_shift <- diets_evo %>%
   graph_ssb_sc1_2035_norm <- ggplot(ssb_norm_sc1_2035, aes(x = rr_distrib,
                                                            y = after_stat(count / sum(count)),
                                                            fill = food_group)) + 
-                              geom_histogram(binwidth = 0.001, 
+                              geom_histogram(binwidth = 0.0005, 
                                              position = "dodge",
                                              alpha = 0.7) +
                               scale_fill_manual(values = col_food_groups)+
