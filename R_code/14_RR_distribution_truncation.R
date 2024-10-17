@@ -35,7 +35,7 @@ pacman::p_load(
 ################################################################################################################################
   
 # Nombre de simulations des valeurs de RR
-  n <- 2000
+  n <- 1000
   
 # Bornes temporelles des changements de régime alimentaire (années)
   year_i <- 2025 # Année initiale
@@ -389,6 +389,179 @@ pacman::p_load(
   
   quantile(dist_nuts$rr_distrib, probs= c(0.025, 0.5, 0.975))
   
+# Processed meat
+  dist_processed_meat <- diets_evo %>% 
+    filter(scenario == "sc1",
+           year == 2050,
+           food_group == "processed_meat") %>% 
+    select(food_group, rr_distrib) %>% 
+    unnest(rr_distrib)
+  
+  graph_rr_dist_processed_meat <- ggplot(dist_processed_meat, aes(x = rr_distrib,
+                                              y = after_stat(count / sum(count)),
+                                              fill = food_group))+
+    geom_histogram(binwidth = 0.0005, 
+                   position = "dodge",
+                   alpha = 0.7) +
+    scale_fill_manual(values = col_food_groups)+
+    theme(legend.position = "none",
+          axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7))+
+    labs(title = "RR values",
+         subtitle = "Processed meat intake in S1 in 2050",
+         x = "RR",
+         y = "Frequency")
+  
+  quantile(dist_processed_meat$rr_distrib, probs= c(0.025, 0.5, 0.975))
+
+# Red meat
+  dist_red_meat <- diets_evo %>% 
+    filter(scenario == "sc1",
+           year == 2050,
+           food_group == "red_meat") %>% 
+    select(food_group, rr_distrib) %>% 
+    unnest(rr_distrib)
+  
+  graph_rr_dist_red_meat <- ggplot(dist_red_meat, aes(x = rr_distrib,
+                                                                  y = after_stat(count / sum(count)),
+                                                                  fill = food_group))+
+    geom_histogram(binwidth = 0.0005, 
+                   position = "dodge",
+                   alpha = 0.7) +
+    scale_fill_manual(values = col_food_groups)+
+    theme(legend.position = "none",
+          axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7))+
+    labs(title = "RR values",
+         subtitle = "Red meat intake in S1 in 2050",
+         x = "RR",
+         y = "Frequency")
+  
+  quantile(dist_red_meat$rr_distrib, probs= c(0.025, 0.5, 0.975))
   
   
+# Refined grains
+  dist_refined_grains <- diets_evo %>% 
+    filter(scenario == "sc4",
+           year == 2050,
+           food_group == "reffined_grains") %>% 
+    select(food_group, rr_distrib) %>% 
+    unnest(rr_distrib)
+  
+  graph_rr_dist_refined_grains <- ggplot(dist_refined_grains, aes(x = rr_distrib,
+                                                      y = after_stat(count / sum(count)),
+                                                      fill = food_group))+
+    geom_histogram(binwidth = 0.0005, 
+                   position = "dodge",
+                   alpha = 0.7) +
+    scale_fill_manual(values = col_food_groups)+
+    theme(legend.position = "none",
+          axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7))+
+    labs(title = "RR values",
+         subtitle = "Refined grains intake in S4 in 2050",
+         x = "RR",
+         y = "Frequency")
+  
+  quantile(dist_refined_grains$rr_distrib, probs= c(0.025, 0.5, 0.975))
+  
+# Sugar-sweetened beverages
+  dist_ssb <- diets_evo %>% 
+    filter(scenario == "sc4",
+           year == 2050,
+           food_group == "sugar_sweetened_beverages") %>% 
+    select(food_group, rr_distrib) %>% 
+    unnest(rr_distrib)
+  
+  graph_rr_dist_ssb <- ggplot(dist_ssb, aes(x = rr_distrib,
+                                            y = after_stat(count / sum(count)),
+                                            fill = food_group))+
+    geom_histogram(binwidth = 0.0005, 
+                   position = "dodge",
+                   alpha = 0.7) +
+    scale_fill_manual(values = col_food_groups)+
+    theme(legend.position = "none",
+          axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7))+
+    labs(title = "RR values",
+         subtitle = "SSB intake in S4 in 2050",
+         x = "RR",
+         y = "Frequency")
+  
+  quantile(dist_ssb$rr_distrib, probs= c(0.025, 0.5, 0.975))
+  
+# Vegetables
+  dist_vegetables <- diets_evo %>% 
+    filter(scenario == "actuel",
+           year == 2025,
+           food_group == "vegetables") %>% 
+    select(food_group, rr_distrib) %>% 
+    unnest(rr_distrib)
+  
+  graph_rr_dist_vegetables <- ggplot(dist_vegetables, aes(x = rr_distrib,
+                                                          y = after_stat(count / sum(count)),
+                                                          fill = food_group))+
+    geom_histogram(binwidth = 0.0005, 
+                   position = "dodge",
+                   alpha = 0.7) +
+    scale_fill_manual(values = col_food_groups)+
+    theme(legend.position = "none",
+          axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7))+
+    labs(title = "RR values",
+         subtitle = "Vegetables intake in Current diet",
+         x = "RR",
+         y = "Frequency")
+  
+  quantile(dist_vegetables$rr_distrib, probs= c(0.025, 0.5, 0.975))
+  
+# White meat
+  dist_white_meat <- diets_evo %>% 
+    filter(scenario == "sc1",
+           year == 2050,
+           food_group == "white_meat") %>% 
+    select(food_group, rr_distrib) %>% 
+    unnest(rr_distrib)
+  
+  graph_rr_dist_white_meat <- ggplot(dist_white_meat, aes(x = rr_distrib,
+                                                          y = after_stat(count / sum(count)),
+                                                          fill = food_group))+
+    geom_histogram(binwidth = 0.0005, 
+                   position = "dodge",
+                   alpha = 0.7) +
+    scale_fill_manual(values = col_food_groups)+
+    theme(legend.position = "none",
+          axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7))+
+    labs(title = "RR values",
+         subtitle = "White meat intake in S1 in 2050",
+         x = "RR",
+         y = "Frequency")
+  
+  quantile(dist_white_meat$rr_distrib, probs= c(0.025, 0.5, 0.975))
+  
+# Whole grains
+  dist_whole_grains <- diets_evo %>% 
+    filter(scenario == "actuel",
+           year == 2025,
+           food_group == "whole_grains") %>% 
+    select(food_group, rr_distrib) %>% 
+    unnest(rr_distrib)
+  
+  graph_rr_dist_whole_grains <- ggplot(dist_whole_grains, aes(x = rr_distrib,
+                                                          y = after_stat(count / sum(count)),
+                                                          fill = food_group))+
+    geom_histogram(binwidth = 0.0005, 
+                   position = "dodge",
+                   alpha = 0.7) +
+    scale_fill_manual(values = col_food_groups)+
+    theme(legend.position = "none",
+          axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7))+
+    labs(title = "RR values",
+         subtitle = "Whole grains intake in current diet",
+         x = "RR",
+         y = "Frequency")
+  
+  quantile(dist_whole_grains$rr_distrib, probs= c(0.025, 0.5, 0.975))
   
