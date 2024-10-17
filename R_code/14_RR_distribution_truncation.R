@@ -74,6 +74,22 @@ pacman::p_load(
                        "added_plant_oils" = "#FF6E3A",
                        "sugar_sweetened_beverages" = "#004002")
   
+  labels_food_groups <- c("red_meat" = "Red meat",
+                          "processed_meat" = "Processed meat",
+                          "white_meat" = "White meat",
+                          "dairy" = "Dairy",
+                          "fish" = "Fish",
+                          "eggs" = "Eggs",
+                          "fruits" = "Fruits",
+                          "nuts" = "Nuts",
+                          "vegetables" = "Vegetables",
+                          "legumes" = "Legumes",
+                          "whole_grains" = "Whole grains",
+                          "reffined_grains" = "Refine grains",
+                          "added_plant_oils" = "Added plant oils",
+                          "sugar_sweetened_beverages" = "Sugar-sweetened beverages")
+  
+  
   
 ################################################################################################################################
 #                                             4. Préparation des données                                                       #
@@ -332,7 +348,7 @@ pacman::p_load(
           axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
           axis.text.y = element_text(size = 7))+
     labs(title = "RR values",
-         subtitle = "Fruits intake in sc1 in 2050",
+         subtitle = "Fruits intake in S1 in 2050",
          x = "RR",
          y = "Frequency")
   
@@ -564,4 +580,56 @@ pacman::p_load(
          y = "Frequency")
   
   quantile(dist_whole_grains$rr_distrib, probs= c(0.025, 0.5, 0.975))
+  
+################################################################################################################################
+#                                             11. Valeur des RR dans chaque simulation                                         #
+################################################################################################################################
+  
+# Transformer les simulations en format long
+  simulations_long <- diets_evo %>% 
+    unnest_wider(rr_distrib, names_sep = "_") %>%  # Séparer les simulations en colonnes distinctes
+    pivot_longer(
+      cols = starts_with("rr_distrib_"),  # Sélectionner toutes les colonnes de simulations
+      names_to = "simulation_id",  # Nom de la colonne contenant les identifiants de simulation
+      values_to = "simulated_rr"  # Nom de la colonne contenant les valeurs simulées
+    ) %>%
+    mutate(simulation_id = str_remove(simulation_id, "rr_distrib_"),
+           simulation_id = as.numeric(simulation_id))
+  
+# Représentation graphique
+  ggplot(simulations_long, aes(x = simulation_id,
+                               y = simulated_rr,
+                               color = food_group))+
+    geom_point()+
+    facet_wrap(food_group ~.,
+               scales = "free_y",
+               ncol = 1,
+               labeller = labeller(food_group = labels_food_groups))+
+    scale_color_manual(values = col_food_groups)+
+    labs(x = "simulation ID",
+         y = "RR")+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          strip.text = element_text(face = "bold",size = rel(0.8)),
+          legend.position = "none")
+    
+  
+################################################################################################################################
+#                                             12. Exportation des données                                                      #
+################################################################################################################################
+  
+# Graphiques des distributions normales de chaque aliment
+  
+  ggsave(here("results", "RR_norm_distributions", "dairy_dist.pdf"), plot = graph_rr_dist_dairy)
+  ggsave(here("results", "RR_norm_distributions", "eggs_dist.pdf"), plot = graph_rr_dist_eggs)
+  ggsave(here("results", "RR_norm_distributions", "fish_dist.pdf"), plot = graph_rr_dist_fish)  
+  ggsave(here("results", "RR_norm_distributions", "fruits_dist.pdf"), plot = graph_rr_dist_fruits)  
+  ggsave(here("results", "RR_norm_distributions", "legumes_dist.pdf"), plot = graph_rr_dist_legumes)  
+  ggsave(here("results", "RR_norm_distributions", "nuts_dist.pdf"), plot = graph_rr_dist_nuts)  
+  ggsave(here("results", "RR_norm_distributions", "processed_meat_dist.pdf"), plot = graph_rr_dist_processed_meat)  
+  ggsave(here("results", "RR_norm_distributions", "red_meat_dist.pdf"), plot = graph_rr_dist_red_meat)  
+  ggsave(here("results", "RR_norm_distributions", "refined_grains_dist.pdf"), plot = graph_rr_dist_refined_grains)  
+  ggsave(here("results", "RR_norm_distributions", "ssb_dist.pdf"), plot = graph_rr_dist_ssb)  
+  ggsave(here("results", "RR_norm_distributions", "vegetables_dist.pdf"), plot = graph_rr_dist_vegetables)  
+  ggsave(here("results", "RR_norm_distributions", "white_meat_dist.pdf"), plot = graph_rr_dist_white_meat)  
+  ggsave(here("results", "RR_norm_distributions", "whole_grains_dist.pdf"), plot = graph_rr_dist_whole_grains)  
   
