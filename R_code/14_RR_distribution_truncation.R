@@ -597,20 +597,27 @@ pacman::p_load(
            simulation_id = as.numeric(simulation_id))
   
 # Représentation graphique
-  ggplot(simulations_long, aes(x = simulation_id,
-                               y = simulated_rr,
-                               color = food_group))+
-    geom_point()+
-    facet_wrap(food_group ~.,
+  ggplot(simulations_long %>% 
+           filter(year == 2050,
+                  scenario == "sc1"), 
+         aes(x = simulation_id,
+             y = simulated_rr,
+             color = food_group))+
+    geom_point(size = 0.2)+
+    facet_grid(food_group ~.,
                scales = "free_y",
-               ncol = 1,
                labeller = labeller(food_group = labels_food_groups))+
     scale_color_manual(values = col_food_groups)+
-    labs(x = "simulation ID",
+    labs(x = "Simulation ID",
          y = "RR")+
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 2))+
     theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(hjust = 1, size = 7),
           strip.text = element_text(face = "bold",size = rel(0.8)),
-          legend.position = "none")
+          legend.position = "none",
+          panel.spacing = unit(0.5, "lines"),
+          plot.margin = margin(1, 1, 1, 1))
+    
     
   
 ################################################################################################################################
