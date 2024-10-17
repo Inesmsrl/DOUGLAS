@@ -317,7 +317,7 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
                   geom_line(color = "darkseagreen", size = 1, alpha = 0.8)+
                   labs(title = "Time to full effect",
                        x = "",
-                       y = "")  
+                       y = "% of RR value")  
   
 ################################################################################################################################
 #                                             11. Calcul des RR avec TTFE                                                       #

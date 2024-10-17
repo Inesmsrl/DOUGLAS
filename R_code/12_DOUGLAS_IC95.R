@@ -43,7 +43,7 @@ pacman::p_load(
 ################################################################################################################################
 
 # Nombre de simulations des valeurs de RR
-  n <- 50
+  n <- 10
   
 # Bornes temporelles des changements de régime alimentaire (années)
   year_i <- 2025 # Année initiale
@@ -1257,6 +1257,7 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
 
 # Nombre total de décès évités par annnée
   # Sur toute la période du modèle
+  export(total_avoided_deaths, here("results", "visualization_tool_ic95", "total_avoided_deaths.xlsx"))
   export(simulations_summary_avoided_deaths, here("results", "visualization_tool_ic95", "IC95_total_avoided_deaths.xlsx"))
   ggsave(here("results", "visualization_tool_ic95", "total_avoided_deaths.pdf"), plot = graph_total_avoided_deaths)
   
