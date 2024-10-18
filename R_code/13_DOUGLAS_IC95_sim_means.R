@@ -43,7 +43,7 @@ pacman::p_load(
 ################################################################################################################################
 
 # Nombre de simulations des valeurs de RR
-  n <- 50
+  n <- 10
   
 # Bornes temporelles des changements de régime alimentaire (années)
   year_i <- 2025 # Année initiale
@@ -737,7 +737,8 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
                                                                 y = mean_rr,
                                                                 color = scenario)) +
                         geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5)+
-                        facet_wrap(~ scenario)+
+                        facet_wrap(~ scenario,
+                                   labeller = labeller(scenario = labels_scenario))+
                         geom_line(size = 1, na.rm = TRUE)+ 
                         labs(
                           title = "RR simulations",
@@ -786,7 +787,8 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
                                             y = mean_rr,
                                             color = scenario)) +
                                         geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5)+
-                                        facet_wrap(~ scenario)+
+                                        facet_wrap(~ scenario,
+                                                   labeller = labeller(scenario = labels_scenario))+
                                         geom_line(size = 1, na.rm = TRUE)+ 
                                         labs(
                                               title = "RR values relative to keeping the current diet",
@@ -1017,7 +1019,8 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
                                             y = mean_rr,
                                             color = scenario)) +
                                         geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5)+
-                                        facet_wrap(~ scenario)+
+                                        facet_wrap(~ scenario,
+                                                   labeller = labeller(scenario = labels_scenario))+
                                         geom_line(size = 1, na.rm = TRUE)+ 
                                         labs(
                                           title = "Avoided deaths compared to keeping the current diet",
@@ -1038,7 +1041,8 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
                                                  y = mean_rr,
                                                  color = scenario)) +
                                               geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5)+
-                                              facet_wrap(~ scenario)+
+                                              facet_wrap(~ scenario,
+                                                         labeller = labeller(scenario = labels_scenario))+
                                               geom_line(size = 1, na.rm = TRUE)+ 
                                               labs(
                                                 title = "Avoided deaths compared to keeping the current diet",
@@ -1065,7 +1069,8 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
                                             aes(x = age,
                                                 y = mean_rr,
                                                 color = scenario)) +
-                                            facet_wrap(~ scenario)+
+                                            facet_wrap(~ scenario,
+                                                       labeller = labeller(scenario = labels_scenario))+
                                             geom_line(size = 0.8, na.rm = TRUE)+
                                             geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
                                                         alpha = 0.5,
@@ -1113,7 +1118,8 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
                                             aes(x = age,
                                                 y = mean_rr,
                                                 color = scenario)) +
-                                            facet_wrap(~ scenario)+
+                                            facet_wrap(~ scenario,
+                                                       labeller = labeller(scenario = labels_scenario))+
                                             geom_line(size = 0.8, na.rm = TRUE)+
                                             geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
                                                         alpha = 0.5,
@@ -1162,7 +1168,8 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
                                                 aes(x = age,
                                                     y = mean_rr,
                                                     color = scenario)) +
-                                          facet_wrap(~ scenario)+
+                                          facet_wrap(~ scenario,
+                                                     labeller = labeller(scenario = labels_scenario))+
                                           geom_line(size = 0.8, na.rm = TRUE)+
                                           geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
                                                       alpha = 0.5,
@@ -1206,7 +1213,8 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
                                                 aes(x = age,
                                                     y = mean_rr,
                                                     color = scenario)) +
-                                                facet_wrap(~ scenario)+
+                                                facet_wrap(~ scenario,
+                                                           labeller = labeller(scenario = labels_scenario))+
                                                 geom_line(size = 0.8, na.rm = TRUE)+
                                                 geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
                                                             alpha = 0.5,
