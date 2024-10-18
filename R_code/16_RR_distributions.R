@@ -25,6 +25,23 @@ rr_table_low <- import(here("data", "rr_table_quanti.xlsx"), sheet = "Lower")
 # Table des RR, IC95 upper
 rr_table_up <- import(here("data", "rr_table_quanti.xlsx"), sheet = "Upper")
 
+# Couleur de chaque groupe d'aliments
+col_food_groups <- c("red_meat" = "#F60239",
+                     "processed_meat" = "#A40122",
+                     "white_meat" = "#FF9DC8",
+                     "dairy" = "#00489E",
+                     "fish" = "#790149",
+                     "eggs" = "#EF0096",
+                     "fruits" = "#00735C",
+                     "nuts" = "#FFAC3B",
+                     "vegetables" = "#86FFDE",
+                     "legumes" = "#00CBA7",
+                     "whole_grains" = "#0079FA",
+                     "reffined_grains" = "#00E5F8",
+                     "added_plant_oils" = "#FF6E3A",
+                     "sugar_sweetened_beverages" = "#004002")
+
+
 ################################################################################################################################
 #                                             3. Préparation des données                                                       #
 ################################################################################################################################
@@ -134,9 +151,237 @@ rr_table_up <- import(here("data", "rr_table_quanti.xlsx"), sheet = "Upper")
     select("simulation_id", "food_group", "quantity", "rr_interpolated")
   
 ################################################################################################################################
+#                                             8. Représentations graphique                                                     #
+################################################################################################################################
+  
+# Dairy
+  graph_dr_sim_dairy <- ggplot(rr_table_interpolated %>% 
+                                 filter(food_group == "dairy"),
+                               aes(x = quantity,
+                                   y = rr_interpolated,
+                                   group = simulation_id,
+                                   color = food_group))+
+    scale_color_manual(values = col_food_groups)+
+    geom_line(na.rm = TRUE,
+              alpha = 0.05)+
+    labs(title = "Dose-response relationships for dairy intake",
+         x = "Quantity (g/day/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
+# Eggs
+  graph_dr_sim_eggs <- ggplot(rr_table_interpolated %>% 
+                                 filter(food_group == "eggs",
+                                        quantity %in% 0:70),
+                               aes(x = quantity,
+                                   y = rr_interpolated,
+                                   group = simulation_id,
+                                   color = food_group))+
+    scale_color_manual(values = col_food_groups)+
+    geom_line(na.rm = TRUE,
+              alpha = 0.05)+
+    labs(title = "Dose-response relationships for eggs intake",
+         x = "Quantity (g/day/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
+# Fish
+  graph_dr_sim_fish <- ggplot(rr_table_interpolated %>% 
+                                filter(food_group == "fish",
+                                       quantity %in% 0:250),
+                              aes(x = quantity,
+                                  y = rr_interpolated,
+                                  group = simulation_id,
+                                  color = food_group))+
+    scale_color_manual(values = col_food_groups)+
+    geom_line(na.rm = TRUE,
+              alpha = 0.05)+
+    labs(title = "Dose-response relationships for fish intake",
+         x = "Quantity (g/day/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
+# Fruits
+  graph_dr_sim_fruits <- ggplot(rr_table_interpolated %>% 
+                                filter(food_group == "fruits",
+                                       quantity %in% 0:600),
+                              aes(x = quantity,
+                                  y = rr_interpolated,
+                                  group = simulation_id,
+                                  color = food_group))+
+    scale_color_manual(values = col_food_groups)+
+    geom_line(na.rm = TRUE,
+              alpha = 0.05)+
+    labs(title = "Dose-response relationships for fruits intake",
+         x = "Quantity (g/day/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
+# Legumes
+  graph_dr_sim_legumes <- ggplot(rr_table_interpolated %>% 
+                                  filter(food_group == "legumes",
+                                         quantity %in% 0:600),
+                                aes(x = quantity,
+                                    y = rr_interpolated,
+                                    group = simulation_id,
+                                    color = food_group))+
+    scale_color_manual(values = col_food_groups)+
+    geom_line(na.rm = TRUE,
+              alpha = 0.05)+
+    labs(title = "Dose-response relationships for legumes intake",
+         x = "Quantity (g/day/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
+# Nuts
+  graph_dr_sim_nuts <- ggplot(rr_table_interpolated %>% 
+                                   filter(food_group == "nuts",
+                                          quantity %in% 0:30),
+                                 aes(x = quantity,
+                                     y = rr_interpolated,
+                                     group = simulation_id,
+                                     color = food_group))+
+    scale_color_manual(values = col_food_groups)+
+    geom_line(na.rm = TRUE,
+              alpha = 0.05)+
+    labs(title = "Dose-response relationships for nuts intake",
+         x = "Quantity (g/day/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
+# Processed meat
+  graph_dr_sim_processed_meat <- ggplot(rr_table_interpolated %>% 
+                                   filter(food_group == "processed_meat",
+                                          quantity %in% 0:200),
+                                 aes(x = quantity,
+                                     y = rr_interpolated,
+                                     group = simulation_id,
+                                     color = food_group))+
+    scale_color_manual(values = col_food_groups)+
+    geom_line(na.rm = TRUE,
+              alpha = 0.05)+
+    labs(title = "Dose-response relationships for processed meat intake",
+         x = "Quantity (g/day/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
+# Red meat
+  graph_dr_sim_red_meat <- ggplot(rr_table_interpolated %>% 
+                                          filter(food_group == "red_meat",
+                                                 quantity %in% 0:200),
+                                        aes(x = quantity,
+                                            y = rr_interpolated,
+                                            group = simulation_id,
+                                            color = food_group))+
+    scale_color_manual(values = col_food_groups)+
+    geom_line(na.rm = TRUE,
+              alpha = 0.05)+
+    labs(title = "Dose-response relationships for red meat intake",
+         x = "Quantity (g/day/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
+  
+# Refined grains
+  graph_dr_sim_refined_grains <- ggplot(rr_table_interpolated %>% 
+                                          filter(food_group == "reffined_grains",
+                                                 quantity %in% 0:150),
+                                        aes(x = quantity,
+                                            y = rr_interpolated,
+                                            group = simulation_id,
+                                            color = food_group))+
+    scale_color_manual(values = col_food_groups)+
+    geom_line(na.rm = TRUE,
+              alpha = 0.05)+
+    labs(title = "Dose-response relationships for refined grains intake",
+         x = "Quantity (g/day/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
+# SSB
+  graph_dr_sim_ssb <- ggplot(rr_table_interpolated %>% 
+                                          filter(food_group == "sugar_sweetened_beverages",
+                                                 quantity %in% 0:300),
+                                        aes(x = quantity,
+                                            y = rr_interpolated,
+                                            group = simulation_id,
+                                            color = food_group))+
+    scale_color_manual(values = col_food_groups)+
+    geom_line(na.rm = TRUE,
+              alpha = 0.05)+
+    labs(title = "Dose-response relationships for sugar_sweetened beverages intake",
+         x = "Quantity (g/day/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
+# Processed meat
+  graph_dr_sim_vegetables <- ggplot(rr_table_interpolated %>% 
+                                          filter(food_group == "vegetables",
+                                                 quantity %in% 0:600),
+                                        aes(x = quantity,
+                                            y = rr_interpolated,
+                                            group = simulation_id,
+                                            color = food_group))+
+    scale_color_manual(values = col_food_groups)+
+    geom_line(na.rm = TRUE,
+              alpha = 0.05)+
+    labs(title = "Dose-response relationships for vegetables intake",
+         x = "Quantity (g/day/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
+# White meat
+  graph_dr_sim_white_meat <- ggplot(rr_table_interpolated %>% 
+                                          filter(food_group == "white_meat",
+                                                 quantity %in% 0:400),
+                                        aes(x = quantity,
+                                            y = rr_interpolated,
+                                            group = simulation_id,
+                                            color = food_group))+
+    scale_color_manual(values = col_food_groups)+
+    geom_line(na.rm = TRUE,
+              alpha = 0.05)+
+    labs(title = "Dose-response relationships for white meat intake",
+         x = "Quantity (g/day/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
+# Whole grains
+  graph_dr_sim_whole_grains <- ggplot(rr_table_interpolated %>% 
+                                          filter(food_group == "whole_grains",
+                                                 quantity %in% 0:250),
+                                        aes(x = quantity,
+                                            y = rr_interpolated,
+                                            group = simulation_id,
+                                            color = food_group))+
+    scale_color_manual(values = col_food_groups)+
+    geom_line(na.rm = TRUE,
+              alpha = 0.05)+
+    labs(title = "Dose-response relationships for whole grains intake",
+         x = "Quantity (g/day/pers)",
+         y = "RR")+
+    theme(legend.position = "none")
+  
+  
+################################################################################################################################
 #                                             8. Exportation des données                                                       #
 ################################################################################################################################
   
+# Table des relations dose-réponse simulées
   export(rr_table_interpolated, here("data_clean", "rr_table_interpolated_sim.csv"))
-
+  
+# Représentations graphiques
+  ggsave(here("results", "dose_response_curves_sim", "dr_sim_dairy.pdf"), plot = graph_dr_sim_dairy)
+  ggsave(here("results", "dose_response_curves_sim", "dr_sim_eggs.pdf"), plot = graph_dr_sim_eggs)
+  ggsave(here("results", "dose_response_curves_sim", "dr_sim_fish.pdf"), plot = graph_dr_sim_fish)
+  ggsave(here("results", "dose_response_curves_sim", "dr_sim_fruits.pdf"), plot = graph_dr_sim_fruits)
+  ggsave(here("results", "dose_response_curves_sim", "dr_sim_legumes.pdf"), plot = graph_dr_sim_legumes)
+  ggsave(here("results", "dose_response_curves_sim", "dr_sim_nuts.pdf"), plot = graph_dr_sim_nuts)
+  ggsave(here("results", "dose_response_curves_sim", "dr_sim_processed_meat.pdf"), plot = graph_dr_sim_processed_meat)
+  ggsave(here("results", "dose_response_curves_sim", "dr_sim_red_meat.pdf"), plot = graph_dr_sim_red_meat)  
+  ggsave(here("results", "dose_response_curves_sim", "dr_sim_refined_grains.pdf"), plot = graph_dr_sim_refined_grains)  
+  ggsave(here("results", "dose_response_curves_sim", "dr_sim_ssb.pdf"), plot = graph_dr_sim_ssb)  
+  ggsave(here("results", "dose_response_curves_sim", "dr_sim_vegetables.pdf"), plot = graph_dr_sim_vegetables)  
+  ggsave(here("results", "dose_response_curves_sim", "dr_sim_white_meat.pdf"), plot = graph_dr_sim_white_meat)  
+  ggsave(here("results", "dose_response_curves_sim", "dr_sim_whole_grains.pdf"), plot = graph_dr_sim_whole_grains)  
   
