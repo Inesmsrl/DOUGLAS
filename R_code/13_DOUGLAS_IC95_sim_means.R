@@ -43,7 +43,7 @@ pacman::p_load(
 ################################################################################################################################
 
 # Nombre de simulations des valeurs de RR
-  n <- 1000
+  n <- 10
   
 # Bornes temporelles des changements de régime alimentaire (années)
   year_i <- 2025 # Année initiale
@@ -305,7 +305,7 @@ diets_evo_shift <- diets_evo %>%
   
 
 ################################################################################################################################
-#                                             7. Modification d'effet des RR                                                         #
+#                                             8. Modification d'effet des RR                                                         #
 ################################################################################################################################
   
   rr_table_low <- rr_table_low %>% 
@@ -333,7 +333,7 @@ diets_evo_shift <- diets_evo %>%
     rename("rr" = "rr_a")
 
 ################################################################################################################################
-#                                             8. Attribution des RR à chaque régime                                            #
+#                                             9. Attribution des RR à chaque régime                                            #
 ################################################################################################################################
   
   diets_evo <- diets_evo %>% 
@@ -348,7 +348,7 @@ diets_evo_shift <- diets_evo %>%
            rr_up = ifelse(is.na(rr_up), rr_mid, rr_up))
 
 ################################################################################################################################
-#                                             9. Génération des distributions normales pour chaque RR                          #
+#                                             10. Génération des distributions normales pour chaque RR                          #
 ################################################################################################################################
   
 # Fixer une graine pour garantir la reproductibilité des simulations
@@ -762,10 +762,10 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
     mutate(relative_rr = combined_rr/combined_rr[scenario == "actuel"]) %>% 
     ungroup()
   
-# Eliminer Les valeurs 5% les plus extrêmes
-  rr_evo_diets <- rr_evo_diets %>% 
-    group_by(scenario, year) %>% 
-    filter(between(relative_rr, quantile(relative_rr, 0.025), quantile(relative_rr, 0.975)))
+# # Eliminer Les valeurs 5% les plus extrêmes
+#   rr_evo_diets <- rr_evo_diets %>% 
+#     group_by(scenario, year) %>% 
+#     filter(between(relative_rr, quantile(relative_rr, 0.025), quantile(relative_rr, 0.975)))
   
 # Calculer la moyenne et les IC95 pour chaque année
   simulations_summary_rr_diets_relative <- rr_evo_diets %>%
@@ -829,6 +829,12 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
   deaths <- MR_adjusted %>%
     left_join(population_select, by = c("age", "year"), relationship = "many-to-many") %>% 
     mutate(deaths = adjusted_mr*population)
+
+# Eliminer Les valeurs 5% les plus extrêmes
+    deaths <- deaths %>%
+      group_by(scenario, year, age) %>%
+      filter(between(deaths, quantile(deaths, 0.025), quantile(deaths, 0.975)))
+  
   
 # Calculer la moyenne et les IC95 pour chaque année
   simulations_summary_deaths <- deaths %>%
