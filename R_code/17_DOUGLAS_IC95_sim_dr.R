@@ -1112,13 +1112,9 @@ graph_avoided_deaths_cum_2050 <- ggplot(simulations_summary_avoided_deaths_cum_2
 ################################################################################################################################
 
 # Régimes, valeurs des RR et IC95 RR, distribution normale des valeurs de RR et simulations
-export(diets_evo, here("results", "visualization_tool_ic95_sim", "diets_rr_evo.xlsx"))
+export(diets_evo, here("results", "visualization_tool_ic95_sim", "diets_rr_evo.csv"))
 
 ggsave(here("results", "visualization_tool_ic95_sim", "diets_evo.pdf"), plot = graph_diets_evo)
-
-# Distribution normale des RR de chaque aliment pour chaque année dans chaque scénario
-ggsave(here("results", "visualization_tool_ic95_sim","norm_rr_sc1_2035.pdf"), plot = graph_rr_sc1_2035_norm)
-ggsave(here("results", "visualization_tool_ic95_sim","norm_rr_ssb_sc1_2035.pdf"), plot = graph_ssb_sc1_2035_norm)
 
 # Graphiques des valeurs de RR simulées par aliment, dans chaque scénario
 ggsave(here("results", "visualization_tool_ic95_sim", "rr_fg_sim_sc1.pdf"), plot = graph_rr_fg_sim_sc1)
@@ -1128,10 +1124,6 @@ ggsave(here("results", "visualization_tool_ic95_sim", "rr_fg_sim_sc4.pdf"), plot
 
 # Time to full effect
 ggsave(here("results", "visualization_tool_ic95_sim", "ttfe.pdf"), plot = graph_ttfe)
-
-# Valeurs des RR avec TTFE, pour chaque aliment, année, scénario et simulation
-#export(simulations_long, here("results", "visualization_tool_ic95_sim", "rr_fg_ttfe_sim.csv"))
-# FICHIER TROP LOURD
 
 # Valeurs des RR de chaque aliment, combinés par année
 export(rr_evo_food_combined, here("results", "visualization_tool_ic95_sim", "rr_fg_evo_combined.xlsx"))
@@ -1154,8 +1146,8 @@ export(simulations_summary_rr_diets_relative, here("results", "visualization_too
 ggsave(here("results", "visualization_tool_ic95_sim", "rr_diets_relative_sim.pdf"), plot = graph_rr_diets_relative_sim)
 
 # Taux de mortalité ajustés
-#export(MR_adjusted, here("results", "visualization_tool_ic95_sim", "MR_adjusted.xlsx"))
-# FICHIER TROP LOURD
+  export(MR_adjusted, here("results", "visualization_tool_ic95_sim", "MR_adjusted.csv"))
+
 export(simulations_summary_mr_adjusted, here("results", "visualization_tool_ic95_sim", "IC95_MR_adjsuted.xlsx"))
 
 # Nombre total de décès évités par annnée
