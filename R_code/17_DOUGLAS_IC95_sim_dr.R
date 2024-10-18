@@ -446,11 +446,11 @@ diets_evo <- diets_evo %>%
 ################################################################################################################################
 
 # Calcul des RR de chaque aliment pour chaque année
-rr_evo_food_combined <- simulations_long %>% 
+rr_evo_food_combined <- diets_evo %>% 
   group_by(scenario, year_n, food_group, simulation_id) %>% 
   summarize(mean_rr = case_when(
-    combinaison_rr_type == "arithmetic mean" ~ mean(simulated_rr_n, na.rm = TRUE),
-    combinaison_rr_type == "geometric mean"~ geometric.mean(simulated_rr_n, na.rm = TRUE)))
+    combinaison_rr_type == "arithmetic mean" ~ mean(rr_n, na.rm = TRUE),
+    combinaison_rr_type == "geometric mean"~ geometric.mean(rr_n, na.rm = TRUE)))
 
 # Calculer la moyenne et les IC95 pour chaque année
 simulations_summary_rr_fg_combined <- rr_evo_food_combined %>%
@@ -466,15 +466,14 @@ simulations_summary_rr_fg_combined <- rr_evo_food_combined %>%
 ################################################################################################################################
 
 # S1
-simulations_summary_sc1_c <- simulations_summary_rr_fg_combined %>% 
-  filter(scenario == "sc1")
-
-graph_rr_fg_combined_sim_sc1 <- ggplot(simulations_summary_sc1_c, aes(x = year_n,
-                                                                      y = combined_rr,
-                                                                      color = food_group)) +
+graph_rr_fg_combined_sim_sc1 <- ggplot(simulations_summary_rr_fg_combined %>% 
+                                         filter(scenario == "sc1"), 
+                                       aes(x = year_n,
+                                           y = combined_rr,
+                                           color = food_group)) +
   facet_wrap(~ food_group)+
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
-  geom_line(size = 1, na.rm = TRUE) +  # Moyenne en trait plein
+  geom_line(linewidth = 1, na.rm = TRUE) +  # Moyenne en trait plein
   labs(
     title = "RR simulations",
     x = "",
@@ -489,15 +488,14 @@ graph_rr_fg_combined_sim_sc1 <- ggplot(simulations_summary_sc1_c, aes(x = year_n
 
 
 # S2
-simulations_summary_sc2_c <- simulations_summary_rr_fg_combined %>% 
-  filter(scenario == "sc2")
-
-graph_rr_fg_combined_sim_sc2 <- ggplot(simulations_summary_sc2_c, aes(x = year_n,
-                                                                      y = combined_rr,
-                                                                      color = food_group)) +
+graph_rr_fg_combined_sim_sc2 <- ggplot(simulations_summary_rr_fg_combined %>% 
+                                         filter(scenario == "sc2"), 
+                                       aes(x = year_n,
+                                           y = combined_rr,
+                                           color = food_group)) +
   facet_wrap(~ food_group)+
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
-  geom_line(size = 1, na.rm = TRUE) +  # Moyenne en trait plein
+  geom_line(linewidth = 1, na.rm = TRUE) +  # Moyenne en trait plein
   labs(
     title = "RR simulations",
     x = "",
@@ -511,15 +509,14 @@ graph_rr_fg_combined_sim_sc2 <- ggplot(simulations_summary_sc2_c, aes(x = year_n
         legend.position = "none")
 
 # S3
-simulations_summary_sc3_c <- simulations_summary_rr_fg_combined %>% 
-  filter(scenario == "sc3")
-
-graph_rr_fg_combined_sim_sc3 <- ggplot(simulations_summary_sc3_c, aes(x = year_n,
-                                                                      y = combined_rr,
-                                                                      color = food_group)) +
+graph_rr_fg_combined_sim_sc3 <- ggplot(simulations_summary_rr_fg_combined %>% 
+                                         filter(scenario == "sc3"), 
+                                       aes(x = year_n,
+                                           y = combined_rr,
+                                           color = food_group)) +
   facet_wrap(~ food_group)+
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
-  geom_line(size = 1, na.rm = TRUE) +  # Moyenne en trait plein
+  geom_line(linewidth = 1, na.rm = TRUE) +  # Moyenne en trait plein
   labs(
     title = "RR simulations",
     x = "",
@@ -532,17 +529,15 @@ graph_rr_fg_combined_sim_sc3 <- ggplot(simulations_summary_sc3_c, aes(x = year_n
         strip.text = element_text(face = "bold",size = rel(0.5)),
         legend.position = "none")
 
-
 # S4
-simulations_summary_sc4_c <- simulations_summary_rr_fg_combined %>% 
-  filter(scenario == "sc4")
-
-graph_rr_fg_combined_sim_sc4 <- ggplot(simulations_summary_sc4_c, aes(x = year_n,
-                                                                      y = combined_rr,
-                                                                      color = food_group)) +
+graph_rr_fg_combined_sim_sc4 <- ggplot(simulations_summary_rr_fg_combined %>% 
+                                         filter(scenario == "sc4"), 
+                                       aes(x = year_n,
+                                           y = combined_rr,
+                                           color = food_group)) +
   facet_wrap(~ food_group)+
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
-  geom_line(size = 1, na.rm = TRUE) +  # Moyenne en trait plein
+  geom_line(linewidth = 1, na.rm = TRUE) +  # Moyenne en trait plein
   labs(
     title = "RR simulations",
     x = "",

@@ -86,7 +86,7 @@ col_food_groups <- c("red_meat" = "#F60239",
 # Fixer une graine pour garantir la reproductibilité des simulations
   set.seed(123)
   
-  generate_RR_distrib = function(food_group, RR, low, sup, N = 1000){
+  generate_RR_distrib = function(food_group, RR, low, sup, N = 10){
     #RR, low and sup are the RR and 95%CI of a specific risk ration
     #N is the number of random values from the distrib
     
