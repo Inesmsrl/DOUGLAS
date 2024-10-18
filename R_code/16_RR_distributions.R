@@ -138,4 +138,5 @@ rr_table_up <- import(here("data", "rr_table_quanti.xlsx"), sheet = "Upper")
 ################################################################################################################################
   
   export(rr_table_interpolated, here("data_clean", "rr_table_interpolated_sim.csv"))
+
   
