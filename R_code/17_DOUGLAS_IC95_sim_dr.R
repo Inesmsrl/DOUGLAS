@@ -34,9 +34,6 @@ population <- import(here("data_clean", "population_clean.xlsx"))
 #                                             3. Initialisation des paramètres                                                 #
 ################################################################################################################################
 
-# Nombre de simulations des valeurs de RR
-n <- 1000
-
 # Bornes temporelles des changements de régime alimentaire (années)
 year_i <- 2025 # Année initiale
 year_f <- 2050 # Année finale
@@ -67,7 +64,7 @@ ttfe_time <- 10
 # Après changement de régime : 2 x ttfe_time
 
 # Dynamique (immediate, linear, cosine, sigmoidal, log)
-ttfe_dynamics <- "sigmoidal"
+ttfe_dynamics <- "linear"
 
 # paramètre de la courbe d'interpolation cosinus
 p_ttfe <- 1
@@ -79,7 +76,7 @@ lambda_ttfe <- 8
 eta_ttfe <- 1
 
 # Combinaison des RR de chaque aliment par année (arithmetic mean, geometric mean)
-combinaison_rr_type <- "geometric mean"
+combinaison_rr_type <- "arithmetic mean"
 
 ################################################################################################################################
 #                                             4. Charte graphique                                                              #
@@ -634,7 +631,7 @@ graph_rr_diets_relative_sim <- ggplot(simulations_summary_rr_diets_relative %>%
                                       aes(x = year,
                                           y = mean_rr,
                                           color = scenario)) +
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5)+
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5, linetype = 0)+
   facet_wrap(~ scenario,
              labeller = labeller(scenario = labels_scenario))+
   geom_line(size = 1, na.rm = TRUE)+ 
@@ -867,11 +864,53 @@ simulations_summary_avoided_deaths_cum_2050 <- avoided_deaths_cum_2050 %>%
 ################################################################################################################################
 
 # Sur toute la durée du modèle
-graph_total_avoided_deaths  <- ggplot(simulations_summary_avoided_deaths %>% 
+graph_total_avoided_deaths_facet  <- ggplot(simulations_summary_avoided_deaths %>% 
                                         filter(scenario != "actuel"),
                                       aes(x = year,
                                           y = mean_rr,
                                           color = scenario)) +
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5, linetype = 0)+
+  facet_wrap(~ scenario,
+             labeller = labeller(scenario = labels_scenario))+
+  geom_line(size = 1, na.rm = TRUE)+ 
+  labs(
+    title = "Avoided deaths compared to keeping the current diet",
+    x = "",
+    y = "Number of avoided deaths"
+  )+
+  scale_color_manual(values = col_scenario)+
+  scale_fill_manual(values = col_scenario)+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+        axis.text.y = element_text(size = 7),
+        strip.text = element_text(face = "bold",size = rel(1)),
+        legend.position = "none")
+
+graph_total_avoided_deaths  <- ggplot(simulations_summary_avoided_deaths %>% 
+                                        filter(scenario != "actuel"),
+                                      aes(x = year,
+                                          y = mean_rr,
+                                          group = scenario,
+                                          color = scenario)) +
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5, linetype = 0)+
+  geom_line(size = 1, na.rm = TRUE)+ 
+  labs(
+    title = "Avoided deaths compared to keeping the current diet",
+    x = "",
+    y = "Number of avoided deaths"
+  )+
+  scale_color_manual(values = col_scenario)+
+  scale_fill_manual(values = col_scenario)+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+        axis.text.y = element_text(size = 7),
+        strip.text = element_text(face = "bold",size = rel(1)),
+        legend.position = "none")
+
+# Sur la période de changement de régime
+graph_total_avoided_deaths_shift_facet <- ggplot(simulations_summary_avoided_deaths_shift %>% 
+                                             filter(scenario != "actuel"),
+                                           aes(x = year,
+                                               y = mean_rr,
+                                               color = scenario)) +
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5)+
   facet_wrap(~ scenario,
              labeller = labeller(scenario = labels_scenario))+
@@ -888,15 +927,13 @@ graph_total_avoided_deaths  <- ggplot(simulations_summary_avoided_deaths %>%
         strip.text = element_text(face = "bold",size = rel(1)),
         legend.position = "none")
 
-# Sur la période de changement de régime
 graph_total_avoided_deaths_shift <- ggplot(simulations_summary_avoided_deaths_shift %>% 
                                              filter(scenario != "actuel"),
                                            aes(x = year,
                                                y = mean_rr,
+                                               group = scenario,
                                                color = scenario)) +
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5)+
-  facet_wrap(~ scenario,
-             labeller = labeller(scenario = labels_scenario))+
   geom_line(size = 1, na.rm = TRUE)+ 
   labs(
     title = "Avoided deaths compared to keeping the current diet",
@@ -1154,10 +1191,12 @@ export(simulations_summary_mr_adjusted, here("results", "visualization_tool_ic95
 # Sur toute la période du modèle
 export(simulations_summary_avoided_deaths, here("results", "visualization_tool_ic95_sim", "IC95_total_avoided_deaths.xlsx"))
 ggsave(here("results", "visualization_tool_ic95_sim", "total_avoided_deaths.pdf"), plot = graph_total_avoided_deaths)
+ggsave(here("results", "visualization_tool_ic95_sim", "total_avoided_deaths_facet.pdf"), plot = graph_total_avoided_deaths_facet)
 
 # Sur la période de changement de régime
 export(simulations_summary_avoided_deaths_shift, here("results", "visualization_tool_ic95_sim", "IC95_total_avoided_deaths_shift.xlsx"))
 ggsave(here("results", "visualization_tool_ic95_sim", "total_avoided_deaths_shift.pdf"), plot = graph_total_avoided_deaths_shift)
+ggsave(here("results", "visualization_tool_ic95_sim", "total_avoided_deaths_shift_facet.pdf"), plot = graph_total_avoided_deaths_shift_facet)
 
 # Nombre de décès évités par an et par age
 export(simulations_summary_avoided_deaths_age, here("results", "visualization_tool_ic95_sim", "IC95_avoided_deaths.xlsx"))

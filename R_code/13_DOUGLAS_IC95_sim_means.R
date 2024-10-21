@@ -43,7 +43,7 @@ pacman::p_load(
 ################################################################################################################################
 
 # Nombre de simulations des valeurs de RR
-  n <- 1000
+  n <- 40
   
 # Bornes temporelles des changements de régime alimentaire (années)
   year_i <- 2025 # Année initiale
