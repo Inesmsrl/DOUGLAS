@@ -64,7 +64,7 @@ ttfe_time <- 10
 # Après changement de régime : 2 x ttfe_time
 
 # Dynamique (immediate, linear, cosine, sigmoidal, log)
-ttfe_dynamics <- "linear"
+ttfe_dynamics <- "sigmoidal"
 
 # paramètre de la courbe d'interpolation cosinus
 p_ttfe <- 1
@@ -581,7 +581,7 @@ simulations_summary_rr_diets <- rr_evo_diets %>%
 graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
                                                                 y = mean_rr,
                                                                 color = scenario)) +
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5)+
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5, linetype = 0)+
   facet_wrap(~ scenario,
              labeller = labeller(scenario = labels_scenario))+
   geom_line(size = 1, na.rm = TRUE)+ 
@@ -872,7 +872,7 @@ graph_total_avoided_deaths_facet  <- ggplot(simulations_summary_avoided_deaths %
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5, linetype = 0)+
   facet_wrap(~ scenario,
              labeller = labeller(scenario = labels_scenario))+
-  geom_line(size = 1, na.rm = TRUE)+ 
+  geom_line(size = 0.8, na.rm = TRUE)+ 
   labs(
     title = "Avoided deaths compared to keeping the current diet",
     x = "",
@@ -892,7 +892,7 @@ graph_total_avoided_deaths  <- ggplot(simulations_summary_avoided_deaths %>%
                                           group = scenario,
                                           color = scenario)) +
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5, linetype = 0)+
-  geom_line(size = 1, na.rm = TRUE)+ 
+  geom_line(size = 0.6, na.rm = TRUE)+ 
   labs(
     title = "Avoided deaths compared to keeping the current diet",
     x = "",
@@ -911,10 +911,10 @@ graph_total_avoided_deaths_shift_facet <- ggplot(simulations_summary_avoided_dea
                                            aes(x = year,
                                                y = mean_rr,
                                                color = scenario)) +
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5)+
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5, linetype = 0)+
   facet_wrap(~ scenario,
              labeller = labeller(scenario = labels_scenario))+
-  geom_line(size = 1, na.rm = TRUE)+ 
+  geom_line(size = 0.8, na.rm = TRUE)+ 
   labs(
     title = "Avoided deaths compared to keeping the current diet",
     x = "",
@@ -933,8 +933,8 @@ graph_total_avoided_deaths_shift <- ggplot(simulations_summary_avoided_deaths_sh
                                                y = mean_rr,
                                                group = scenario,
                                                color = scenario)) +
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5)+
-  geom_line(size = 1, na.rm = TRUE)+ 
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5, linetype = 0)+
+  geom_line(size = 0.8, na.rm = TRUE)+ 
   labs(
     title = "Avoided deaths compared to keeping the current diet",
     x = "",
@@ -1163,7 +1163,7 @@ ggsave(here("results", "visualization_tool_ic95_sim", "rr_fg_sim_sc4.pdf"), plot
 ggsave(here("results", "visualization_tool_ic95_sim", "ttfe.pdf"), plot = graph_ttfe)
 
 # Valeurs des RR de chaque aliment, combinés par année
-export(rr_evo_food_combined, here("results", "visualization_tool_ic95_sim", "rr_fg_evo_combined.xlsx"))
+export(rr_evo_food_combined, here("results", "visualization_tool_ic95_sim", "rr_fg_evo_combined.csv"))
 export(simulations_summary_rr_fg_combined, here("results", "visualization_tool_ic95_sim", "IC95_rr_fg_evo_combined.xlsx"))
 
 ggsave(here("results", "visualization_tool_ic95_sim", "rr_fg_combined_sim_sc1.pdf"), plot = graph_rr_fg_combined_sim_sc1)

@@ -42,8 +42,11 @@ col_food_groups <- c("red_meat" = "#F60239",
                      "sugar_sweetened_beverages" = "#004002")
 
 # Méthode d'interpolation ("linear", "spline")
-  interpolation <- "linear"
-
+  interpolation <- "spline"
+  
+# Nombre de simulations des valeurs de RR
+  n <- 200
+  
 
 ################################################################################################################################
 #                                             3. Préparation des données                                                       #
@@ -89,7 +92,7 @@ col_food_groups <- c("red_meat" = "#F60239",
 # Fixer une graine pour garantir la reproductibilité des simulations
   set.seed(123)
   
-  generate_RR_distrib = function(food_group, RR, low, sup, N = 50){
+  generate_RR_distrib = function(food_group, RR, low, sup, N = n){
     #RR, low and sup are the RR and 95%CI of a specific risk ration
     #N is the number of random values from the distrib
     
@@ -320,7 +323,7 @@ col_food_groups <- c("red_meat" = "#F60239",
          y = "RR")+
     theme(legend.position = "none")
   
-# Processed meat
+# Vegetables
   graph_dr_sim_vegetables <- ggplot(rr_table_interpolated %>% 
                                           filter(food_group == "vegetables",
                                                  quantity %in% 0:600),
