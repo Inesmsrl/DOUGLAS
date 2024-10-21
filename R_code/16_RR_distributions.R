@@ -41,6 +41,9 @@ col_food_groups <- c("red_meat" = "#F60239",
                      "added_plant_oils" = "#FF6E3A",
                      "sugar_sweetened_beverages" = "#004002")
 
+# Méthode d'interpolation ("linear", "spline")
+  interpolation <- "linear"
+
 
 ################################################################################################################################
 #                                             3. Préparation des données                                                       #
@@ -144,7 +147,10 @@ col_food_groups <- c("red_meat" = "#F60239",
     group_by(food_group, simulation_id) %>%
     complete(quantity = full_seq(0:800, 1)) %>%
     arrange(quantity) %>%
-    mutate(rr_interpolated = if_else(is.na(simulated_rr), approx(quantity, simulated_rr, xout = quantity, method = "linear", rule = 1)$y, simulated_rr)) %>% 
+    mutate(rr_interpolated = case_when(
+      interpolation == "linear" ~ if_else(is.na(simulated_rr), approx(quantity, simulated_rr, xout = quantity, method = "linear", rule = 1)$y, simulated_rr),
+      interpolation == "spline" ~ if_else(is.na(simulated_rr), spline(quantity, simulated_rr, xout = quantity)$y, simulated_rr)
+    )) %>% 
     # $y, rr, récupérer les valeurs interpolées en y de la fonction approx et les attribuer à rr
     mutate(rr_interpolated = if_else(quantity > max(quantity[!is.na(simulated_rr)]), NA_real_, rr_interpolated)) %>%
     ungroup() %>% 
