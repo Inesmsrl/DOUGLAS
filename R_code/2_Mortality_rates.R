@@ -29,6 +29,27 @@ mortality_rates <- population %>%
                 ))
 
 ################################################################################################################################
+#                                             4. Evolution des effectifs de population dans le temps                           #
+################################################################################################################################
+
+# Effectifs de population
+  population_evo <- population %>% 
+    summarize(across("1962":"2120", sum))
+  
+  population_evo <- population_evo %>% 
+    pivot_longer(cols = "1962":"2120",
+                 names_to = "year",
+                 values_to = "total") %>% 
+    mutate(year = as.numeric(year))
+  
+  ggplot(population_evo, aes(x = year, y = total))+
+    geom_line(color = "indianred3")+
+    labs(title = "Total projected French population ",
+         x = "",
+         y = "Total population")
+  
+
+################################################################################################################################
 #                                             5. Exportation des données                                                       #
 ################################################################################################################################
 

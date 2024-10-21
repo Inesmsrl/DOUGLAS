@@ -58,6 +58,8 @@ deaths <- import(here("data", "INSEE_Deaths.xlsx"))
   all(names(population == names(deaths)))   # Mêmes variables dans les jeux de données
   all(population$age == deaths$age)         # Mêmes catégories d'âge dans les jeux de données
   
+  
+
 ################################################################################################################################
 #                                             5. Exportation des données                                                       #
 ################################################################################################################################
