@@ -33,7 +33,8 @@ mortality_rates <- population %>%
 ################################################################################################################################
 
 # Effectifs de population
-  population_evo <- population %>% 
+  population_evo <- population %>%
+    filter(age >= 18) %>% 
     summarize(across("1962":"2120", sum))
   
   population_evo <- population_evo %>% 
@@ -47,6 +48,31 @@ mortality_rates <- population %>%
     labs(title = "Total projected French population ",
          x = "",
          y = "Total population")
+  
+# décès
+  deaths_evo <- deaths %>% 
+    filter(age >= 18) %>% 
+    summarize(across("1962":"2120", sum))
+  
+  deaths_evo <- deaths_evo %>% 
+    pivot_longer(cols = "1962":"2120",
+                 names_to = "year",
+                 values_to = "total_deaths") %>% 
+    mutate(year = as.numeric(year))
+
+# Taux de mortalité
+  
+  MR_evo <- population_evo %>% 
+    left_join(deaths_evo, by = "year") %>% 
+    mutate(MR = total_deaths/total)
+  
+  ggplot(MR_evo %>% 
+           filter(year %in% 2040:2080), 
+         aes(x = year, y = MR))+
+    geom_line(color = "aquamarine3")+
+    labs(title = " ",
+         x = "",
+         y = "MR")
   
 
 ################################################################################################################################
