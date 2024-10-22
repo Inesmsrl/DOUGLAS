@@ -778,6 +778,31 @@ simulations_summary_avoided_deaths_cum_2050 <- avoided_deaths_cum_2050 %>%
     upper_ci = quantile(cum_avoided_deaths, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
   )
 
+# Nombre de décès évités / taille de la population
+  # Taille de la population par année
+    population_select_tot <- population_select %>% 
+      pivot_wider(names_from = "year",
+                  values_from = "population") %>% 
+      summarize(across(!!sym(as.character(year_i - ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)), sum)) %>% 
+      pivot_longer(cols = !!sym(as.character(year_i - ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)),
+                   names_to = "year",
+                   values_to = "population") %>% 
+      mutate(year = as.numeric(year))
+    
+    # Calcul du nombre de décès évités / taille de la population
+      total_avoided_deaths <- total_avoided_deaths %>% 
+        left_join(population_select_tot, by = "year") %>% 
+        group_by(scenario, simulation_id, year) %>% 
+        mutate(avoided_deaths_rel = avoided_deaths/population)
+      
+      simulations_summary_avoided_deaths_rel <- total_avoided_deaths %>%
+        group_by(scenario, year) %>%
+        summarise(
+          mean_rr = mean(avoided_deaths_rel, na.rm = TRUE),  
+          lower_ci = quantile(avoided_deaths_rel, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
+          upper_ci = quantile(avoided_deaths_rel, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
+        )
+      
 ################################################################################################################################
 #                                             17. Report des décès d'une année sur l'autre                                     #
 ################################################################################################################################
@@ -904,6 +929,28 @@ graph_total_avoided_deaths  <- ggplot(simulations_summary_avoided_deaths %>%
         axis.text.y = element_text(size = 7),
         strip.text = element_text(face = "bold",size = rel(1)),
         legend.position = "none")
+
+# Nombre de décès évités / taille de la population
+  graph_total_avoided_deaths_rel  <- ggplot(simulations_summary_avoided_deaths_rel %>% 
+                                        filter(scenario != "actuel"),
+                                      aes(x = year,
+                                          y = mean_rr,
+                                          group = scenario,
+                                          color = scenario)) +
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5, linetype = 0)+
+  geom_line(size = 0.6, na.rm = TRUE)+ 
+  labs(
+    title = "Avoided deaths compared to keeping the current diet",
+    x = "",
+    y = "Number of avoided deaths"
+  )+
+  scale_color_manual(values = col_scenario)+
+  scale_fill_manual(values = col_scenario)+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+        axis.text.y = element_text(size = 7),
+        strip.text = element_text(face = "bold",size = rel(1)),
+        legend.position = "none")
+
 
 # Sur la période de changement de régime
 graph_total_avoided_deaths_shift_facet <- ggplot(simulations_summary_avoided_deaths_shift %>% 
