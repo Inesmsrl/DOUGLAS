@@ -8,7 +8,7 @@ pacman::p_load(
   dplyr,               # Manipulation des données
   tidyr,               # Manipulation des données
   tidyverse,           # Data management, inclus ggplot
-  purrr                # Opérations itératives
+  patchwork            # Combinaison de graphes
 )
 
 
@@ -45,7 +45,7 @@ col_food_groups <- c("red_meat" = "#F60239",
   interpolation <- "linear"
   
 # Nombre de simulations des valeurs de RR
-  n <- 1000
+  n <- 10
   
 ################################################################################################################################
 #                                             3. Préparation des données                                                       #
@@ -177,7 +177,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     scale_color_manual(values = col_food_groups)+
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
-    labs(title = "Dose-response relationships for dairy intake",
+    labs(title = "Dairy",
          x = "Quantity (g/day/pers)",
          y = "RR")+
     theme(legend.position = "none")
@@ -193,7 +193,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     scale_color_manual(values = col_food_groups)+
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
-    labs(title = "Dose-response relationships for eggs intake",
+    labs(title = "Eggs",
          x = "Quantity (g/day/pers)",
          y = "RR")+
     theme(legend.position = "none")
@@ -209,7 +209,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     scale_color_manual(values = col_food_groups)+
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
-    labs(title = "Dose-response relationships for fish intake",
+    labs(title = "Fish",
          x = "Quantity (g/day/pers)",
          y = "RR")+
     theme(legend.position = "none")
@@ -225,7 +225,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     scale_color_manual(values = col_food_groups)+
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
-    labs(title = "Dose-response relationships for fruits intake",
+    labs(title = "Fruits",
          x = "Quantity (g/day/pers)",
          y = "RR")+
     theme(legend.position = "none")
@@ -241,7 +241,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     scale_color_manual(values = col_food_groups)+
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
-    labs(title = "Dose-response relationships for legumes intake",
+    labs(title = "Legumes",
          x = "Quantity (g/day/pers)",
          y = "RR")+
     theme(legend.position = "none")
@@ -257,7 +257,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     scale_color_manual(values = col_food_groups)+
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
-    labs(title = "Dose-response relationships for nuts intake",
+    labs(title = "Nuts",
          x = "Quantity (g/day/pers)",
          y = "RR")+
     theme(legend.position = "none")
@@ -273,7 +273,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     scale_color_manual(values = col_food_groups)+
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
-    labs(title = "Dose-response relationships for processed meat intake",
+    labs(title = "Processed meat",
          x = "Quantity (g/day/pers)",
          y = "RR")+
     theme(legend.position = "none")
@@ -289,7 +289,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     scale_color_manual(values = col_food_groups)+
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
-    labs(title = "Dose-response relationships for red meat intake",
+    labs(title = "Red meat",
          x = "Quantity (g/day/pers)",
          y = "RR")+
     theme(legend.position = "none")
@@ -306,7 +306,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     scale_color_manual(values = col_food_groups)+
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
-    labs(title = "Dose-response relationships for refined grains intake",
+    labs(title = "Refined grains",
          x = "Quantity (g/day/pers)",
          y = "RR")+
     theme(legend.position = "none")
@@ -322,7 +322,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     scale_color_manual(values = col_food_groups)+
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
-    labs(title = "Dose-response relationships for sugar_sweetened beverages intake",
+    labs(title = "SSB",
          x = "Quantity (g/day/pers)",
          y = "RR")+
     theme(legend.position = "none")
@@ -338,7 +338,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     scale_color_manual(values = col_food_groups)+
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
-    labs(title = "Dose-response relationships for vegetables intake",
+    labs(title = "Vegetables",
          x = "Quantity (g/day/pers)",
          y = "RR")+
     theme(legend.position = "none")
@@ -354,7 +354,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     scale_color_manual(values = col_food_groups)+
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
-    labs(title = "Dose-response relationships for white meat intake",
+    labs(title = "White meat",
          x = "Quantity (g/day/pers)",
          y = "RR")+
     theme(legend.position = "none")
@@ -370,11 +370,29 @@ col_food_groups <- c("red_meat" = "#F60239",
     scale_color_manual(values = col_food_groups)+
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
-    labs(title = "Dose-response relationships for whole grains intake",
+    labs(title = "Whole grains",
          x = "Quantity (g/day/pers)",
          y = "RR")+
     theme(legend.position = "none")
   
+  
+# Toutes les DRF sur une figure
+  
+ list_dr <- list(graph_dr_sim_dairy, graph_dr_sim_eggs, graph_dr_sim_fish, graph_dr_sim_fruits, graph_dr_sim_legumes,
+                 graph_dr_sim_nuts, graph_dr_sim_processed_meat, graph_dr_sim_red_meat, graph_dr_sim_refined_grains,
+                 graph_dr_sim_ssb, graph_dr_sim_vegetables, graph_dr_sim_white_meat, graph_dr_sim_whole_grains)
+ 
+ common_theme <- theme(
+   plot.title = element_text(size = 9, face = "bold", hjust = 0.5),
+   axis.title = element_text(size = 8),
+   axis.text = element_text(size = 7)
+ )
+ 
+ list_dr <- lapply(list_dr, function(p) p + common_theme)
+ 
+ combined_plot <- reduce(list_dr, `+`) + plot_layout(ncol = 4)
+ 
+ print(combined_plot)
   
 ################################################################################################################################
 #                                             8. Exportation des données                                                       #
@@ -397,4 +415,6 @@ col_food_groups <- c("red_meat" = "#F60239",
   ggsave(here("results", "dose_response_curves_sim", "dr_sim_vegetables.pdf"), plot = graph_dr_sim_vegetables)  
   ggsave(here("results", "dose_response_curves_sim", "dr_sim_white_meat.pdf"), plot = graph_dr_sim_white_meat)  
   ggsave(here("results", "dose_response_curves_sim", "dr_sim_whole_grains.pdf"), plot = graph_dr_sim_whole_grains)  
+  
+  ggsave(here("results", "dose_response_curves_sim", "dr_all.pdf"), plot = combined_plot)
   
