@@ -45,7 +45,7 @@ col_food_groups <- c("red_meat" = "#F60239",
   interpolation <- "linear"
   
 # Nombre de simulations des valeurs de RR
-  n <- 1000
+  n <- 10
   
 ################################################################################################################################
 #                                             3. Préparation des données                                                       #
@@ -157,6 +157,11 @@ col_food_groups <- c("red_meat" = "#F60239",
     mutate(rr_interpolated = if_else(quantity > max(quantity[!is.na(simulated_rr)]), NA_real_, rr_interpolated)) %>%
     ungroup() %>% 
     select("simulation_id", "food_group", "quantity", "rr_interpolated")
+  
+  rr_table_interpolated <- rr_table_interpolated %>% 
+    group_by(food_group) %>% 
+    mutate(simulation_id = sample(unique(simulation_id))[match(simulation_id, unique(simulation_id))]) %>% 
+    ungroup()
   
 ################################################################################################################################
 #                                             8. Représentations graphique                                                     #
