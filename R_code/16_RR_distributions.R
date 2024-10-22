@@ -42,10 +42,10 @@ col_food_groups <- c("red_meat" = "#F60239",
                      "sugar_sweetened_beverages" = "#004002")
 
 # Méthode d'interpolation ("linear", "spline")
-  interpolation <- "spline"
+  interpolation <- "linear"
   
 # Nombre de simulations des valeurs de RR
-  n <- 200
+  n <- 1000
   
 
 ################################################################################################################################
