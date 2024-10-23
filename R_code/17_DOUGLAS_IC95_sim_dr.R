@@ -53,7 +53,7 @@ lambda <- 5
 # Paramètre de modification d'effet des RR 
 # 0.5 à 1 = réduction d'effet, modèle conservateur
 # 1 à 1.5 = augmentation d'effet, modèle radical
-m <- 1
+m <- 0.5
 
 #  Time to full effect
 # durée (années)
@@ -229,7 +229,6 @@ calc_food_q_sig <- function(q_i, q_f, year_n, year_i, year_f, lambda) {
           strip.text = element_text(face = "bold",size = rel(0.8)),
           legend.position = "bottom",
           legend.text = element_text(size = 8),
-          legend.text = element_text(size = 10),
           legend.title = element_text(face = "bold", size = 10),
           legend.key.size = unit(0.3, "cm"),
           plot.margin = margin(0.2, 0.5, 0.2, 0.5, "cm"))+
@@ -259,8 +258,6 @@ calc_food_q_sig <- function(q_i, q_f, year_n, year_i, year_f, lambda) {
           strip.text = element_text(face = "bold",size = rel(0.8)),
           legend.position = "bottom",
           legend.text = element_text(size = 8),
-          legend.text = element_text(size = 10),
-
           legend.title = element_text(face = "bold", size = 10),
           legend.key.size = unit(0.3, "cm"),
           plot.margin = margin(0.2, 0.5, 0.2, 0.5, "cm"))+
