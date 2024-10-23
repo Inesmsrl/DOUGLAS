@@ -113,7 +113,7 @@ order_food_groups <- c("red_meat", "processed_meat", "white_meat", "fish", "eggs
                        "added_plant_oils", "sugar_sweetened_beverages")
 
 # Etiquettes des scénarios et groupes d'aliments
-labels_scenario <- c("actuel" = "Current diet",
+labels_scenario <- c("actuel" = "BAU",
                      "sc1" = "Scenario 1",
                      "sc2" = "Scenario 2",
                      "sc3" = "Scenario 3",
@@ -236,9 +236,9 @@ calc_food_q_sig <- function(q_i, q_f, year_n, year_i, year_f, lambda) {
                       labels = labels_food_groups)+
     labs(title = "",
          x = "",
-         y = "Quantities (g/day/pers)",
+         y = "Intakes (g/day/pers)",
          fill = "Food type")+
-    guides(fill = guide_legend(nrow = 3, 
+    guides(fill = guide_legend(nrow = 2, 
                                title.position = "top",
                                title.hjust = 0.5))
 
@@ -265,9 +265,9 @@ calc_food_q_sig <- function(q_i, q_f, year_n, year_i, year_f, lambda) {
                       labels = labels_food_groups)+
     labs(title = "",
          x = "",
-         y = "Quantities (g/day/pers)",
+         y = "Intakes (g/day/pers)",
          fill = "Food type")+
-    guides(fill = guide_legend(nrow = 3, 
+    guides(fill = guide_legend(nrow = 2, 
                                title.position = "top",
                                title.hjust = 0.5))
 
@@ -1199,6 +1199,8 @@ graph_avoided_deaths_cum_2050 <- ggplot(simulations_summary_avoided_deaths_cum_2
 export(diets_evo, here("results", "visualization_tool_ic95_sim", "diets_rr_evo.csv"))
 
 ggsave(here("results", "visualization_tool_ic95_sim", "diets_evo.pdf"), plot = graph_diets_evo)
+ggsave(here("results", "visualization_tool_ic95_sim", "diets_evo_shift.pdf"), plot = graph_diets_evo_shift)
+
 
 # Graphiques des valeurs de RR simulées par aliment, dans chaque scénario
 ggsave(here("results", "visualization_tool_ic95_sim", "rr_fg_sim_sc1.pdf"), plot = graph_rr_fg_sim_sc1)
