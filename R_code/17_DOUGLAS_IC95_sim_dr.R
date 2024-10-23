@@ -57,7 +57,7 @@ m <- 0.75
 
 #  Time to full effect
 # durée (années)
-ttfe_time <- 10
+ttfe_time <- 20
 
 # Durée du régime stationnaire 
 # Avant changement de régime : ttfe_time
@@ -228,7 +228,7 @@ calc_food_q_sig <- function(q_i, q_f, year_n, year_i, year_f, lambda) {
           axis.text.y = element_text(size = 7),
           strip.text = element_text(face = "bold",size = rel(0.8)),
           legend.position = "bottom",
-          legend.text = element_text(size = 7),
+          legend.text = element_text(size = 9),
           legend.title = element_text(face = "bold", size = 10),
           legend.key.size = unit(0.3, "cm"),
           plot.margin = margin(0.2, 0.5, 0.2, 0.5, "cm"))+
