@@ -228,7 +228,8 @@ calc_food_q_sig <- function(q_i, q_f, year_n, year_i, year_f, lambda) {
           axis.text.y = element_text(size = 7),
           strip.text = element_text(face = "bold",size = rel(0.8)),
           legend.position = "bottom",
-          legend.text = element_text(size = 8),
+          legend.text = element_text(size = 10),
+          legend.text = element_text(size = 10),
           legend.title = element_text(face = "bold", size = 10),
           legend.key.size = unit(0.3, "cm"),
           plot.margin = margin(0.2, 0.5, 0.2, 0.5, "cm"))+
@@ -257,7 +258,9 @@ calc_food_q_sig <- function(q_i, q_f, year_n, year_i, year_f, lambda) {
           axis.text.y = element_text(size = 7),
           strip.text = element_text(face = "bold",size = rel(0.8)),
           legend.position = "bottom",
-          legend.text = element_text(size = 8),
+          legend.text = element_text(size = 10),
+          legend.text = element_text(size = 10),
+
           legend.title = element_text(face = "bold", size = 10),
           legend.key.size = unit(0.3, "cm"),
           plot.margin = margin(0.2, 0.5, 0.2, 0.5, "cm"))+
@@ -901,7 +904,7 @@ graph_total_avoided_deaths_facet  <- ggplot(simulations_summary_avoided_deaths %
   labs(
     title = "",
     x = "",
-    y = "Number of deaths prevented"
+    y = "Number of prevented deaths"
   )+
   scale_color_manual(values = col_scenario)+
   scale_fill_manual(values = col_scenario)+
@@ -921,7 +924,7 @@ graph_total_avoided_deaths  <- ggplot(simulations_summary_avoided_deaths %>%
   labs(
     title = "",
     x = "",
-    y = "Number of deaths prevented"
+    y = "Number of prevented deaths"
   )+
   scale_color_manual(values = col_scenario)+
   scale_fill_manual(values = col_scenario)+
@@ -942,7 +945,7 @@ graph_total_avoided_deaths  <- ggplot(simulations_summary_avoided_deaths %>%
   labs(
     title = "",
     x = "",
-    y = "Number of deaths prevented"
+    y = "Number of prevented deaths"
   )+
   scale_color_manual(values = col_scenario)+
   scale_fill_manual(values = col_scenario)+
@@ -965,7 +968,7 @@ graph_total_avoided_deaths_shift_facet <- ggplot(simulations_summary_avoided_dea
   labs(
     title = "",
     x = "",
-    y = "Number of deaths prevented"
+    y = "Number of prevented deaths"
   )+
   scale_color_manual(values = col_scenario)+
   scale_fill_manual(values = col_scenario)+
@@ -985,7 +988,7 @@ graph_total_avoided_deaths_shift <- ggplot(simulations_summary_avoided_deaths_sh
   labs(
     title = "",
     x = "",
-    y = "Number of deaths prevented"
+    y = "Number of prevented deaths"
   )+
   scale_color_manual(values = col_scenario)+
   scale_fill_manual(values = col_scenario)+
