@@ -42,10 +42,10 @@ col_food_groups <- c("red_meat" = "#F60239",
                      "sugar_sweetened_beverages" = "#004002")
 
 # Méthode d'interpolation ("linear", "spline")
-  interpolation <- "linear"
+  interpolation <- "spline"
   
 # Nombre de simulations des valeurs de RR
-  n <- 1000
+  n <- 200
   
 ################################################################################################################################
 #                                             3. Préparation des données                                                       #
@@ -392,7 +392,7 @@ col_food_groups <- c("red_meat" = "#F60239",
  
  combined_plot <- reduce(list_dr, `+`) + plot_layout(ncol = 4)
  
- print(combined_plot)
+ print(combined_plot) 
   
 ################################################################################################################################
 #                                             8. Exportation des données                                                       #
@@ -416,5 +416,5 @@ col_food_groups <- c("red_meat" = "#F60239",
   ggsave(here("results", "dose_response_curves_sim", "dr_sim_white_meat.pdf"), plot = graph_dr_sim_white_meat)  
   ggsave(here("results", "dose_response_curves_sim", "dr_sim_whole_grains.pdf"), plot = graph_dr_sim_whole_grains)  
   
-  ggsave(here("results", "dose_response_curves_sim", "dr_all.pdf"), plot = combined_plot)
+  ggsave(here("results", "dose_response_curves_sim", "dr_all.pdf"), plot = combined_plot) 
   
