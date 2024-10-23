@@ -228,7 +228,7 @@ calc_food_q_sig <- function(q_i, q_f, year_n, year_i, year_f, lambda) {
           axis.text.y = element_text(size = 7),
           strip.text = element_text(face = "bold",size = rel(0.8)),
           legend.position = "bottom",
-          legend.text = element_text(size = 9),
+          legend.text = element_text(size = 8),
           legend.title = element_text(face = "bold", size = 10),
           legend.key.size = unit(0.3, "cm"),
           plot.margin = margin(0.2, 0.5, 0.2, 0.5, "cm"))+
@@ -257,7 +257,7 @@ calc_food_q_sig <- function(q_i, q_f, year_n, year_i, year_f, lambda) {
           axis.text.y = element_text(size = 7),
           strip.text = element_text(face = "bold",size = rel(0.8)),
           legend.position = "bottom",
-          legend.text = element_text(size = 7),
+          legend.text = element_text(size = 8),
           legend.title = element_text(face = "bold", size = 10),
           legend.key.size = unit(0.3, "cm"),
           plot.margin = margin(0.2, 0.5, 0.2, 0.5, "cm"))+
@@ -414,8 +414,10 @@ ttfe <- ttfe %>%
   ))
 
 # Représentation graphique 
-graph_ttfe  <- ggplot(ttfe, aes(x = time,
-                                y = ttfe))+
+graph_ttfe  <- ggplot(ttfe %>% 
+                        mutate(ttfe = 100*ttfe), 
+                      aes(x = time,
+                          y = ttfe))+
   geom_line(color = "darkseagreen", linewidth = 1, alpha = 0.8)+
   labs(title = "",
        x = "years",
@@ -598,7 +600,7 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
         legend.position = "none")
 
 ################################################################################################################################
-#                                             18. Combinaison des RR de chaque régime par année et calcul relatif au RR actuel #
+#                                             18. RR relatif au RR actuel                                                  #
 ################################################################################################################################
 
 # Calcul des RR relatifs aux RR du scénario actuel
@@ -632,11 +634,9 @@ graph_rr_diets_relative_sim <- ggplot(simulations_summary_rr_diets_relative %>%
                                           y = mean_rr,
                                           color = scenario)) +
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5, linetype = 0)+
-  facet_wrap(~ scenario,
-             labeller = labeller(scenario = labels_scenario))+
   geom_line(size = 1, na.rm = TRUE)+ 
   labs(
-    title = "RR values relative to keeping the current diet",
+    title = "",
     x = "",
     y = "RR"
   )+
@@ -899,9 +899,9 @@ graph_total_avoided_deaths_facet  <- ggplot(simulations_summary_avoided_deaths %
              labeller = labeller(scenario = labels_scenario))+
   geom_line(size = 0.8, na.rm = TRUE)+ 
   labs(
-    title = "Avoided deaths compared to keeping the current diet",
+    title = "",
     x = "",
-    y = "Number of avoided deaths"
+    y = "Number of deaths prevented"
   )+
   scale_color_manual(values = col_scenario)+
   scale_fill_manual(values = col_scenario)+
@@ -919,9 +919,9 @@ graph_total_avoided_deaths  <- ggplot(simulations_summary_avoided_deaths %>%
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5, linetype = 0)+
   geom_line(size = 0.6, na.rm = TRUE)+ 
   labs(
-    title = "Avoided deaths compared to keeping the current diet",
+    title = "",
     x = "",
-    y = "Number of avoided deaths"
+    y = "Number of deaths prevented"
   )+
   scale_color_manual(values = col_scenario)+
   scale_fill_manual(values = col_scenario)+
@@ -940,9 +940,9 @@ graph_total_avoided_deaths  <- ggplot(simulations_summary_avoided_deaths %>%
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5, linetype = 0)+
   geom_line(size = 0.6, na.rm = TRUE)+ 
   labs(
-    title = "Avoided deaths compared to keeping the current diet",
+    title = "",
     x = "",
-    y = "Number of avoided deaths"
+    y = "Number of deaths prevented"
   )+
   scale_color_manual(values = col_scenario)+
   scale_fill_manual(values = col_scenario)+
@@ -963,9 +963,9 @@ graph_total_avoided_deaths_shift_facet <- ggplot(simulations_summary_avoided_dea
              labeller = labeller(scenario = labels_scenario))+
   geom_line(size = 0.8, na.rm = TRUE)+ 
   labs(
-    title = "Avoided deaths compared to keeping the current diet",
+    title = "",
     x = "",
-    y = "Number of avoided deaths"
+    y = "Number of deaths prevented"
   )+
   scale_color_manual(values = col_scenario)+
   scale_fill_manual(values = col_scenario)+
@@ -983,9 +983,9 @@ graph_total_avoided_deaths_shift <- ggplot(simulations_summary_avoided_deaths_sh
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5, linetype = 0)+
   geom_line(size = 0.8, na.rm = TRUE)+ 
   labs(
-    title = "Avoided deaths compared to keeping the current diet",
+    title = "",
     x = "",
-    y = "Number of avoided deaths"
+    y = "Number of deaths prevented"
   )+
   scale_color_manual(values = col_scenario)+
   scale_fill_manual(values = col_scenario)+
