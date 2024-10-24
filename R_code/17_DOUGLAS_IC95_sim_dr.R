@@ -312,7 +312,7 @@ graph_rr_fg_sim_sc1 <- ggplot(simulations_summary %>%
                                   y = mean_rr,
                                   color = food_group)) +
   facet_wrap(~ food_group)+
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5, linetype = 0) +  # Intervalle de confiance
   geom_line(linewidth = 1, na.rm = TRUE) +  # Moyenne en trait plein
   labs(
     title = "RR simulations",
@@ -334,7 +334,7 @@ graph_rr_fg_sim_sc2 <- ggplot(simulations_summary %>%
                                   y = mean_rr,
                                   color = food_group)) +
   facet_wrap(~ food_group)+
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5, linetype = 0) +  # Intervalle de confiance
   geom_line(linewidth = 1, na.rm = TRUE) +  # Moyenne en trait plein
   labs(
     title = "RR simulations",
@@ -356,7 +356,7 @@ graph_rr_fg_sim_sc3 <- ggplot(simulations_summary %>%
                                   y = mean_rr,
                                   color = food_group)) +
   facet_wrap(~ food_group)+
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5, linetype = 0) +  # Intervalle de confiance
   geom_line(linewidth = 1, na.rm = TRUE) +  # Moyenne en trait plein
   labs(
     title = "RR simulations",
@@ -378,7 +378,7 @@ graph_rr_fg_sim_sc4 <- ggplot(simulations_summary %>%
                                   y = mean_rr,
                                   color = food_group)) +
   facet_wrap(~ food_group)+
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5, linetype = 0) +  # Intervalle de confiance
   geom_line(linewidth = 1, na.rm = TRUE) +  # Moyenne en trait plein
   labs(
     title = "RR simulations",
@@ -471,7 +471,7 @@ graph_rr_fg_combined_sim_sc1 <- ggplot(simulations_summary_rr_fg_combined %>%
                                            y = combined_rr,
                                            color = food_group)) +
   facet_wrap(~ food_group)+
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5, linetype = 0) +  # Intervalle de confiance
   geom_line(linewidth = 1, na.rm = TRUE) +  # Moyenne en trait plein
   labs(
     title = "RR simulations",
@@ -493,7 +493,7 @@ graph_rr_fg_combined_sim_sc2 <- ggplot(simulations_summary_rr_fg_combined %>%
                                            y = combined_rr,
                                            color = food_group)) +
   facet_wrap(~ food_group)+
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5, linetype = 0) +  # Intervalle de confiance
   geom_line(linewidth = 1, na.rm = TRUE) +  # Moyenne en trait plein
   labs(
     title = "RR simulations",
@@ -514,7 +514,7 @@ graph_rr_fg_combined_sim_sc3 <- ggplot(simulations_summary_rr_fg_combined %>%
                                            y = combined_rr,
                                            color = food_group)) +
   facet_wrap(~ food_group)+
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5, linetype = 0) +  # Intervalle de confiance
   geom_line(linewidth = 1, na.rm = TRUE) +  # Moyenne en trait plein
   labs(
     title = "RR simulations",
@@ -535,7 +535,7 @@ graph_rr_fg_combined_sim_sc4 <- ggplot(simulations_summary_rr_fg_combined %>%
                                            y = combined_rr,
                                            color = food_group)) +
   facet_wrap(~ food_group)+
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5) +  # Intervalle de confiance
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5, linetype = 0) +  # Intervalle de confiance
   geom_line(linewidth = 1, na.rm = TRUE) +  # Moyenne en trait plein
   labs(
     title = "RR simulations",
@@ -1013,7 +1013,7 @@ graph_avoided_deaths_2035_facet <- ggplot(simulations_summary_deaths_2035 %>%
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
               alpha = 0.5,
               size = 0.3,
-              linetype = "dashed")+
+              linetype = 0)+
   labs(
     title = "Avoided deaths in 2035 compared to keeping the current diet",
     x = "Age",
@@ -1036,7 +1036,7 @@ graph_avoided_deaths_2035 <- ggplot(simulations_summary_deaths_2035 %>%
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
               alpha = 0.1,
               size = 0.3,
-              linetype = "dashed")+
+              linetype = 0)+
   labs(
     title = "Avoided deaths in 2035",
     x = "Age",
@@ -1062,7 +1062,7 @@ graph_avoided_deaths_2050_facet <- ggplot(simulations_summary_deaths_2050 %>%
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
               alpha = 0.5,
               size = 0.3,
-              linetype = "dashed")+
+              linetype = 0)+
   labs(
     title = "Avoided deaths in 2050",
     x = "Age",
@@ -1085,7 +1085,7 @@ graph_avoided_deaths_2050 <- ggplot(simulations_summary_deaths_2050 %>%
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
               alpha = 0.1,
               size = 0.3,
-              linetype = "dashed")+
+              linetype = 0)+
   labs(
     title = "Avoided deaths in 2050",
     x = "Age",
@@ -1112,7 +1112,7 @@ graph_avoided_deaths_cum_2035_facet <- ggplot(simulations_summary_avoided_deaths
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
               alpha = 0.5,
               size = 0.3,
-              linetype = "dashed")+
+              linetype = 0)+
   labs(
     title = "Cumulated avoided deaths 2025-2035",
     x = "Age",
@@ -1135,7 +1135,7 @@ graph_avoided_deaths_cum_2035 <- ggplot(simulations_summary_avoided_deaths_cum_2
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
               alpha = 0.1,
               size = 0.3,
-              linetype = "dashed")+
+              linetype = 0)+
   labs(
     title = "Cumulated avoided deaths 2025-2035",
     x = "Age",
@@ -1157,7 +1157,7 @@ graph_avoided_deaths_cum_2050_facet <- ggplot(simulations_summary_avoided_deaths
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
               alpha = 0.5,
               size = 0.3,
-              linetype = "dashed")+
+              linetype = 0)+
   labs(
     title = "Cumulated avoided deaths 2025-2050",
     x = "Age",
@@ -1180,7 +1180,7 @@ graph_avoided_deaths_cum_2050 <- ggplot(simulations_summary_avoided_deaths_cum_2
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
               alpha = 0.1,
               size = 0.3,
-              linetype = "dashed")+
+              linetype = 0)+
   labs(
     title = "Cumulated avoided deaths 2025-2050",
     x = "Age",
