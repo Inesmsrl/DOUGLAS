@@ -311,12 +311,8 @@ graph_rr_fg_sim_sc1 <- ggplot(simulations_summary %>%
                               aes(x = year,
                                   y = mean_rr,
                                   color = food_group)) +
-<<<<<<< HEAD
   facet_wrap(~ food_group,
              labeller = labeller(food_group =labels_food_groups))+
-=======
-  facet_wrap(~ food_group)+
->>>>>>> 09f4e20be11901c3774c06acaf8464e5809e7dfa
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5, linetype = 0) +  # Intervalle de confiance
   geom_line(linewidth = 1, na.rm = TRUE) +  # Moyenne en trait plein
   labs(
@@ -338,12 +334,8 @@ graph_rr_fg_sim_sc2 <- ggplot(simulations_summary %>%
                               aes(x = year,
                                   y = mean_rr,
                                   color = food_group)) +
-<<<<<<< HEAD
   facet_wrap(~ food_group,
              labeller = labeller(food_group =labels_food_groups))+
-=======
-  facet_wrap(~ food_group)+
->>>>>>> 09f4e20be11901c3774c06acaf8464e5809e7dfa
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5, linetype = 0) +  # Intervalle de confiance
   geom_line(linewidth = 1, na.rm = TRUE) +  # Moyenne en trait plein
   labs(
@@ -365,12 +357,8 @@ graph_rr_fg_sim_sc3 <- ggplot(simulations_summary %>%
                               aes(x = year,
                                   y = mean_rr,
                                   color = food_group)) +
-<<<<<<< HEAD
   facet_wrap(~ food_group,
              labeller = labeller(food_group =labels_food_groups))+
-=======
-  facet_wrap(~ food_group)+
->>>>>>> 09f4e20be11901c3774c06acaf8464e5809e7dfa
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5, linetype = 0) +  # Intervalle de confiance
   geom_line(linewidth = 1, na.rm = TRUE) +  # Moyenne en trait plein
   labs(
@@ -392,12 +380,8 @@ graph_rr_fg_sim_sc4 <- ggplot(simulations_summary %>%
                               aes(x = year,
                                   y = mean_rr,
                                   color = food_group)) +
-<<<<<<< HEAD
   facet_wrap(~ food_group,
              labeller = labeller(food_group =labels_food_groups))+
-=======
-  facet_wrap(~ food_group)+
->>>>>>> 09f4e20be11901c3774c06acaf8464e5809e7dfa
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5, linetype = 0) +  # Intervalle de confiance
   geom_line(linewidth = 1, na.rm = TRUE) +  # Moyenne en trait plein
   labs(
@@ -490,12 +474,8 @@ graph_rr_fg_combined_sim_sc1 <- ggplot(simulations_summary_rr_fg_combined %>%
                                        aes(x = year_n,
                                            y = combined_rr,
                                            color = food_group)) +
-<<<<<<< HEAD
   facet_wrap(~ food_group,
              labeller = labeller(food_group =labels_food_groups))+
-=======
-  facet_wrap(~ food_group)+
->>>>>>> 09f4e20be11901c3774c06acaf8464e5809e7dfa
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5, linetype = 0) +  # Intervalle de confiance
   geom_line(linewidth = 1, na.rm = TRUE) +  # Moyenne en trait plein
   labs(
@@ -517,12 +497,8 @@ graph_rr_fg_combined_sim_sc2 <- ggplot(simulations_summary_rr_fg_combined %>%
                                        aes(x = year_n,
                                            y = combined_rr,
                                            color = food_group)) +
-<<<<<<< HEAD
   facet_wrap(~ food_group,
              labeller = labeller(food_group =labels_food_groups))+
-=======
-  facet_wrap(~ food_group)+
->>>>>>> 09f4e20be11901c3774c06acaf8464e5809e7dfa
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5, linetype = 0) +  # Intervalle de confiance
   geom_line(linewidth = 1, na.rm = TRUE) +  # Moyenne en trait plein
   labs(
@@ -543,12 +519,8 @@ graph_rr_fg_combined_sim_sc3 <- ggplot(simulations_summary_rr_fg_combined %>%
                                        aes(x = year_n,
                                            y = combined_rr,
                                            color = food_group)) +
-<<<<<<< HEAD
   facet_wrap(~ food_group,
              labeller = labeller(food_group =labels_food_groups))+
-=======
-  facet_wrap(~ food_group)+
->>>>>>> 09f4e20be11901c3774c06acaf8464e5809e7dfa
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5, linetype = 0) +  # Intervalle de confiance
   geom_line(linewidth = 1, na.rm = TRUE) +  # Moyenne en trait plein
   labs(
@@ -569,12 +541,8 @@ graph_rr_fg_combined_sim_sc4 <- ggplot(simulations_summary_rr_fg_combined %>%
                                        aes(x = year_n,
                                            y = combined_rr,
                                            color = food_group)) +
-<<<<<<< HEAD
   facet_wrap(~ food_group,
              labeller = labeller(food_group =labels_food_groups))+
-=======
-  facet_wrap(~ food_group)+
->>>>>>> 09f4e20be11901c3774c06acaf8464e5809e7dfa
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5, linetype = 0) +  # Intervalle de confiance
   geom_line(linewidth = 1, na.rm = TRUE) +  # Moyenne en trait plein
   labs(
@@ -1091,13 +1059,8 @@ graph_avoided_deaths_2035 <- ggplot(simulations_summary_deaths_2035 %>%
                                         group = scenario,
                                         color = scenario)) +
   geom_line(size = 1, na.rm = TRUE)+
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
-<<<<<<< HEAD
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario),
               alpha = 0.4,
-=======
-              alpha = 0.1,
-              size = 0.3,
->>>>>>> 09f4e20be11901c3774c06acaf8464e5809e7dfa
               linetype = 0)+
   labs(
     title = "",
@@ -1149,13 +1112,8 @@ graph_avoided_deaths_2050 <- ggplot(simulations_summary_deaths_2050 %>%
                                         group = scenario,
                                         color = scenario)) +
   geom_line(size = 1, na.rm = TRUE)+
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
-<<<<<<< HEAD
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario),
               alpha = 0.4,
-=======
-              alpha = 0.1,
-              size = 0.3,
->>>>>>> 09f4e20be11901c3774c06acaf8464e5809e7dfa
               linetype = 0)+
   labs(
     title = "",
@@ -1208,13 +1166,8 @@ graph_avoided_deaths_cum_2035 <- ggplot(simulations_summary_avoided_deaths_cum_2
                                             group = scenario,
                                             color = scenario)) +
   geom_line(size = 1, na.rm = TRUE)+
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
-<<<<<<< HEAD
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario),
               alpha = 0.4,
-=======
-              alpha = 0.1,
-              size = 0.3,
->>>>>>> 09f4e20be11901c3774c06acaf8464e5809e7dfa
               linetype = 0)+
   labs(
     title = "",
@@ -1263,13 +1216,8 @@ graph_avoided_deaths_cum_2050 <- ggplot(simulations_summary_avoided_deaths_cum_2
                                             color = scenario)) +
   geom_line(size = 1, na.rm = TRUE)+
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
-<<<<<<< HEAD
               alpha = 0.4,
-=======
-              alpha = 0.1,
-              size = 0.3,
->>>>>>> 09f4e20be11901c3774c06acaf8464e5809e7dfa
-              linetype = 0)+
+              linetype = 0)
   labs(
     title = "",
     x = "Age",
