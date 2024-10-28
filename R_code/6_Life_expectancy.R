@@ -14,24 +14,42 @@ pacman::p_load(
 #                                             2. Importation des données                                                       #
 ################################################################################################################################
 
-population_evo <- import(here("data_clean", "deaths.csv"))
+population_evo <- import(here("results", "deaths.csv"))
 
 ################################################################################################################################
 #                                             3. Espérance de vie conditionnelle                                               #
 ################################################################################################################################
 
 population_evo <- population_evo %>% 
-  select("age", "year", "scenario", "simulation_id" "adjusted_mr", "population", "deaths")
+  select("age", "year", "scenario", "simulation_id", "adjusted_mr", "population", "deaths") %>% 
+  group_by(year, simulation_id, age) %>% 
+  mutate(avoided_deaths = deaths[scenario == "actuel"] - deaths)
 
-life_exp = function(df, MR ,age){
-  test = df %>%
-    mutate(prop_alive = cumprod(1 - MR),
-           deaths =  -(prop_alive - lag(prop_alive)),
-           life_exp = sum(age*deaths, na.rm = T))
-  return(test)
+calc_conditional_LE <- function(df) {
+  df %>%
+    arrange(year, age) %>%
+    group_by(year, simulation_id, scenario) %>%
+    mutate(
+      qx = adjusted_mr,                           # Taux de mortalité par âge (déjà dans les données)
+      px = 1 - qx,                                   # Probabilité de survie à chaque âge
+      lx = cumprod(lag(px, default = 1)),            # Probabilité de survie jusqu'à chaque âge
+      dx = lx * qx,                                  # Nombre de décès attendu à chaque âge
+      Tx = rev(cumsum(rev(lx)))                      # Somme cumulée des survivants pour espérance de vie
+    ) %>%
+    mutate(
+      ex = Tx / lx                                   # Espérance de vie conditionnelle à chaque âge
+    ) 
 }
 
-le <- life_exp(population_evo)
+population_evo <- calc_conditional_LE(population_evo)
+
+population_evo <- population_evo %>% 
+  group_by(age, year, scenario, simulation_id) %>% 
+  mutate(le = age + ex,
+         ylg = avoided_deaths * (le - age)) %>% 
+  select(simulation_id, age, year, scenario, avoided_deaths, le)
+
+  
 
 ################################################################################################################################
 #                                             4. Exportation des données                                                       #
