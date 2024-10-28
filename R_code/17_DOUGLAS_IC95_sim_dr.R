@@ -1277,6 +1277,9 @@ ggsave(here("results", "visualization_tool_ic95_sim", "rr_diets_relative_sim.pdf
 
 export(simulations_summary_mr_adjusted, here("results", "visualization_tool_ic95_sim", "IC95_MR_adjsuted.xlsx"))
 
+# Nombre de décès
+export(deaths, here("results", "visualization_tool_ic95_sim", "deaths.csv"))
+
 # Nombre total de décès évités par annnée
 # Sur toute la période du modèle
 export(simulations_summary_avoided_deaths, here("results", "visualization_tool_ic95_sim", "IC95_total_avoided_deaths.xlsx"))
