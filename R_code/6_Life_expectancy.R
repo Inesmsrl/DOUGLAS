@@ -14,14 +14,14 @@ pacman::p_load(
 #                                             2. Importation des données                                                       #
 ################################################################################################################################
 
-population_evo <- import(here("data_clean", "data_evolution.xlsx"))
+population_evo <- import(here("data_clean", "deaths.csv"))
 
 ################################################################################################################################
-#                                             3. Âge moyen au décès                                                            #
+#                                             3. Espérance de vie conditionnelle                                               #
 ################################################################################################################################
 
 population_evo <- population_evo %>% 
-  select("age", "year", "scenario", "MR", "population", "deaths")
+  select("age", "year", "scenario", "simulation_id" "adjusted_mr", "population", "deaths")
 
 life_exp = function(df, MR ,age){
   test = df %>%
