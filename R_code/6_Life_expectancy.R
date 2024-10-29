@@ -63,6 +63,10 @@ population_evo <- population_evo %>%
          ylg = avoided_deaths * (le - age)) %>% 
   select(simulation_id, age, year, scenario, deaths, avoided_deaths, le, ylg)
 
+################################################################################################################################
+#                                             4. Années de vie préservées                                                      #
+################################################################################################################################
+
 yll <- population_evo %>% 
   group_by(simulation_id, scenario, year) %>% 
   summarise(yll = sum(ylg))
@@ -103,26 +107,16 @@ graph_yll <- ggplot(summary_yll %>%
   guides(color = guide_legend(title = NULL),
          fill = guide_legend(title = NULL))
 
-# tot_deaths <- population_evo %>% 
-#   group_by(simulation_id, scenario, year) %>% 
-#   summarise(tot_deaths = sum(deaths))
-#   
-#   le <- le %>% 
-#     group_by(simulation_id, scenario, year) %>% 
-#     mutate(yll = age * deaths) %>% 
-#     summarise(yll_sum = sum(yll))
-#   
-#   le <- le %>% 
-#     left_join(tot_deaths, by = c("simulation_id", "scenario", "year"))
-#   
-#   le <- le %>% 
-#     group_by(simulation_id, year, scenario) %>% 
-#     mutate(mean_age_deaths = yll_sum / tot_deaths)
             
+################################################################################################################################
+#                                             5. Espérance de vie gagnée                                                       #
+################################################################################################################################
 
+le <- population_evo %>% 
+  group_by()
 
 ################################################################################################################################
-#                                             4. Exportation des données                                                       #
+#                                             6. Exportation des données                                                       #
 ################################################################################################################################
 
 export(summary_yll, here("results", "IC95_yll.xlsx"))
