@@ -1020,6 +1020,33 @@ graph_total_avoided_deaths_shift <- ggplot(simulations_summary_avoided_deaths_sh
   guides(color = guide_legend(title = NULL),
          fill = guide_legend(title = NULL))
 
+# En 2040, 2050 et 2060
+graph_avoided_deaths_dates <- ggplot(simulations_summary_avoided_deaths %>% 
+                           filter(year %in% c(2040, 2050, 2060),
+                                  scenario != "actuel"),
+                         aes(x = scenario,
+                             y = mean_rr,
+                             fill = scenario))+
+  geom_bar(stat = "identity",
+           position = "dodge",
+           alpha = 0.7)+
+  geom_errorbar(aes(ymin = lower_ci,
+                    ymax = upper_ci),
+                width = 0.2,
+                position = position_dodge(0.9))+
+  facet_wrap(~year,
+             ncol = 3)+
+  scale_y_continuous(labels = scales :: label_comma())+
+  scale_fill_manual(values = col_scenario,
+                    labels = labels_scenario)+
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = "bottom")+
+  labs(title = "",
+       x = "",
+       y = "Number of deaths prevented")+
+  guides(fill = guide_legend(title = NULL))
+
 ################################################################################################################################
 #                                             18. Représentations graphiques des simulations des décès évités par age          #
 ################################################################################################################################
@@ -1290,6 +1317,10 @@ ggsave(here("results", "visualization_tool_ic95_sim", "total_avoided_deaths_face
 export(simulations_summary_avoided_deaths_shift, here("results", "visualization_tool_ic95_sim", "IC95_total_avoided_deaths_shift.xlsx"))
 ggsave(here("results", "visualization_tool_ic95_sim", "total_avoided_deaths_shift.pdf"), plot = graph_total_avoided_deaths_shift)
 ggsave(here("results", "visualization_tool_ic95_sim", "total_avoided_deaths_shift_facet.pdf"), plot = graph_total_avoided_deaths_shift_facet)
+
+# EN 2040, 2050 et 2060
+ggsave(here("results", "visualization_tool_ic95_sim", "total_avoided_deaths_dates.pdf"), plot = graph_avoided_deaths_dates)
+
 
 # Nombre de décès évités par an et par age
 export(simulations_summary_avoided_deaths_age, here("results", "visualization_tool_ic95_sim", "IC95_avoided_deaths.xlsx"))
