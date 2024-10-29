@@ -115,7 +115,8 @@ graph_yll_dates <- ggplot(summary_yll %>%
            y = mean_yll,
            fill = scenario))+
   geom_bar(stat = "identity",
-           position = "dodge")+
+           position = "dodge",
+           alpha = 0.7)+
   geom_errorbar(aes(ymin = lower_ci,
                     ymax = upper_ci),
                 width = 0.2,
@@ -186,7 +187,8 @@ graph_le_dates <- ggplot(summary_le %>%
                               y = mean_le,
                               fill = scenario))+
   geom_bar(stat = "identity",
-           position = "dodge")+
+           position = "dodge",
+           alpha = 0.7)+
   geom_errorbar(aes(ymin = lower_ci,
                     ymax = upper_ci),
                 width = 0.2,
