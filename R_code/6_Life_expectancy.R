@@ -6,7 +6,8 @@ pacman::p_load(
   rio,                 # Importation de fichiers
   here,                # Localisation des fichiers dans le dossier du projet
   dplyr,               # Manipulation des données
-  tidyr
+  tidyr,
+  tidyverse
 )
 
 
@@ -90,7 +91,7 @@ graph_yll <- ggplot(summary_yll %>%
                                           group = scenario,
                                           color = scenario)) +
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5, linetype = 0)+
-  geom_line(size = 0.6, na.rm = TRUE)+ 
+  geom_line(linewidth = 0.6, na.rm = TRUE)+ 
   labs(
     title = "",
     x = "",
@@ -113,12 +114,55 @@ graph_yll <- ggplot(summary_yll %>%
 ################################################################################################################################
 
 le <- population_evo %>% 
-  group_by()
+  group_by(simulation_id, year, scenario) %>% 
+  summarise(le_year = mean(le)) %>% 
+  mutate(leg = le_year - le_year[scenario == "actuel"])
+
+le <- le %>% 
+  group_by(scenario, year) %>% 
+  filter(between(leg, quantile(leg, 0.025), quantile(leg, 0.975)))
+
+summary_le <- le %>% 
+  group_by(scenario, year) %>% 
+  summarise(
+    mean_le = mean(leg, na.rm = TRUE),
+    lower_ci = quantile(leg, 0.025, na.rm = TRUE),
+    upper_ci = quantile(leg, 0.975, na.rm = TRUE)
+  )
+
+graph_le <- ggplot(summary_le %>% 
+                      filter(scenario != "actuel"),
+                    aes(x = year,
+                        y = mean_le,
+                        group = scenario,
+                        color = scenario)) +
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5, linetype = 0)+
+  geom_line(linewidth = 0.6, na.rm = TRUE)+ 
+  labs(
+    title = "",
+    x = "",
+    y = "Life expectancy gained"
+  )+
+  scale_color_manual(values = col_scenario,
+                     labels = labels_scenario)+
+  scale_fill_manual(values = col_scenario,
+                    labels = labels_scenario)+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+        axis.text.y = element_text(size = 7),
+        strip.text = element_text(face = "bold",size = rel(1)),
+        legend.position = "bottom")+
+  guides(color = guide_legend(title = NULL),
+         fill = guide_legend(title = NULL))
 
 ################################################################################################################################
 #                                             6. Exportation des données                                                       #
 ################################################################################################################################
 
+# YLL
 export(summary_yll, here("results", "IC95_yll.xlsx"))
-ggsave(here("results", "yll_reported.pdf"))
+ggsave(here("results", "yll_reported.pdf"), plot = graph_yll)
+
+# LE
+export(summary_le, here("results", "IC95_LE_gained.xlsx"))
+ggsave(here("results", "LE_gained.pdf"), plot = graph_le)
 
