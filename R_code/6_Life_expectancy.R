@@ -108,6 +108,31 @@ graph_yll <- ggplot(summary_yll %>%
   guides(color = guide_legend(title = NULL),
          fill = guide_legend(title = NULL))
 
+graph_yll_dates <- ggplot(summary_yll %>% 
+         filter(year %in% c(2040, 2050, 2060),
+                scenario != "actuel"),
+       aes(x = scenario,
+           y = mean_yll,
+           fill = scenario))+
+  geom_bar(stat = "identity",
+           position = "dodge")+
+  geom_errorbar(aes(ymin = lower_ci,
+                    ymax = upper_ci),
+                width = 0.2,
+                position = position_dodge(0.9))+
+  facet_wrap(~year,
+             ncol = 3)+
+  scale_y_continuous(labels = scales :: label_comma())+
+  scale_fill_manual(values = col_scenario,
+                     labels = labels_scenario)+
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = "bottom")+
+  labs(title = "",
+       x = "",
+       y = "YLL prevented")+
+  guides(fill = guide_legend(title = NULL))
+
             
 ################################################################################################################################
 #                                             5. Espérance de vie gagnée                                                       #
@@ -116,7 +141,7 @@ graph_yll <- ggplot(summary_yll %>%
 le <- population_evo %>% 
   group_by(simulation_id, year, scenario) %>% 
   summarise(le_year = mean(le)) %>% 
-  mutate(leg = le_year - le_year[scenario == "actuel"])
+  mutate(leg = (le_year - le_year[scenario == "actuel"])*12)
 
 le <- le %>% 
   group_by(scenario, year) %>% 
@@ -141,7 +166,7 @@ graph_le <- ggplot(summary_le %>%
   labs(
     title = "",
     x = "",
-    y = "Life expectancy gained"
+    y = "Life expectancy gained (months)"
   )+
   scale_color_manual(values = col_scenario,
                      labels = labels_scenario)+
@@ -154,6 +179,32 @@ graph_le <- ggplot(summary_le %>%
   guides(color = guide_legend(title = NULL),
          fill = guide_legend(title = NULL))
 
+graph_le_dates <- ggplot(summary_le %>% 
+                            filter(year %in% c(2040, 2050, 2060),
+                                   scenario != "actuel"),
+                          aes(x = scenario,
+                              y = mean_le,
+                              fill = scenario))+
+  geom_bar(stat = "identity",
+           position = "dodge")+
+  geom_errorbar(aes(ymin = lower_ci,
+                    ymax = upper_ci),
+                width = 0.2,
+                position = position_dodge(0.9))+
+  facet_wrap(~year,
+             ncol = 3)+
+  scale_y_continuous(labels = scales :: label_comma())+
+  scale_fill_manual(values = col_scenario,
+                    labels = labels_scenario)+
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = "bottom")+
+  labs(title = "",
+       x = "",
+       y = "LE gained (months)")+
+  guides(fill = guide_legend(title = NULL))
+
+
 ################################################################################################################################
 #                                             6. Exportation des données                                                       #
 ################################################################################################################################
@@ -161,8 +212,10 @@ graph_le <- ggplot(summary_le %>%
 # YLL
 export(summary_yll, here("results", "IC95_yll.xlsx"))
 ggsave(here("results", "yll_reported.pdf"), plot = graph_yll)
+ggsave(here("results", "yll_reported_dates.pdf"), plot = graph_yll_dates)
 
 # LE
 export(summary_le, here("results", "IC95_LE_gained.xlsx"))
 ggsave(here("results", "LE_gained.pdf"), plot = graph_le)
+ggsave(here("results", "LE_gaines_dates.pdf"), plot = graph_le_dates)
 
