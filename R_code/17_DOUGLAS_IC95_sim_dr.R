@@ -113,7 +113,7 @@ order_food_groups <- c("red_meat", "processed_meat", "white_meat", "fish", "eggs
                        "added_plant_oils", "sugar_sweetened_beverages")
 
 # Etiquettes des scénarios et groupes d'aliments
-labels_scenario <- c("actuel" = "BAU",
+labels_scenario <- c("actuel" = "Current diet",
                      "sc1" = "Scenario 1",
                      "sc2" = "Scenario 2",
                      "sc3" = "Scenario 3",
@@ -236,7 +236,7 @@ calc_food_q_sig <- function(q_i, q_f, year_n, year_i, year_f, lambda) {
                       labels = labels_food_groups)+
     labs(title = "",
          x = "",
-         y = "Intakes (g/day/pers)",
+         y = "Intakes (g/d/pers)",
          fill = "Food type")+
     guides(fill = guide_legend(nrow = 2, 
                                title.position = "top",
@@ -265,7 +265,7 @@ calc_food_q_sig <- function(q_i, q_f, year_n, year_i, year_f, lambda) {
                       labels = labels_food_groups)+
     labs(title = "",
          x = "",
-         y = "Intakes (g/day/pers)",
+         y = "Intakes (g/d/pers)",
          fill = "Food type")+
     guides(fill = guide_legend(nrow = 2, 
                                title.position = "top",

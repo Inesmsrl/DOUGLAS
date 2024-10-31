@@ -178,7 +178,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
     labs(title = "Dairy",
-         x = "Quantity (g/day/pers)",
+         x = "Intake (g/d/pers)",
          y = "RR")+
     theme(legend.position = "none")
   
@@ -194,7 +194,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
     labs(title = "Eggs",
-         x = "Quantity (g/day/pers)",
+         x = "Intake (g/d/pers)",
          y = "RR")+
     theme(legend.position = "none")
   
@@ -210,7 +210,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
     labs(title = "Fish",
-         x = "Quantity (g/day/pers)",
+         x = "Intake (g/d/pers)",
          y = "RR")+
     theme(legend.position = "none")
   
@@ -226,7 +226,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
     labs(title = "Fruits",
-         x = "Quantity (g/day/pers)",
+         x = "Intake (g/d/pers)",
          y = "RR")+
     theme(legend.position = "none")
   
@@ -242,7 +242,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
     labs(title = "Legumes",
-         x = "Quantity (g/day/pers)",
+         x = "Intake (g/d/pers)",
          y = "RR")+
     theme(legend.position = "none")
   
@@ -258,7 +258,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
     labs(title = "Nuts",
-         x = "Quantity (g/day/pers)",
+         x = "Intake (g/d/pers)",
          y = "RR")+
     theme(legend.position = "none")
   
@@ -274,7 +274,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
     labs(title = "Processed meat",
-         x = "Quantity (g/day/pers)",
+         x = "Intake (g/d/pers)",
          y = "RR")+
     theme(legend.position = "none")
   
@@ -290,7 +290,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
     labs(title = "Red meat",
-         x = "Quantity (g/day/pers)",
+         x = "Intake (g/d/pers)",
          y = "RR")+
     theme(legend.position = "none")
   
@@ -307,7 +307,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
     labs(title = "Refined grains",
-         x = "Quantity (g/day/pers)",
+         x = "Intake (g/d/pers)",
          y = "RR")+
     theme(legend.position = "none")
   
@@ -323,7 +323,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
     labs(title = "SSB",
-         x = "Quantity (g/day/pers)",
+         x = "Intake (g/d/pers)",
          y = "RR")+
     theme(legend.position = "none")
   
@@ -339,7 +339,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
     labs(title = "Vegetables",
-         x = "Quantity (g/day/pers)",
+         x = "Intake (g/d/pers)",
          y = "RR")+
     theme(legend.position = "none")
   
@@ -355,7 +355,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
     labs(title = "White meat",
-         x = "Quantity (g/day/pers)",
+         x = "Intake (g/d/pers)",
          y = "RR")+
     theme(legend.position = "none")
   
@@ -371,7 +371,7 @@ col_food_groups <- c("red_meat" = "#F60239",
     geom_line(na.rm = TRUE,
               alpha = 0.05)+
     labs(title = "Whole grains",
-         x = "Quantity (g/day/pers)",
+         x = "Intake (g/d/pers)",
          y = "RR")+
     theme(legend.position = "none")
   
