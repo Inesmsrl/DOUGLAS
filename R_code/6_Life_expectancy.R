@@ -31,6 +31,7 @@ labels_scenario <- c("actuel" = "BAU",
                      "sc3" = "Scenario 3",
                      "sc4" = "Scenario 4")
 
+graph_avoided_deaths <- import(here("results", "visualization_tool_ic95_sim", "total_avoided_deaths_dates.pdf"))
 ################################################################################################################################
 #                                             3. Espérance de vie conditionnelle                                               #
 ################################################################################################################################
