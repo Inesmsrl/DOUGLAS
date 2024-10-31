@@ -53,7 +53,7 @@ graph_sensi <- ggplot(sensi_data %>%
        aes(x = avoided_deaths,
                        y = scenario,
                        color = factor(scenario)))+
-  geom_point(position = position_dodge(width = 0.5), size = 0.7)+
+  geom_point(position = position_dodge(width = 0.5), size = 2.5, shape = 18)+
   geom_segment(aes(x = ic_lower,
                xend = ic_upper,
                y = scenario,
@@ -71,12 +71,13 @@ graph_sensi <- ggplot(sensi_data %>%
        x = "Number of deaths prevented",
        color = "Scenario")+
   theme(strip.text.y = element_text(angle = 0, hjust = 0, size = 9),
-        axis.text.x = element_text(angle = 0, hjust = 1, size = 7),
+        axis.text.x = element_text(angle = 30, hjust = 1, size = 7),
         axis.text.y = element_blank(),
         axis.ticks.y = element_blank(),
-        legend.position = "bottom")+
+        legend.position = "bottom",
+        panel.grid.minor = element_blank())+
   scale_x_continuous(limits = c(0, max(sensi_data$ic_upper, na.rm = TRUE)),
-                     breaks = c(100000),
+                     breaks = c(50000, 100000, 150000),
                      labels = scales::label_comma())+
   geom_vline(xintercept = 100000, linetype = "dashed", color = "black", size = 0.3)+
   guides(color = guide_legend(title = NULL))
