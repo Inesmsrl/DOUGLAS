@@ -7,7 +7,8 @@ pacman::p_load(
   here,                # Localisation des fichiers dans le dossier du projet
   dplyr,               # Manipulation des données
   tidyr,
-  tidyverse
+  tidyverse,
+  patchwork            # Combinaison de graphes
 )
 
 
@@ -25,7 +26,7 @@ col_scenario <- c("actuel" = "azure4",
                   "sc4" = "#882255",
                   "sc5" = "royalblue4")
 
-labels_scenario <- c("actuel" = "BAU",
+labels_scenario <- c("actuel" = "Current diet",
                      "sc1" = "Scenario 1",
                      "sc2" = "Scenario 2",
                      "sc3" = "Scenario 3",
@@ -131,7 +132,7 @@ graph_yll_dates <- ggplot(summary_yll %>%
         legend.position = "bottom")+
   labs(title = "",
        x = "",
-       y = "YLL prevented")+
+       y = "YLL preserved")+
   guides(fill = guide_legend(title = NULL))
 
             
@@ -206,7 +207,26 @@ graph_le_dates <- ggplot(summary_le %>%
        y = "LE gained (months)")+
   guides(fill = guide_legend(title = NULL))
 
+################################################################################################################################
+#                                             6. Figure 2040, 2050, 2060                                                       #
+################################################################################################################################
 
+# Faire tourner les codes avoir les graphes des décès reportés et des coûts évités
+
+list_graph <- list(graph_avoided_deaths_dates, graph_yll_dates, graph_le_dates, graph_yll_costs_dates)
+
+common_theme <- theme(
+  axis.title = element_text(size = 7, face = "bold"),
+  strip.text = element_text(size = 6),
+  axis.text.y = element_text(size = 6),
+  legend.position = "none"
+)
+
+list_graph <- lapply(list_graph, function(p) p + common_theme)
+
+common_graph <- reduce(list_graph, `+`) + plot_layout(ncol = 2)
+
+print(common_graph)
 ################################################################################################################################
 #                                             6. Exportation des données                                                       #
 ################################################################################################################################
@@ -220,4 +240,7 @@ ggsave(here("results", "yll_reported_dates.pdf"), plot = graph_yll_dates)
 export(summary_le, here("results", "IC95_LE_gained.xlsx"))
 ggsave(here("results", "LE_gained.pdf"), plot = graph_le)
 ggsave(here("results", "LE_gaines_dates.pdf"), plot = graph_le_dates)
+
+# Décès évités, YLL, LE, Couts en 2040, 2050, 2060
+ggsave(here("results", "HIA_dates.pdf"), plot = common_graph)
 

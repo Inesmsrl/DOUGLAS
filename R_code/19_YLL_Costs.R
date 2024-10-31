@@ -21,41 +21,43 @@ cost_2040 <- 188000
 
 cost_2050 <- 210000
 
-cost_260 <- 238000
+cost_2060 <- 238000
 
 ################################################################################################################################
 #                                             3. Coûs énconomisés                                                              #
 ################################################################################################################################
 
 costs <- yll %>% 
-  group_by(scenario,)
+  group_by(scenario) %>% 
   mutate(costs = case_when(
-    year == 2040 ~ yll * cost_2040,
-    year == 2050 ~ yll * cost_2050,
-    year == 2060 ~ yll * cost_2060
+    year == 2040 ~ mean_yll * cost_2040 / 1000000000,
+    year == 2050 ~ mean_yll * cost_2050 / 1000000000,
+    year == 2060 ~ mean_yll * cost_2060 / 1000000000
   ),
   costs_ic_lower = case_when(
-    year == 2040 ~ ic_lower * cost_2040,
-    year == 2050 ~ ic_lower * cost_2050,
-    year == 2060 ~ ic_lower * cost_2060
+    year == 2040 ~ lower_ci * cost_2040 / 1000000000,
+    year == 2050 ~ lower_ci * cost_2050 / 1000000000,
+    year == 2060 ~ lower_ci * cost_2060 / 1000000000
   ),
   costs_ic_upper = case_when(
-    year == 2040 ~ ic_upper * cost_2040,
-    year == 2050 ~ ic_upper * cost_2050,
-    year == 2060 ~ ic_upper * cost_2060
+    year == 2040 ~ upper_ci * cost_2040 / 1000000000,
+    year == 2050 ~ upper_ci * cost_2050 / 1000000000,
+    year == 2060 ~ upper_ci * cost_2060 / 1000000000
   ))
+
+costs <- costs %>% 
+  filter(year %in% c(2040, 2050, 2060))
   
 graph_yll_costs_dates <- ggplot(costs %>% 
-                              filter(year %in% c(2040, 2050, 2060),
-                                     scenario != "actuel"),
+                                  filter(scenario != "actuel"),
                             aes(x = scenario,
-                                y = mean_yll,
+                                y = costs,
                                 fill = scenario))+
     geom_bar(stat = "identity",
              position = "dodge",
              alpha = 0.7)+
-    geom_errorbar(aes(ymin = lower_ci,
-                      ymax = upper_ci),
+    geom_errorbar(aes(ymin = costs_ic_lower,
+                      ymax = costs_ic_upper),
                   width = 0.2,
                   position = position_dodge(0.9))+
     facet_wrap(~year,
@@ -68,7 +70,12 @@ graph_yll_costs_dates <- ggplot(costs %>%
           legend.position = "bottom")+
     labs(title = "",
          x = "",
-         y = "Costs avoided")+
+         y = "Costs avoided (billion)")+
     guides(fill = guide_legend(title = NULL))
   
-  
+################################################################################################################################
+#                                             4. Exportation des données                                                       #
+################################################################################################################################
+
+export(costs, here("results", "IC958_costs_avoided.xlsx"))
+ggsave(here("results", "costs_avoided_dates.pdf"), plot = graph_yll_costs_dates)  
