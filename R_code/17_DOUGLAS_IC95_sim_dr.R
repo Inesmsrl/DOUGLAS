@@ -224,12 +224,12 @@ calc_food_q_sig <- function(q_i, q_f, year_n, year_i, year_f, lambda) {
     facet_wrap(~ scenario, 
                ncol = 3,
                labeller = labeller(scenario = labels_scenario))+
-    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-          axis.text.y = element_text(size = 7),
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 9),
+          axis.text.y = element_text(size = 9),
           strip.text = element_text(face = "bold",size = rel(0.8)),
           legend.position = "bottom",
-          legend.text = element_text(size = 8),
-          legend.title = element_text(face = "bold", size = 10),
+          legend.text = element_text(size = 10),
+          legend.title = element_text(face = "bold", size = 12),
           legend.key.size = unit(0.3, "cm"),
           plot.margin = margin(0.2, 0.5, 0.2, 0.5, "cm"))+
     scale_fill_manual(values = col_food_groups,
@@ -257,7 +257,7 @@ calc_food_q_sig <- function(q_i, q_f, year_n, year_i, year_f, lambda) {
           axis.text.y = element_text(size = 7),
           strip.text = element_text(face = "bold",size = rel(0.8)),
           legend.position = "bottom",
-          legend.text = element_text(size = 8),
+          legend.text = element_text(size = 9),
           legend.title = element_text(face = "bold", size = 10),
           legend.key.size = unit(0.3, "cm"),
           plot.margin = margin(0.2, 0.5, 0.2, 0.5, "cm"))+
