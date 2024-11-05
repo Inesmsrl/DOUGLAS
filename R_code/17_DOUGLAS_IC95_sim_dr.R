@@ -441,7 +441,7 @@ diets_evo <- diets_evo %>%
   mutate(rr_n = case_when(
     year_n < year ~ NA_real_,
     year_n >= year & year_n <= year + max(ttfe$time) ~ 1 + (rr - 1) * ttfe$ttfe[match(year_n - year, ttfe$time)],
-    year_n > year + max(ttfe$time) ~ NA_real_)) %>% 
+    year_n > year + max(ttfe$time) ~ rr)) %>% 
   ungroup()
 
 ################################################################################################################################
