@@ -45,7 +45,7 @@ col_food_groups <- c("red_meat" = "#F60239",
   interpolation <- "spline"
   
 # Nombre de simulations des valeurs de RR
-  n <- 200
+  n <- 20
   
 ################################################################################################################################
 #                                             3. Préparation des données                                                       #
