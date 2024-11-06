@@ -64,7 +64,7 @@ ttfe_time <- 10
 # Après changement de régime : 2 x ttfe_time
 
 # Dynamique (immediate, linear, cosine, sigmoidal, log)
-ttfe_dynamics <- "linear"
+ttfe_dynamics <- "immediate"
 
 # paramètre de la courbe d'interpolation cosinus
 p_ttfe <- 1
@@ -144,9 +144,9 @@ rr_table <- rr_table %>%
 # Sélectionner les MR entre les bornes temporelles du modèle et au dessus de la limite d'age
 # Pivoter le dataframe en format long
   MR_select <- MR %>% 
-    select(age, !!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 5*ttfe_time))) %>%
+    select(age, !!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time))) %>%
     filter(age >= age_limit) %>% 
-    pivot_longer(cols = !!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 5*ttfe_time)), 
+    pivot_longer(cols = !!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)), 
                  names_to = "year", 
                  values_to = "MR") %>% 
     mutate(year = as.numeric(year))
@@ -154,9 +154,9 @@ rr_table <- rr_table %>%
 # Sélectionner les effectifs de population entre les bornes temporelles du modèle et au dessus de la limite d'age 
 # Pivoter le dataframe en format long
   population_select <- population %>% 
-    select(age, !!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 5*ttfe_time))) %>% 
+    select(age, !!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time))) %>% 
     filter(age >= age_limit) %>% 
-    pivot_longer(cols = !!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 5*ttfe_time)), 
+    pivot_longer(cols = !!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)), 
                  names_to = "year", 
                  values_to = "population") %>% 
     mutate(year = as.numeric(year)) %>% 
@@ -196,7 +196,7 @@ calc_food_q_sig <- function(q_i, q_f, year_n, year_i, year_f, lambda) {
     pivot_longer(cols = c("actuel", "sc1", "sc2", "sc3", "sc4"), 
                  names_to = "scenario", 
                  values_to = "q_f") %>%  
-    crossing(year_n = (year_i - 2*ttfe_time) : (year_f + 5*ttfe_time)) %>%
+    crossing(year_n = (year_i - 2*ttfe_time) : (year_f + 2*ttfe_time)) %>%
     mutate(quantity = case_when(
       implementation == "immediate" & year_n < year_i ~ q_i,
       implementation == "immediate" & year_n >= year_i ~ q_f,
@@ -436,36 +436,13 @@ graph_ttfe  <- ggplot(ttfe %>%
 # Après le time to full effect : RR = NA
 diets_evo <- diets_evo %>% 
   rowwise() %>% 
-  mutate(year_n = list(seq(from = (year_i - 2*ttfe_time), to = (year_f + 5*ttfe_time)))) %>% 
+  mutate(year_n = list(seq(from = (year_i - 2*ttfe_time), to = (year_f + 2*ttfe_time)))) %>% 
   unnest(year_n) %>% 
   mutate(rr_n = case_when(
     year_n < year ~ NA_real_,
-    year_n >= year & year_n <= year + max(ttfe$time) ~ 1 + (rr - 1) * ttfe$ttfe[match(year_n - year, ttfe$time)],
-    year_n > year + max(ttfe$time) ~ rr)) %>% 
+    year_n >= year & year_n <= year + max(ttfe$time) ~ rr * ttfe$ttfe[match(year_n - year, ttfe$time)],
+    year_n > year + max(ttfe$time) ~ NA_real_)) %>% 
   ungroup()
-
-rr_sc1 <- diets_evo %>% 
-  filter(scenario == "sc1",
-         simulation_id == "rr_distrib_123",
-         year == 2025,
-         year_n %in% c(2025:2070)) %>% 
-  select(food_group, year_n, rr_n) %>% 
-  rename("year" = "year_n",
-         "rr" = "rr_n")
-
-rr_sc1$food_group <- factor(rr_sc1$food_group, levels = order_food_groups)
-
-graph_rr_evo_sc1_2025  <- ggplot(rr_sc1, aes(x = year,
-                                             y = rr,
-                                             color = as.factor(food_group)))+
-  geom_line(size = 1, alpha = 0.8, na.rm = TRUE)+
-  scale_color_manual(values = col_food_groups,
-                     labels = labels_food_groups)+
-  labs(title = "RR associated with 2025 changes in diet in S1",
-       x = "",
-       y = "RR",
-       color = "Food Group")+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))  
 
 ################################################################################################################################
 #                                             14. Combinaison des RR de chaque aliment par année                               #
@@ -475,7 +452,7 @@ graph_rr_evo_sc1_2025  <- ggplot(rr_sc1, aes(x = year,
 rr_evo_food_combined <- diets_evo %>% 
   group_by(scenario, year_n, food_group, simulation_id) %>% 
   summarize(mean_rr = case_when(
-    combinaison_rr_type == "arithmetic mean" ~ mean(rr_n, na.rm = TRUE),
+    combinaison_rr_type == "arithmetic mean" ~ sum(rr_n, na.rm = TRUE)/sum(ttfe$ttfe, na.rm = TRUE),
     combinaison_rr_type == "geometric mean"~ geometric.mean(rr_n, na.rm = TRUE)))
 
 # Calculer la moyenne et les IC95 pour chaque année
@@ -640,6 +617,11 @@ rr_evo_diets <- rr_evo_diets %>%
   mutate(relative_rr = combined_rr/combined_rr[scenario == "actuel"]) %>% 
   ungroup()
 
+rr_evo_diets <- rr_evo_diets %>% 
+  mutate(relative_rr = case_when(
+    year == year_i - 2*ttfe_time ~ 1,
+    TRUE ~ relative_rr))
+
 # # Eliminer Les valeurs 5% les plus extrêmes
 #   rr_evo_diets <- rr_evo_diets %>% 
 #     group_by(scenario, year) %>% 
@@ -735,13 +717,13 @@ deaths_wide <- deaths %>%
 # Nombre total de décès par année et par scénario
 total_deaths <- deaths_wide %>% 
   group_by(scenario, simulation_id) %>%                                 
-  summarise(across(!!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 5*ttfe_time)), sum)) %>%
+  summarise(across(!!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)), sum)) %>%
   rowwise() %>%
-  mutate(total_deaths = sum(c_across(!!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 5*ttfe_time)))))  
+  mutate(total_deaths = sum(c_across(!!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)))))  
 
 total_deaths_long <- total_deaths %>% 
   select(-total_deaths) %>% 
-  pivot_longer(cols = !!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 5*ttfe_time)),
+  pivot_longer(cols = !!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)),
                names_to = "year",
                values_to = "total_deaths") %>% 
   mutate(year = as.numeric(year))
@@ -820,8 +802,8 @@ simulations_summary_avoided_deaths_cum_2050 <- avoided_deaths_cum_2050 %>%
     population_select_tot <- population_select %>% 
       pivot_wider(names_from = "year",
                   values_from = "population") %>% 
-      summarize(across(!!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 5*ttfe_time)), sum)) %>% 
-      pivot_longer(cols = !!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 5*ttfe_time)),
+      summarize(across(!!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)), sum)) %>% 
+      pivot_longer(cols = !!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)),
                    names_to = "year",
                    values_to = "population") %>% 
       mutate(year = as.numeric(year))
