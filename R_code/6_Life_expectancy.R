@@ -16,14 +16,14 @@ pacman::p_load(
 #                                             2. Importation des données                                                       #
 ################################################################################################################################
 
-population_evo <- import(here("results", "deaths.csv"))
+population_evo <- import(here("results", "visualization_tool_ic95_sim", "avoided_deaths.csv"))
 
 col_scenario <- c("actuel" = "azure4",
                   "sc0" = "palevioletred3",
                   "sc1" = "aquamarine3",
-                  "sc2" = "#DDCC77",
-                  "sc3" = "lightskyblue3",
-                  "sc4" = "#882255",
+                  "sc2" = "lightskyblue3",
+                  "sc3" = "#882255",
+                  "sc4" = "#DDCC77",
                   "sc5" = "royalblue4")
 
 labels_scenario <- c("actuel" = "Current diet",

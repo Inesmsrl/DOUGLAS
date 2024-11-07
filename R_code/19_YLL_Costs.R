@@ -70,7 +70,7 @@ graph_yll_costs_dates <- ggplot(costs %>%
           legend.position = "bottom")+
     labs(title = "",
          x = "",
-         y = "Costs avoided (billion)")+
+         y = "Costs saved (billion)")+
     guides(fill = guide_legend(title = NULL))
   
 ################################################################################################################################

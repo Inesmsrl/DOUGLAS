@@ -53,7 +53,7 @@ lambda <- 8
 # Paramètre de modification d'effet des RR 
 # 0.5 à 1 = réduction d'effet, modèle conservateur
 # 1 à 1.5 = augmentation d'effet, modèle radical
-m <- 1
+m <- 0.75
 
 #  Time to full effect
 # durée (années)
@@ -86,9 +86,9 @@ combinaison_rr_type <- "arithmetic mean"
 col_scenario <- c("actuel" = "azure4",
                   "sc0" = "palevioletred3",
                   "sc1" = "aquamarine3",
-                  "sc2" = "#DDCC77",
-                  "sc3" = "lightskyblue3",
-                  "sc4" = "#882255",
+                  "sc2" = "lightskyblue3",
+                  "sc3" = "#882255",
+                  "sc4" = "#DDCC77",
                   "sc5" = "royalblue4")
 
 # Couleur de chaque groupe d'aliments
@@ -423,7 +423,7 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
   geom_line(color = "darkseagreen", linewidth = 1, alpha = 0.8)+
   labs(title = "",
        x = "years",
-       y = "% of RR value")  
+       y = "Weight")  
 
 
 ################################################################################################################################
@@ -1047,7 +1047,7 @@ graph_avoided_deaths_dates <- ggplot(simulations_summary_avoided_deaths %>%
         legend.position = "bottom")+
   labs(title = "",
        x = "",
-       y = "Number of deaths prevented")+
+       y = "Deaths prevented")+
   guides(fill = guide_legend(title = NULL))
 
 ################################################################################################################################
@@ -1309,6 +1309,9 @@ export(simulations_summary_mr_adjusted, here("results", "visualization_tool_ic95
 
 # Nombre de décès
 export(deaths, here("results", "visualization_tool_ic95_sim", "deaths.csv"))
+
+# Nombre de décès évités
+export(avoided_deaths, here("results", "visualization_tool_ic95_sim", "avoided_deaths.csv"))
 
 # Nombre total de décès évités par annnée
 # Sur toute la période du modèle
