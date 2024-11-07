@@ -53,7 +53,7 @@ lambda <- 8
 # Paramètre de modification d'effet des RR 
 # 0.5 à 1 = réduction d'effet, modèle conservateur
 # 1 à 1.5 = augmentation d'effet, modèle radical
-m <- 0.75
+m <- 1
 
 #  Time to full effect
 # durée (années)
@@ -64,7 +64,7 @@ ttfe_time <- 10
 # Après changement de régime : 2 x ttfe_time
 
 # Dynamique (immediate, linear, cosine, sigmoidal, log)
-ttfe_dynamics <- "immediate"
+ttfe_dynamics <- "linear"
 
 # paramètre de la courbe d'interpolation cosinus
 p_ttfe <- 1
@@ -418,10 +418,8 @@ ttfe <- ttfe %>%
   ))
 
 # Représentation graphique 
-graph_ttfe  <- ggplot(ttfe %>% 
-                        mutate(ttfe = 100*ttfe), 
-                      aes(x = time,
-                          y = ttfe))+
+graph_ttfe  <- ggplot(ttfe, aes(x = time,
+                                y = ttfe))+
   geom_line(color = "darkseagreen", linewidth = 1, alpha = 0.8)+
   labs(title = "",
        x = "years",
