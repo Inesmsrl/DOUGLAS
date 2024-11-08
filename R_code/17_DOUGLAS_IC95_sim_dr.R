@@ -42,7 +42,7 @@ year_f <- 2050 # Année finale
 age_limit <- 18
 
 # Dynamique d'implémentation des régimes (immediate, linear, cosine, sigmoidal)
-implementation <- "cosine"
+implementation <- "linear"
 
 # paramètre de la courbe d'interpolation cosinus
 p <- 1
@@ -57,7 +57,7 @@ m <- 0.75
 
 #  Time to full effect
 # durée (années)
-ttfe_time <- 10
+ttfe_time <- 20
 
 # Durée du régime stationnaire 
 # Avant changement de régime : ttfe_time
@@ -144,19 +144,19 @@ rr_table <- rr_table %>%
 # Sélectionner les MR entre les bornes temporelles du modèle et au dessus de la limite d'age
 # Pivoter le dataframe en format long
   MR_select <- MR %>% 
-    select(age, !!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time))) %>%
+    select(age, !!sym(as.character(year_i - 20)) : !!sym(as.character(year_f + 2*ttfe_time))) %>% 
     filter(age >= age_limit) %>% 
-    pivot_longer(cols = !!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)), 
+    pivot_longer(cols = !!sym(as.character(year_i - 20)) : !!sym(as.character(year_f + 2*ttfe_time)), 
                  names_to = "year", 
                  values_to = "MR") %>% 
-    mutate(year = as.numeric(year))
+    mutate(year = as.numeric(year)) 
 
 # Sélectionner les effectifs de population entre les bornes temporelles du modèle et au dessus de la limite d'age 
 # Pivoter le dataframe en format long
   population_select <- population %>% 
-    select(age, !!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time))) %>% 
+    select(age, !!sym(as.character(year_i - 20)) : !!sym(as.character(year_f + 2*ttfe_time))) %>% 
     filter(age >= age_limit) %>% 
-    pivot_longer(cols = !!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)), 
+    pivot_longer(cols = !!sym(as.character(year_i - 20)) : !!sym(as.character(year_f + 2*ttfe_time)), 
                  names_to = "year", 
                  values_to = "population") %>% 
     mutate(year = as.numeric(year)) %>% 
@@ -715,13 +715,13 @@ deaths_wide <- deaths %>%
 # Nombre total de décès par année et par scénario
 total_deaths <- deaths_wide %>% 
   group_by(scenario, simulation_id) %>%                                 
-  summarise(across(!!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)), sum)) %>%
+  summarise(across(!!sym(as.character(year_i - 20)) : !!sym(as.character(year_f + 2*ttfe_time)), sum)) %>%
   rowwise() %>%
-  mutate(total_deaths = sum(c_across(!!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)))))  
+  mutate(total_deaths = sum(c_across(!!sym(as.character(year_i - 20)) : !!sym(as.character(year_f + 2*ttfe_time)))))  
 
 total_deaths_long <- total_deaths %>% 
   select(-total_deaths) %>% 
-  pivot_longer(cols = !!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)),
+  pivot_longer(cols = !!sym(as.character(year_i - 20)) : !!sym(as.character(year_f + 2*ttfe_time)),
                names_to = "year",
                values_to = "total_deaths") %>% 
   mutate(year = as.numeric(year))
@@ -800,8 +800,8 @@ simulations_summary_avoided_deaths_cum_2050 <- avoided_deaths_cum_2050 %>%
     population_select_tot <- population_select %>% 
       pivot_wider(names_from = "year",
                   values_from = "population") %>% 
-      summarize(across(!!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)), sum)) %>% 
-      pivot_longer(cols = !!sym(as.character(year_i - 2*ttfe_time)) : !!sym(as.character(year_f + 2*ttfe_time)),
+      summarize(across(!!sym(as.character(year_i - 20)) : !!sym(as.character(year_f + 2*ttfe_time)), sum)) %>% 
+      pivot_longer(cols = !!sym(as.character(year_i - 20)) : !!sym(as.character(year_f + 2*ttfe_time)),
                    names_to = "year",
                    values_to = "population") %>% 
       mutate(year = as.numeric(year))

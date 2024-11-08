@@ -79,3 +79,4 @@ graph_yll_costs_dates <- ggplot(costs %>%
 
 export(costs, here("results", "IC958_costs_avoided.xlsx"))
 ggsave(here("results", "costs_avoided_dates.pdf"), plot = graph_yll_costs_dates)  
+
