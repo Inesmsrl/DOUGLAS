@@ -7,21 +7,22 @@ pacman::p_load(
   here,                # Localisation des fichiers dans le dossier du projet
   dplyr,               # Manipulation des données
   tidyr,
-  tidyverse
+  tidyverse,
+  gtsummary
 )
 
 ################################################################################################################################
 #                                             2. Importation des données                                                       #
 ################################################################################################################################
 
-sensi_data <- import(here("data", "sensitivity_analysis.xlsx"))
+sensi_data <- import(here("data", "sensitivity_analysis_2.xlsx"))
 
 col_scenario <- c("actuel" = "azure4",
                   "sc0" = "palevioletred3",
                   "sc1" = "aquamarine3",
-                  "sc2" = "#DDCC77",
-                  "sc3" = "lightskyblue3",
-                  "sc4" = "#882255",
+                  "sc2" = "lightskyblue3",
+                  "sc3" = "#882255",
+                  "sc4" = "#DDCC77",
                   "sc5" = "royalblue4")
 
 labels_scenario <- c("actuel" = "BAU",
@@ -79,11 +80,22 @@ graph_sensi <- ggplot(sensi_data %>%
   scale_x_continuous(limits = c(0, max(sensi_data$ic_upper, na.rm = TRUE)),
                      breaks = c(50000, 100000, 150000),
                      labels = scales::label_comma())+
-  geom_vline(xintercept = 100000, linetype = "dashed", color = "black", size = 0.3)+
+  geom_vline(xintercept = 100000, linetype = "dashed", color = "black", linewidth = 0.3)+
   guides(color = guide_legend(title = NULL))
 
 ################################################################################################################################
-#                                             4. Exportation des données                                                      #
+#                                             4. Tableau                                                      #
+################################################################################################################################
+
+sensi_data_table <- sensi_data %>%
+  filter(scenario != "actuel") %>%
+  select(analysis, year, scenario, shift) %>%
+  arrange(analysis, year, scenario) %>% 
+  mutate(shift = shift*100)
+
+
+################################################################################################################################
+#                                             5. Exportation des données                                                      #
 ################################################################################################################################
 
 ggsave(here("results", "sensitivity_analysis.pdf"), graph_sensi)

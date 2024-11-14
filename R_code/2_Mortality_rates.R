@@ -5,7 +5,8 @@
 pacman::p_load(
   rio,                 # Importation de fichiers
   here,                # Localisation des fichiers dans le dossier du projet
-  dplyr                # Manipulation des données
+  dplyr,               # Manipulation des données
+  tidyverse
 )
 
 ################################################################################################################################
@@ -67,7 +68,7 @@ mortality_rates <- population %>%
     mutate(MR = total_deaths/total)
   
   ggplot(MR_evo %>% 
-           filter(year %in% 2040:2080), 
+           filter(year %in% 2010:2080), 
          aes(x = year, y = MR))+
     geom_line(color = "aquamarine3")+
     labs(title = " ",
