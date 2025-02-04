@@ -42,7 +42,7 @@ year_f <- 2050 # Année finale
 age_limit <- 18
 
 # Dynamique d'implémentation des régimes (immediate, linear, cosine, sigmoidal)
-implementation <- "linear"
+implementation <- "cosine"
 
 # paramètre de la courbe d'interpolation cosinus
 p <- 1
@@ -57,7 +57,7 @@ m <- 0.75
 
 #  Time to full effect
 # durée (années)
-ttfe_time <- 20
+ttfe_time <- 10
 
 # Durée du régime stationnaire 
 # Avant changement de régime : ttfe_time
