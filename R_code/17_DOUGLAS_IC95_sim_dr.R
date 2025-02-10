@@ -75,9 +75,6 @@ lambda_ttfe <- 8
 # paramètre de la courbe log 
 eta_ttfe <- 1
 
-# Combinaison des RR de chaque aliment par année (arithmetic mean, geometric mean)
-combinaison_rr_type <- "arithmetic mean"
-
 ################################################################################################################################
 #                                             4. Charte graphique                                                              #
 ################################################################################################################################
@@ -138,6 +135,7 @@ labels_food_groups <- c("red_meat" = "Red meat",
 #                                             5. Préparation des données                                                       #
 ################################################################################################################################
 
+# Renommer la variable RR
 rr_table <- rr_table %>% 
   rename("rr" = "rr_interpolated")
 
@@ -369,7 +367,7 @@ diets_evo <-  diets_evo %>%
   diets_evo_shift <- diets_evo %>% 
     filter(year %in% c(year_i:year_f))
 
-# Visualisation graphique sur la période de changement de régime
+# Visualisation graphique des consommations sur la période de changement de régime
   graph_diets_evo_shift <- ggplot(data = diets_evo_shift, aes(x = year,
                                                               y = quantity,
                                                               fill = food_group))+
@@ -399,6 +397,7 @@ diets_evo <-  diets_evo %>%
 #                                             8. Modification d'effet des RR                                                         #
 ################################################################################################################################
 
+# Application du modification d'effet des RR (m)
 rr_table <- rr_table %>% 
   mutate(rr_a = case_when(
     rr < 1 ~ rr + (1 - rr) * (1 - m),
@@ -411,6 +410,7 @@ rr_table <- rr_table %>%
 #                                             9. Attribution des RR à chaque régime                                            #
 ################################################################################################################################
 
+# Quantités arrondies à l'unité pour matcher avec le tableau des RR
 diets_evo <- diets_evo %>% 
   mutate(quantity = round(quantity)) %>% 
   left_join(rr_table, by = c("food_group", "quantity"), relationship = "many-to-many")
@@ -426,7 +426,7 @@ simulations_summary <- diets_evo %>%
   ) 
 
 ################################################################################################################################
-#                                             11. Représentations graphiques des simulations des valeurs de RR                 #
+#                                             10. Représentations graphiques des simulations des valeurs de RR                 #
 ################################################################################################################################
 
 # S1
@@ -521,13 +521,14 @@ graph_rr_fg_sim_sc4 <- ggplot(simulations_summary %>%
         legend.position = "none")
 
 ################################################################################################################################
-#                                             12. TTFE                                                                         #
+#                                             11. TTFE                                                                         #
 ################################################################################################################################
 
-# % du RR chaque année sur la période du time to full effect
+# Durée du TTFE
 ttfe <- tibble(0:ttfe_time) %>% 
   rename("time" = "0:ttfe_time")
 
+# Calcul du % accordé au RR sur la durée du TTFE
 ttfe <- ttfe %>% 
   mutate(ttfe = case_when(
     ttfe_time == 0 ~ 1,
@@ -551,11 +552,11 @@ graph_ttfe  <- ggplot(ttfe, aes(x = time,
 
 
 ################################################################################################################################
-#                                             13. Calcul des RR avec TTFE                                                      #
+#                                             12. Calcul des RR avec TTFE                                                      #
 ################################################################################################################################
 
-# Calcul de la valeur des RR sur la durée du time to full effect
-# Après le time to full effect : RR = NA
+# Calcul de la valeur des RR sur la durée du TTFE
+# Après la fin du TTFE : RR = NA
 diets_evo <- diets_evo %>% 
   rowwise() %>% 
   mutate(year_n = list(seq(from = (year_i - 2*ttfe_time), to = (year_f + 2*ttfe_time)))) %>% 
@@ -567,15 +568,13 @@ diets_evo <- diets_evo %>%
   ungroup()
 
 ################################################################################################################################
-#                                             14. Combinaison des RR de chaque aliment par année                               #
+#                                             13. Combinaison des RR de chaque aliment par année                               #
 ################################################################################################################################
 
-# Calcul des RR de chaque aliment pour chaque année
+# Le RR d'un aliment une année n est la moyenne des RR de cet aliment générés avec le TTFE pour cette année
 rr_evo_food_combined <- diets_evo %>% 
   group_by(scenario, year_n, food_group, simulation_id) %>% 
-  summarize(mean_rr = case_when(
-    combinaison_rr_type == "arithmetic mean" ~ sum(rr_n, na.rm = TRUE)/sum(ttfe$ttfe, na.rm = TRUE),
-    combinaison_rr_type == "geometric mean"~ geometric.mean(rr_n, na.rm = TRUE)))
+  summarize(mean_rr = sum(rr_n, na.rm = TRUE)/sum(ttfe$ttfe, na.rm = TRUE))
 
 # Calculer la moyenne et les IC95 pour chaque année
 simulations_summary_rr_fg_combined <- rr_evo_food_combined %>%
@@ -587,7 +586,7 @@ simulations_summary_rr_fg_combined <- rr_evo_food_combined %>%
   )
 
 ################################################################################################################################
-#                                             15. Représentations graphiques des simulations des valeurs de RR combinés        #
+#                                             14. Représentations graphiques des simulations des valeurs de RR combinés        #
 ################################################################################################################################
 
 # S1
@@ -681,8 +680,10 @@ graph_rr_fg_combined_sim_sc4 <- ggplot(simulations_summary_rr_fg_combined %>%
 
 
 ################################################################################################################################
-#                                             16. Combinaison des RR de chaque régime par année                                #
+#                                             15. Combinaison des RR de chaque régime par année                                #
 ################################################################################################################################
+
+# Le RR d'un régime complet est calculé comme le produit des RR de chaque aliment pour une année
 
 # Fonction produit des RR de chaque aliment par année
 calc_combined_rr <- function(df) {
@@ -706,7 +707,7 @@ simulations_summary_rr_diets <- rr_evo_diets %>%
   ) 
 
 ################################################################################################################################
-#                                             17. Représentations graphiques des simulations des valeurs de RR des régimes     #
+#                                             16. Représentations graphiques des simulations des valeurs de RR des régimes     #
 ################################################################################################################################
 
 
@@ -730,24 +731,20 @@ graph_rr_diets_sim  <- ggplot(simulations_summary_rr_diets, aes(x = year,
         legend.position = "none")
 
 ################################################################################################################################
-#                                             18. RR relatif au RR actuel                                                  #
+#                                             17. RR relatif au RR actuel                                                  #
 ################################################################################################################################
 
-# Calcul des RR relatifs aux RR du scénario actuel
+# Calcul des RR des régimes complets relatifs aux RR du scénario actuel
 rr_evo_diets <- rr_evo_diets %>% 
   group_by(year, simulation_id) %>% 
   mutate(relative_rr = combined_rr/combined_rr[scenario == "actuel"]) %>% 
   ungroup()
 
+# Tant que l'implémentation des régimes n'a pas commencé, le RR relatif est égal à 1
 rr_evo_diets <- rr_evo_diets %>% 
   mutate(relative_rr = case_when(
     year == year_i - 2*ttfe_time ~ 1,
     TRUE ~ relative_rr))
-
-# # Eliminer Les valeurs 5% les plus extrêmes
-#   rr_evo_diets <- rr_evo_diets %>% 
-#     group_by(scenario, year) %>% 
-#     filter(between(relative_rr, quantile(relative_rr, 0.025), quantile(relative_rr, 0.975)))
 
 # Calculer la moyenne et les IC95 pour chaque année
 simulations_summary_rr_diets_relative <- rr_evo_diets %>%
@@ -759,7 +756,7 @@ simulations_summary_rr_diets_relative <- rr_evo_diets %>%
   ) 
 
 ################################################################################################################################
-#                                             19. Représentations graphiques des simulations des valeurs de RR relatives des régimes     #
+#                                             18. Représentations graphiques des simulations des valeurs de RR relatives des régimes     #
 ################################################################################################################################
 
 
@@ -789,8 +786,10 @@ graph_rr_diets_relative_sim <- ggplot(simulations_summary_rr_diets_relative %>%
          fill = guide_legend(title = NULL))
 
 ################################################################################################################################
-#                                             20. Ajustement des taux de mortalité                                             #
+#                                             19. Ajustement des taux de mortalité                                             #
 ################################################################################################################################
+
+#MRa = MRO*RR(scenario)/RR(actuel), où MRO est le taux de mortalité projeté par l'INSEE
 
 # Ajustement des taux de mortalité
 MR_adjusted <- MR_select %>% 
@@ -808,7 +807,7 @@ simulations_summary_mr_adjusted <- MR_adjusted %>%
     upper_ci = quantile(adjusted_mr, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
   ) 
 ################################################################################################################################
-#                                             21. Nombre de décès                                                              #
+#                                             20. Nombre de décès                                                              #
 ################################################################################################################################
 
 # Décès dans chaque scénario 
@@ -821,7 +820,6 @@ deaths <- deaths %>%
   group_by(scenario, year, age) %>%
   filter(between(deaths, quantile(deaths, 0.025), quantile(deaths, 0.975)))
 
-
 # Calculer la moyenne et les IC95 pour chaque année
 simulations_summary_deaths <- deaths %>%
   group_by(age, scenario, year) %>%
@@ -831,10 +829,10 @@ simulations_summary_deaths <- deaths %>%
     upper_ci = quantile(deaths, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
   ) 
 
-deaths_wide <- deaths %>% 
-  select("age", "year", "scenario", "simulation_id", "deaths") %>% 
-  pivot_wider(names_from = "year", values_from = "deaths")
-
+  # Transformation au format large
+  deaths_wide <- deaths %>% 
+    select("age", "year", "scenario", "simulation_id", "deaths") %>% 
+    pivot_wider(names_from = "year", values_from = "deaths")
 
 # Nombre total de décès par année et par scénario
 total_deaths <- deaths_wide %>% 
@@ -843,16 +841,16 @@ total_deaths <- deaths_wide %>%
   rowwise() %>%
   mutate(total_deaths = sum(c_across(!!sym(as.character(year_i - 20)) : !!sym(as.character(year_f + 2*ttfe_time)))))  
 
-total_deaths_long <- total_deaths %>% 
-  select(-total_deaths) %>% 
-  pivot_longer(cols = !!sym(as.character(year_i - 20)) : !!sym(as.character(year_f + 2*ttfe_time)),
-               names_to = "year",
-               values_to = "total_deaths") %>% 
-  mutate(year = as.numeric(year))
-
+  # Transformation au format long
+  total_deaths_long <- total_deaths %>% 
+    select(-total_deaths) %>% 
+    pivot_longer(cols = !!sym(as.character(year_i - 20)) : !!sym(as.character(year_f + 2*ttfe_time)),
+                 names_to = "year",
+                 values_to = "total_deaths") %>% 
+    mutate(year = as.numeric(year))
 
 ################################################################################################################################
-#                                             22. Nombre de décès évités                                                       #
+#                                             21. Nombre de décès évités par rapport au baseline                               #
 ################################################################################################################################
 
 # Nombre total de décès évités par an
@@ -888,36 +886,35 @@ simulations_summary_avoided_deaths_age <- avoided_deaths %>%
   )
 
 # Nombre de décès évités par age, cumulés sur une période
-# année initiale du changement - 2035
-avoided_deaths_cum_2035 <- avoided_deaths %>% 
-  filter(year >= year_i & year <= 2035) %>% 
-  group_by(age, scenario, simulation_id) %>% 
-  summarise(cum_avoided_deaths = sum(avoided_deaths))
+  # année initiale du changement - 2035
+  avoided_deaths_cum_2035 <- avoided_deaths %>% 
+    filter(year >= year_i & year <= 2035) %>% 
+    group_by(age, scenario, simulation_id) %>% 
+    summarise(cum_avoided_deaths = sum(avoided_deaths))
+  
+  # Calculer la moyenne et les IC95 pour chaque année
+  simulations_summary_avoided_deaths_cum_2035 <- avoided_deaths_cum_2035 %>%
+    group_by(age, scenario) %>%
+    summarise(
+      mean_rr = mean(cum_avoided_deaths, na.rm = TRUE),  
+      lower_ci = quantile(cum_avoided_deaths, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
+      upper_ci = quantile(cum_avoided_deaths, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
+    )
 
-# Calculer la moyenne et les IC95 pour chaque année
-simulations_summary_avoided_deaths_cum_2035 <- avoided_deaths_cum_2035 %>%
-  group_by(age, scenario) %>%
-  summarise(
-    mean_rr = mean(cum_avoided_deaths, na.rm = TRUE),  
-    lower_ci = quantile(cum_avoided_deaths, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
-    upper_ci = quantile(cum_avoided_deaths, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
-  )
-
-
-# année initiale du changement - 2050
-avoided_deaths_cum_2050 <- avoided_deaths %>% 
-  filter(year >= year_i & year <= 2050) %>% 
-  group_by(age, scenario, simulation_id) %>% 
-  summarise(cum_avoided_deaths = sum(avoided_deaths))
-
-# Calculer la moyenne et les IC95 pour chaque année
-simulations_summary_avoided_deaths_cum_2050 <- avoided_deaths_cum_2050 %>%
-  group_by(age, scenario) %>%
-  summarise(
-    mean_rr = mean(cum_avoided_deaths, na.rm = TRUE),  # Moyenne des simulations
-    lower_ci = quantile(cum_avoided_deaths, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
-    upper_ci = quantile(cum_avoided_deaths, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
-  )
+  # année initiale du changement - 2050
+  avoided_deaths_cum_2050 <- avoided_deaths %>% 
+    filter(year >= year_i & year <= 2050) %>% 
+    group_by(age, scenario, simulation_id) %>% 
+    summarise(cum_avoided_deaths = sum(avoided_deaths))
+  
+  # Calculer la moyenne et les IC95 pour chaque année
+  simulations_summary_avoided_deaths_cum_2050 <- avoided_deaths_cum_2050 %>%
+    group_by(age, scenario) %>%
+    summarise(
+      mean_rr = mean(cum_avoided_deaths, na.rm = TRUE),  # Moyenne des simulations
+      lower_ci = quantile(cum_avoided_deaths, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
+      upper_ci = quantile(cum_avoided_deaths, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
+    )
 
 # Nombre de décès évités / taille de la population
   # Taille de la population par année
@@ -936,6 +933,7 @@ simulations_summary_avoided_deaths_cum_2050 <- avoided_deaths_cum_2050 %>%
         group_by(scenario, simulation_id, year) %>% 
         mutate(avoided_deaths_rel = avoided_deaths/population)
       
+    # Calculer la moyenne et les IC95 pour chaque année
       simulations_summary_avoided_deaths_rel <- total_avoided_deaths %>%
         group_by(scenario, year) %>%
         summarise(
@@ -945,88 +943,7 @@ simulations_summary_avoided_deaths_cum_2050 <- avoided_deaths_cum_2050 %>%
         )
       
 ################################################################################################################################
-#                                             -. Report des décès d'une année sur l'autre                                     #
-################################################################################################################################
-
-# deaths_report <- MR_adjusted %>%
-#   left_join(population_select, by = c("age", "year"), relationship = "many-to-many")
-#   
-# calc_deaths_report <- function(df) {
-#   
-#   # Calcul des décès
-#   df <- df %>%
-#     mutate(deaths = adjusted_mr * population,
-#            deaths_mid = adjusted_mr_mid * population)
-#   
-#   # Boucle sur chaque année sauf la dernière
-#   years <- unique(df$year)
-#   
-#   for (yr in years[years != max(years)]) {
-#     
-#     # Calcul des décès évités
-#     df <- df %>%
-#       group_by(age, year, simulation_id) %>%
-#       mutate(avoided_deaths = deaths[scenario == "actuel"] - deaths,
-#              avoided_deaths_mid = deaths_mid[scenario == "actuel"] - deaths_mid) %>%
-#       ungroup()
-#     
-#     # Ajout des décès évités à la population de l'année suivante et de l'âge suivant
-#     df <- df %>%
-#       group_by(scenario, simulation_id) %>%
-#       mutate(
-#         # Pour chaque ligne sauf les derniers âges et la dernière année
-#         population_next_year = if_else(year == yr & age < 105, 
-#                                        if_else(age == 18, 
-#                                                population + avoided_deaths,  # Utiliser la population actuelle et les décès évités
-#                                                lag(population) + lag(avoided_deaths, default = 0, order_by = age)), 
-#                                        population),
-#         population_next_year_mid = if_else(year == yr & age < 105, 
-#                                            if_else(age == 18, 
-#                                                    population + avoided_deaths_mid,  # Utiliser la population actuelle et les décès évités
-#                                                    lag(population) + lag(avoided_deaths_mid, default = 0, order_by = age)), 
-#                                            population),
-#         
-#         # Cas spécial pour la dernière catégorie d'âge (age = 105)
-#         population_next_year_105 = if_else(age == 105 & year == yr,
-#                                            population + avoided_deaths, 
-#                                            population_next_year),
-#         population_next_year_105_mid = if_else(age == 105 & year == yr,
-#                                                population + avoided_deaths_mid, 
-#                                                population_next_year_mid),
-#         
-#         # Calcul final de la population
-#         population_final = coalesce(population_next_year_105, population_next_year),
-#         population_final_mid = coalesce(population_next_year_105_mid, population_next_year_mid)
-#       ) %>%
-#       ungroup()
-#     
-#     # Vérification des mises à jour de population
-#     print(paste("Année:", yr))
-#     print(head(df %>% 
-#                  filter(year == yr,
-#                         scenario== "sc1",
-#                         simulation_id == "simulations_90",
-#                         age %in% c(18,19)) %>% 
-#                  select(age, population, avoided_deaths, population_final)))
-#   }
-#   
-#   # Supprimer les colonnes intermédiaires inutiles
-#   df <- df %>%
-#     select(-population_next_year, -population_next_year_mid, 
-#            -population_next_year_105, -population_next_year_105_mid)
-#   
-#   return(df)
-# }
-# 
-# 
-# deaths_report_inter <- calc_deaths_report(deaths_report)
-#   
-# deaths_report_inter <- deaths_report_inter %>% 
-#   select(age, year, scenario, simulation_id, population, deaths, avoided_deaths, population_final, deaths_mid, avoided_deaths_mid, population_final_mid)
-
-
-################################################################################################################################
-#                                             23. Représentations graphiques des simulations des décès évités par année        #
+#                                             22. Représentations graphiques des simulations des décès évités par année        #
 ################################################################################################################################
 
 # Sur toute la durée du modèle
@@ -1087,7 +1004,7 @@ graph_total_avoided_deaths  <- ggplot(simulations_summary_avoided_deaths %>%
   labs(
     title = "",
     x = "",
-    y = "Number of deaths prevented"
+    y = "Deaths prevented relative to the population"
   )+
   scale_color_manual(values = col_scenario,
                      labels = labels_scenario)+
@@ -1174,228 +1091,18 @@ graph_avoided_deaths_dates <- ggplot(simulations_summary_avoided_deaths %>%
        y = "Deaths prevented")+
   guides(fill = guide_legend(title = NULL))
 
-################################################################################################################################
-#                                             24. Représentations graphiques des simulations des décès évités par age          #
-################################################################################################################################
-
-# 2035
-simulations_summary_deaths_2035 <- simulations_summary_avoided_deaths_age %>% 
-  filter(year == 2035)
-
-graph_avoided_deaths_2035_facet <- ggplot(simulations_summary_deaths_2035 %>% 
-                                            filter(scenario != "actuel"),
-                                          aes(x = age,
-                                              y = mean_rr,
-                                              color = scenario)) +
-  facet_wrap(~ scenario,
-             labeller = labeller(scenario = labels_scenario))+
-  geom_line(size = 0.8, na.rm = TRUE)+
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
-              alpha = 0.5,
-              size = 0.3,
-              linetype = 0)+
-  labs(
-    title = "",
-    x = "Age",
-    y = "Number of deaths prevented"
-  )+
-  scale_color_manual(values = col_scenario)+
-  scale_fill_manual(values = col_scenario)+
-  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-        axis.text.y = element_text(size = 7),
-        strip.text = element_text(face = "bold",size = rel(1)),
-        legend.position = "none")
-
-graph_avoided_deaths_2035 <- ggplot(simulations_summary_deaths_2035 %>% 
-                                      filter(scenario != "actuel"),
-                                    aes(x = age,
-                                        y = mean_rr,
-                                        group = scenario,
-                                        color = scenario)) +
-  geom_line(size = 1, na.rm = TRUE)+
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario),
-              alpha = 0.4,
-              linetype = 0)+
-  labs(
-    title = "",
-    x = "Age",
-    y = "Number of deaths prevented"
-  )+
-  scale_color_manual(values = col_scenario,
-                     labels = labels_scenario)+
-  scale_fill_manual(values = col_scenario,
-                    labels = labels_scenario)+
-  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-        axis.text.y = element_text(size = 7),
-        legend.position = "bottom")+
-  guides(color = guide_legend(title = NULL),
-         fill = guide_legend(title = NULL))
-
-# 2050
-simulations_summary_deaths_2050 <- simulations_summary_avoided_deaths_age %>% 
-  filter(year == 2050)
-
-graph_avoided_deaths_2050_facet <- ggplot(simulations_summary_deaths_2050 %>% 
-                                            filter(scenario != "actuel"),
-                                          aes(x = age,
-                                              y = mean_rr,
-                                              color = scenario)) +
-  facet_wrap(~ scenario,
-             labeller = labeller(scenario = labels_scenario))+
-  geom_line(size = 0.8, na.rm = TRUE)+
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
-              alpha = 0.5,
-              size = 0.3,
-              linetype = 0)+
-  labs(
-    title = "",
-    x = "Age",
-    y = "Number of deaths prevented"
-  )+
-  scale_color_manual(values = col_scenario)+
-  scale_fill_manual(values = col_scenario)+
-  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-        axis.text.y = element_text(size = 7),
-        strip.text = element_text(face = "bold",size = rel(1)),
-        legend.position = "none")
-
-graph_avoided_deaths_2050 <- ggplot(simulations_summary_deaths_2050 %>% 
-                                      filter(scenario != "actuel"),
-                                    aes(x = age,
-                                        y = mean_rr,
-                                        group = scenario,
-                                        color = scenario)) +
-  geom_line(size = 1, na.rm = TRUE)+
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario),
-              alpha = 0.4,
-              linetype = 0)+
-  labs(
-    title = "",
-    x = "Age",
-    y = "Number of deaths prevented"
-  )+
-  scale_color_manual(values = col_scenario,
-                     labels = labels_scenario)+
-  scale_fill_manual(values = col_scenario,
-                    labels = labels_scenario)+
-  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-        axis.text.y = element_text(size = 7),
-        legend.position = "bottom")+
-  guides(color = guide_legend(title = NULL),
-         fill = guide_legend(title = NULL))
 
 ################################################################################################################################
-#                                             25. Représentations graphiques des simulations des décès évités cumulés par age  #
-################################################################################################################################
-
-# Année initiale du changement de régime - 2035
-graph_avoided_deaths_cum_2035_facet <- ggplot(simulations_summary_avoided_deaths_cum_2035 %>% 
-                                                filter(scenario != "actuel"),
-                                              aes(x = age,
-                                                  y = mean_rr,
-                                                  color = scenario)) +
-  facet_wrap(~ scenario,
-             labeller = labeller(scenario = labels_scenario))+
-  geom_line(size = 0.8, na.rm = TRUE)+
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
-              alpha = 0.5,
-              size = 0.3,
-              linetype = 0)+
-  labs(
-    title = "",
-    x = "Age",
-    y = "Number of deaths prevented"
-  )+
-  scale_color_manual(values = col_scenario)+
-  scale_fill_manual(values = col_scenario)+
-  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-        axis.text.y = element_text(size = 7),
-        strip.text = element_text(face = "bold",size = rel(1)),
-        legend.position = "none")
-
-graph_avoided_deaths_cum_2035 <- ggplot(simulations_summary_avoided_deaths_cum_2035 %>% 
-                                          filter(scenario != "actuel"),
-                                        aes(x = age,
-                                            y = mean_rr,
-                                            group = scenario,
-                                            color = scenario)) +
-  geom_line(size = 1, na.rm = TRUE)+
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario),
-              alpha = 0.4,
-              linetype = 0)+
-  labs(
-    title = "",
-    x = "Age",
-    y = "Number of deaths prevented"
-  )+
-  scale_color_manual(values = col_scenario,
-                     labels = labels_scenario)+
-  scale_fill_manual(values = col_scenario,
-                    labels = labels_scenario)+
-  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-        axis.text.y = element_text(size = 7))+
-  guides(color = guide_legend(title = NULL),
-         fill = guide_legend(title = NULL))
-
-# Année initiale du changement de régime - 2050
-graph_avoided_deaths_cum_2050_facet <- ggplot(simulations_summary_avoided_deaths_cum_2050 %>% 
-                                                filter(scenario != "actuel"),
-                                              aes(x = age,
-                                                  y = mean_rr,
-                                                  color = scenario)) +
-  facet_wrap(~ scenario,
-             labeller = labeller(scenario = labels_scenario))+
-  geom_line(size = 0.8, na.rm = TRUE)+
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
-              alpha = 0.5,
-              size = 0.3,
-              linetype = 0)+
-  labs(
-    title = "",
-    x = "Age",
-    y = "Number of deaths prevented"
-  )+
-  scale_color_manual(values = col_scenario)+
-  scale_fill_manual(values = col_scenario)+
-  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-        axis.text.y = element_text(size = 7),
-        strip.text = element_text(face = "bold",size = rel(1)),
-        legend.position = "none")
-
-graph_avoided_deaths_cum_2050 <- ggplot(simulations_summary_avoided_deaths_cum_2050 %>% 
-                                          filter(scenario != "actuel"),
-                                        aes(x = age,
-                                            y = mean_rr,
-                                            group = scenario,
-                                            color = scenario)) +
-  geom_line(size = 1, na.rm = TRUE)+
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), 
-              alpha = 0.4,
-              linetype = 0)
-  labs(
-    title = "",
-    x = "Age",
-    y = "Number of death prevented"
-  )+
-  scale_color_manual(values = col_scenario,
-                     labels = labels_scenario)+
-  scale_fill_manual(values = col_scenario,
-                    labels = labels_scenario)+
-  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-        axis.text.y = element_text(size = 7))+
-  guides(color = guide_legend(title = NULL),
-         fill = guide_legend(title = NULL))
-  
-################################################################################################################################
-#                                             26. Contributions de chaque aliment au résultat                                  #
+#                                             23. Contributions de chaque aliment au résultat                                  #
 ################################################################################################################################
   
-  # RR de chaque aliment/année relatif au RR du scénario baseline
+# RR de chaque aliment/année relatif au RR du scénario baseline
   rr_fg_relative <- rr_evo_food_combined %>% 
     group_by(year_n, food_group, simulation_id) %>% 
     mutate(rr_fg_relative = mean_rr / mean_rr[scenario == "actuel"]) %>% 
     ungroup()
   
+# Tant que l'implémentation des régimes n'a pas commencé, le RR relatif est égal à 1
   rr_fg_relative <- rr_fg_relative %>% 
     mutate(rr_fg_relative = case_when(
       year_n == year_i - 2*ttfe_time ~ 1,
@@ -1411,6 +1118,7 @@ graph_avoided_deaths_cum_2050 <- ggplot(simulations_summary_avoided_deaths_cum_2
       upper_ci = quantile(rr_fg_relative, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
     ) 
   
+# Calcul de la contribution au résultat de la variation de consommation de chaque aliment par rapport au baseline
   contrib <- simulations_summary_rr_fg_relative %>% 
     mutate(delta = -(1-mean_rr_fg)*100,
            delta_low = -(1-lower_ci)*100,
@@ -1418,8 +1126,10 @@ graph_avoided_deaths_cum_2050 <- ggplot(simulations_summary_avoided_deaths_cum_2
     select(scenario, year_n, food_group, delta, delta_low, delta_upp) %>% 
     rename("year" = "year_n")
   
+  # Ordonner les groupes alimentaires
   contrib$food_group <- factor(contrib$food_group, levels = order_food_groups)
   
+  # Représentation graphique 
   graph_contrib_fg <- ggplot(contrib %>% 
                                filter(scenario != "actuel"),
                              aes(x = year,
@@ -1452,96 +1162,77 @@ graph_avoided_deaths_cum_2050 <- ggplot(simulations_summary_avoided_deaths_cum_2
 #                                             27. Exportation des données                                                      #
 ################################################################################################################################
 
-# Régimes, valeurs des RR et IC95 RR, distribution normale des valeurs de RR et simulations
-export(diets_evo, here("results", "visualization_tool_ic95_sim", "diets_rr_evo.csv"))
+# Implémentation des régimes
+  # Régimes (quantités et variations par rapport au baseline), RR associés aux consommations, RR*TTFE
+    export(diets_evo, here("results", "visualization_tool_ic95_sim", "diets_rr_evo.csv"))
 
-ggsave(here("results", "visualization_tool_ic95_sim", "diets_evo.pdf"), plot = graph_diets_evo)
-ggsave(here("results", "visualization_tool_ic95_sim", "diets_evo_shift.pdf"), plot = graph_diets_evo_shift)
-ggsave(here("results", "visualization_tool_ic95_sim", "diets_var.pdf"), plot = graph_diets_var)
-ggsave(here("results", "visualization_tool_ic95_sim", "diets_var_sc1.pdf"), plot = graph_diet_sc1_var)
-ggsave(here("results", "visualization_tool_ic95_sim", "diets_var_sc2.pdf"), plot = graph_diet_sc2_var)
-ggsave(here("results", "visualization_tool_ic95_sim", "diets_var_sc3.pdf"), plot = graph_diet_sc3_var)
-ggsave(here("results", "visualization_tool_ic95_sim", "diets_var_sc4.pdf"), plot = graph_diet_sc4_var)
+  # Quantités consommées de chaque aliment
+    ggsave(here("results", "visualization_tool_ic95_sim", "diets_evo.pdf"), plot = graph_diets_evo)
+    ggsave(here("results", "visualization_tool_ic95_sim", "diets_evo_shift.pdf"), plot = graph_diets_evo_shift)
+    
+  # Variations de consommations de chaque aliment par rapport au baseline
+    ggsave(here("results", "visualization_tool_ic95_sim", "diets_var.pdf"), plot = graph_diets_var)
+    
+    ggsave(here("results", "visualization_tool_ic95_sim", "diets_var_sc1.pdf"), plot = graph_diet_sc1_var)
+    ggsave(here("results", "visualization_tool_ic95_sim", "diets_var_sc2.pdf"), plot = graph_diet_sc2_var)
+    ggsave(here("results", "visualization_tool_ic95_sim", "diets_var_sc3.pdf"), plot = graph_diet_sc3_var)
+    ggsave(here("results", "visualization_tool_ic95_sim", "diets_var_sc4.pdf"), plot = graph_diet_sc4_var)
 
 
-# Graphiques des valeurs de RR simulées par aliment, dans chaque scénario
-ggsave(here("results", "visualization_tool_ic95_sim", "rr_fg_sim_sc1.pdf"), plot = graph_rr_fg_sim_sc1)
-ggsave(here("results", "visualization_tool_ic95_sim", "rr_fg_sim_sc2.pdf"), plot = graph_rr_fg_sim_sc2)  
-ggsave(here("results", "visualization_tool_ic95_sim", "rr_fg_sim_sc3.pdf"), plot = graph_rr_fg_sim_sc3)  
-ggsave(here("results", "visualization_tool_ic95_sim", "rr_fg_sim_sc4.pdf"), plot = graph_rr_fg_sim_sc4)  
+# Valeurs de RR simulées par aliment, dans chaque scénario
+  ggsave(here("results", "visualization_tool_ic95_sim", "rr_fg_sim_sc1.pdf"), plot = graph_rr_fg_sim_sc1)
+  ggsave(here("results", "visualization_tool_ic95_sim", "rr_fg_sim_sc2.pdf"), plot = graph_rr_fg_sim_sc2)  
+  ggsave(here("results", "visualization_tool_ic95_sim", "rr_fg_sim_sc3.pdf"), plot = graph_rr_fg_sim_sc3)  
+  ggsave(here("results", "visualization_tool_ic95_sim", "rr_fg_sim_sc4.pdf"), plot = graph_rr_fg_sim_sc4)  
 
 # Time to full effect
-ggsave(here("results", "visualization_tool_ic95_sim", "ttfe.pdf"), plot = graph_ttfe)
+  ggsave(here("results", "visualization_tool_ic95_sim", "ttfe.pdf"), plot = graph_ttfe)
 
 # Valeurs des RR de chaque aliment, combinés par année
-export(rr_evo_food_combined, here("results", "visualization_tool_ic95_sim", "rr_fg_evo_combined.csv"))
-export(simulations_summary_rr_fg_combined, here("results", "visualization_tool_ic95_sim", "IC95_rr_fg_evo_combined.xlsx"))
-
-ggsave(here("results", "visualization_tool_ic95_sim", "rr_fg_combined_sim_sc1.pdf"), plot = graph_rr_fg_combined_sim_sc1)
-ggsave(here("results", "visualization_tool_ic95_sim", "rr_fg_combined_sim_sc2.pdf"), plot = graph_rr_fg_combined_sim_sc2)  
-ggsave(here("results", "visualization_tool_ic95_sim", "rr_fg_combined_sim_sc3.pdf"), plot = graph_rr_fg_combined_sim_sc3)  
-ggsave(here("results", "visualization_tool_ic95_sim", "rr_fg_combined_sim_sc4.pdf"), plot = graph_rr_fg_combined_sim_sc4)  
+  export(rr_evo_food_combined, here("results", "visualization_tool_ic95_sim", "rr_fg_evo_combined.csv"))
+  export(simulations_summary_rr_fg_combined, here("results", "visualization_tool_ic95_sim", "IC95_rr_fg_evo_combined.xlsx"))
+  
+  ggsave(here("results", "visualization_tool_ic95_sim", "rr_fg_combined_sim_sc1.pdf"), plot = graph_rr_fg_combined_sim_sc1)
+  ggsave(here("results", "visualization_tool_ic95_sim", "rr_fg_combined_sim_sc2.pdf"), plot = graph_rr_fg_combined_sim_sc2)  
+  ggsave(here("results", "visualization_tool_ic95_sim", "rr_fg_combined_sim_sc3.pdf"), plot = graph_rr_fg_combined_sim_sc3)  
+  ggsave(here("results", "visualization_tool_ic95_sim", "rr_fg_combined_sim_sc4.pdf"), plot = graph_rr_fg_combined_sim_sc4)  
 
 # Valeurs des RR des régimes par année
-export(rr_evo_diets, here("results", "visualization_tool_ic95_sim", "rr_evo_diets.xlsx"))
-export(simulations_summary_rr_diets, here("results", "visualization_tool_ic95_sim", "IC95_rr_evo_diets.xlsx"))
-
-ggsave(here("results", "visualization_tool_ic95_sim", "rr_diets_sim.pdf"), plot = graph_rr_diets_sim)
+  export(rr_evo_diets, here("results", "visualization_tool_ic95_sim", "rr_evo_diets.xlsx"))
+  export(simulations_summary_rr_diets, here("results", "visualization_tool_ic95_sim", "IC95_rr_evo_diets.xlsx"))
+  
+  ggsave(here("results", "visualization_tool_ic95_sim", "rr_diets_sim.pdf"), plot = graph_rr_diets_sim)
 
 # Valeurs des RR des régimes, relatifs au scénario actuel
-export(simulations_summary_rr_diets_relative, here("results", "visualization_tool_ic95_sim", "IC95_rr_evo_diets_relative.xlsx"))
-
-ggsave(here("results", "visualization_tool_ic95_sim", "rr_diets_relative_sim.pdf"), plot = graph_rr_diets_relative_sim)
+  export(simulations_summary_rr_diets_relative, here("results", "visualization_tool_ic95_sim", "IC95_rr_evo_diets_relative.xlsx"))
+  
+  ggsave(here("results", "visualization_tool_ic95_sim", "rr_diets_relative_sim.pdf"), plot = graph_rr_diets_relative_sim)
 
 # Taux de mortalité ajustés
   export(MR_adjusted, here("results", "visualization_tool_ic95_sim", "MR_adjusted.csv"))
-
-export(simulations_summary_mr_adjusted, here("results", "visualization_tool_ic95_sim", "IC95_MR_adjsuted.xlsx"))
+  export(simulations_summary_mr_adjusted, here("results", "visualization_tool_ic95_sim", "IC95_MR_adjsuted.xlsx"))
 
 # Nombre de décès
-export(deaths, here("results", "visualization_tool_ic95_sim", "deaths.csv"))
+  export(deaths, here("results", "visualization_tool_ic95_sim", "deaths.csv"))
 
 # Nombre de décès évités
-export(avoided_deaths, here("results", "visualization_tool_ic95_sim", "avoided_deaths.csv"))
+  export(avoided_deaths, here("results", "visualization_tool_ic95_sim", "avoided_deaths.csv"))
 
 # Nombre total de décès évités par annnée
 # Sur toute la période du modèle
-export(simulations_summary_avoided_deaths, here("results", "visualization_tool_ic95_sim", "IC95_total_avoided_deaths.xlsx"))
-ggsave(here("results", "visualization_tool_ic95_sim", "total_avoided_deaths.pdf"), plot = graph_total_avoided_deaths)
-ggsave(here("results", "visualization_tool_ic95_sim", "total_avoided_deaths_facet.pdf"), plot = graph_total_avoided_deaths_facet)
+  export(simulations_summary_avoided_deaths, here("results", "visualization_tool_ic95_sim", "IC95_total_avoided_deaths.xlsx"))
+  ggsave(here("results", "visualization_tool_ic95_sim", "total_avoided_deaths.pdf"), plot = graph_total_avoided_deaths)
+  ggsave(here("results", "visualization_tool_ic95_sim", "total_avoided_deaths_facet.pdf"), plot = graph_total_avoided_deaths_facet)
 
 # Sur la période de changement de régime
-export(simulations_summary_avoided_deaths_shift, here("results", "visualization_tool_ic95_sim", "IC95_total_avoided_deaths_shift.xlsx"))
-ggsave(here("results", "visualization_tool_ic95_sim", "total_avoided_deaths_shift.pdf"), plot = graph_total_avoided_deaths_shift)
-ggsave(here("results", "visualization_tool_ic95_sim", "total_avoided_deaths_shift_facet.pdf"), plot = graph_total_avoided_deaths_shift_facet)
+  export(simulations_summary_avoided_deaths_shift, here("results", "visualization_tool_ic95_sim", "IC95_total_avoided_deaths_shift.xlsx"))
+  ggsave(here("results", "visualization_tool_ic95_sim", "total_avoided_deaths_shift.pdf"), plot = graph_total_avoided_deaths_shift)
+  ggsave(here("results", "visualization_tool_ic95_sim", "total_avoided_deaths_shift_facet.pdf"), plot = graph_total_avoided_deaths_shift_facet)
 
 # EN 2040, 2050 et 2060
-ggsave(here("results", "visualization_tool_ic95_sim", "total_avoided_deaths_dates.pdf"), plot = graph_avoided_deaths_dates)
-
-
-# Nombre de décès évités par an et par age
-export(simulations_summary_avoided_deaths_age, here("results", "visualization_tool_ic95_sim", "IC95_avoided_deaths.xlsx"))
-
-# 2035
-ggsave(here("results", "visualization_tool_ic95_sim", "avoided_deaths_2035.pdf"), plot = graph_avoided_deaths_2035)
-ggsave(here("results", "visualization_tool_ic95_sim", "avoided_deaths_2035_facet.pdf"), plot = graph_avoided_deaths_2035_facet)
-
-# 2050
-ggsave(here("results", "visualization_tool_ic95_sim", "avoided_deaths_2050.pdf"), plot = graph_avoided_deaths_2050)
-ggsave(here("results", "visualization_tool_ic95_sim", "avoided_deaths_2050_facet.pdf"), plot = graph_avoided_deaths_2050_facet)
-
-# Nombre de décès évités par age, cumulés sur une période
-# début du changement - 2035
-export(simulations_summary_avoided_deaths_cum_2035, here("results", "visualization_tool_ic95_sim", "IC95_avoided_deaths_cum_2035.xlsx"))
-ggsave(here("results", "visualization_tool_ic95_sim", "avoided_deaths_cum_2035.pdf"), plot = graph_avoided_deaths_cum_2035)
-ggsave(here("results", "visualization_tool_ic95_sim", "avoided_deaths_cum_2035_facet.pdf"), plot = graph_avoided_deaths_cum_2035_facet)
-
-# début du changement - 2050
-export(simulations_summary_avoided_deaths_cum_2050, here("results", "visualization_tool_ic95_sim", "IC95_avoided_deaths_cum_2050.xlsx"))
-ggsave(here("results", "visualization_tool_ic95_sim", "avoided_deaths_cum_2050.pdf"), plot = graph_avoided_deaths_cum_2050)
-ggsave(here("results", "visualization_tool_ic95_sim", "avoided_deaths_cum_2050_facet.pdf"), plot = graph_avoided_deaths_cum_2050_facet)
+  ggsave(here("results", "visualization_tool_ic95_sim", "total_avoided_deaths_dates.pdf"), plot = graph_avoided_deaths_dates)
 
 # Contributions de chaque aliment au résultat
-export(contrib, here("results", "visualization_tool_ic95_sim", "contributions.xlsx"))
-
-ggsave(here("results", "visualization_tool_ic95_sim", "FG_contributions.pdf"), plot = graph_contrib_fg)
+  export(contrib, here("results", "visualization_tool_ic95_sim", "contributions.xlsx"))
+  
+  ggsave(here("results", "visualization_tool_ic95_sim", "FG_contributions.pdf"), plot = graph_contrib_fg)
