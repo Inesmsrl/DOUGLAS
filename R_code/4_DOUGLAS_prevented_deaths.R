@@ -64,7 +64,7 @@ ttfe_time <- 10
 # Après changement de régime : 2 x ttfe_time
 
 # Dynamique (immediate, linear, cosine, sigmoidal, log)
-ttfe_dynamics <- "linear"
+ttfe_dynamics <- "sigmoidal"
 
 # paramètre de la courbe d'interpolation cosinus
 p_ttfe <- 1
