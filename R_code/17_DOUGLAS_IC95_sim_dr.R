@@ -130,9 +130,9 @@ labels_food_groups <- c("red_meat" = "Red meat",
                         "vegetables" = "Vegetables",
                         "legumes" = "Legumes",
                         "whole_grains" = "Whole grains",
-                        "reffined_grains" = "Refine grains",
+                        "reffined_grains" = "Refined grains",
                         "added_plant_oils" = "Added plant oils",
-                        "sugar_sweetened_beverages" = "Sugar-sweetened beverages")
+                        "sugar_sweetened_beverages" = "SSB")
 
 ################################################################################################################################
 #                                             5. Préparation des données                                                       #
@@ -213,10 +213,15 @@ calc_food_q_sig <- function(q_i, q_f, year_n, year_i, year_f, lambda) {
     select("food_group", "scenario", "year_n", "quantity") %>% 
     rename("year" = "year_n")
 
+# Calcul des variations de consommation de chaque aliment par rapport au régime actuel (%)
+diets_evo <-  diets_evo %>%
+  group_by(food_group, year) %>%
+  mutate(var = (quantity - quantity[scenario == "actuel"]) / quantity[scenario == "actuel"] *100)
+
 # Ordonnner les groupes alimentaires
   diets_evo$food_group <- factor(diets_evo$food_group, levels = order_food_groups)
 
-# Visualisation graphique sur toute la période
+# Visualisation graphique des consommations sur toute la période
   graph_diets_evo <- ggplot(data = diets_evo, aes(x = year,
                                                   y = quantity,
                                                   fill = food_group))+
@@ -241,6 +246,125 @@ calc_food_q_sig <- function(q_i, q_f, year_n, year_i, year_f, lambda) {
     guides(fill = guide_legend(nrow = 2, 
                                title.position = "top",
                                title.hjust = 0.5))
+  
+# Visualisation graphique des variations de consommation sur toute la période
+  # Tous les scénarios
+  graph_diets_var <- ggplot(diets_evo %>% 
+                              filter(scenario != "actuel"),
+                            aes(x = year,
+                                y = var,
+                                color = food_group))+
+    facet_wrap(~ scenario,
+               labeller = labeller(scenario = labels_scenario)) +
+    geom_line(size = 0.8, na.rm = TRUE)+ 
+    labs(
+      title = "",
+      x = "",
+      y = "Variations of food intake (%)",
+      color = "Food group"
+    )+
+    scale_color_manual(values = col_food_groups,
+                       labels = labels_food_groups)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(1)),
+          legend.position = "bottom") +
+    guides(color = guide_legend(nrow = 3, 
+                                title.position = "top",
+                                title.hjust = 0.5))
+  
+  # Scénario 1
+  graph_diet_sc1_var <- ggplot(diets_evo %>% 
+                                 filter(scenario == "sc1"),
+                               aes(x = year,
+                                   y = var,
+                                   color = food_group))+
+                          geom_line(size = 0.8, na.rm = TRUE)+ 
+                          labs(
+                            title = "Shifts in food intake in Scenario 1",
+                            x = "",
+                            y = "Variations of food intake (%)",
+                            color = "Food group"
+                          )+
+                          scale_color_manual(values = col_food_groups,
+                                             labels = labels_food_groups)+
+                          theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+                                axis.text.y = element_text(size = 7),
+                                strip.text = element_text(face = "bold",size = rel(1)),
+                                legend.position = "bottom") +
+                          guides(color = guide_legend(nrow = 3, 
+                                                      title.position = "top",
+                                                      title.hjust = 0.5))
+  
+  # Scénario 2
+  graph_diet_sc2_var <- ggplot(diets_evo %>% 
+                                 filter(scenario == "sc2"),
+                               aes(x = year,
+                                   y = var,
+                                   color = food_group))+
+    geom_line(size = 0.8, na.rm = TRUE)+ 
+    labs(
+      title = "Shifts in food intake in Scenario 2",
+      x = "",
+      y = "Variations of food intake (%)",
+      color = "Food group"
+    )+
+    scale_color_manual(values = col_food_groups,
+                       labels = labels_food_groups)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(1)),
+          legend.position = "bottom") +
+    guides(color = guide_legend(nrow = 3, 
+                                title.position = "top",
+                                title.hjust = 0.5))
+  
+  # Scénario 3
+  graph_diet_sc3_var <- ggplot(diets_evo %>% 
+                                 filter(scenario == "sc3"),
+                               aes(x = year,
+                                   y = var,
+                                   color = food_group))+
+    geom_line(size = 0.8, na.rm = TRUE)+ 
+    labs(
+      title = "Shifts in food intake in Scenario 3",
+      x = "",
+      y = "Variations of food intake (%)",
+      color = "Food group"
+    )+
+    scale_color_manual(values = col_food_groups,
+                       labels = labels_food_groups)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(1)),
+          legend.position = "bottom") +
+    guides(color = guide_legend(nrow = 3, 
+                                title.position = "top",
+                                title.hjust = 0.5))
+  
+  # Scénario 4
+  graph_diet_sc4_var <- ggplot(diets_evo %>% 
+                                 filter(scenario == "sc4"),
+                               aes(x = year,
+                                   y = var,
+                                   color = food_group))+
+    geom_line(size = 0.8, na.rm = TRUE)+ 
+    labs(
+      title = "Shifts in food intake in Scenario 4",
+      x = "",
+      y = "Variations of food intake (%)",
+      color = "Food group"
+    )+
+    scale_color_manual(values = col_food_groups,
+                       labels = labels_food_groups)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(1)),
+          legend.position = "bottom") +
+    guides(color = guide_legend(nrow = 3, 
+                                title.position = "top",
+                                title.hjust = 0.5))
+    
 
   diets_evo_shift <- diets_evo %>% 
     filter(year %in% c(year_i:year_f))
@@ -1312,8 +1436,10 @@ graph_avoided_deaths_cum_2050 <- ggplot(simulations_summary_avoided_deaths_cum_2
       color = "Food group",
       fill = "Food group"
     )+
-    scale_color_manual(values = col_food_groups)+
-    scale_fill_manual(values = col_food_groups)+
+    scale_color_manual(values = col_food_groups,
+                       labels = labels_food_groups)+
+    scale_fill_manual(values = col_food_groups,
+                      labels = labels_food_groups)+
     theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
           axis.text.y = element_text(size = 7),
           strip.text = element_text(face = "bold",size = rel(1)),
@@ -1331,6 +1457,11 @@ export(diets_evo, here("results", "visualization_tool_ic95_sim", "diets_rr_evo.c
 
 ggsave(here("results", "visualization_tool_ic95_sim", "diets_evo.pdf"), plot = graph_diets_evo)
 ggsave(here("results", "visualization_tool_ic95_sim", "diets_evo_shift.pdf"), plot = graph_diets_evo_shift)
+ggsave(here("results", "visualization_tool_ic95_sim", "diets_var.pdf"), plot = graph_diets_var)
+ggsave(here("results", "visualization_tool_ic95_sim", "diets_var_sc1.pdf"), plot = graph_diet_sc1_var)
+ggsave(here("results", "visualization_tool_ic95_sim", "diets_var_sc2.pdf"), plot = graph_diet_sc2_var)
+ggsave(here("results", "visualization_tool_ic95_sim", "diets_var_sc3.pdf"), plot = graph_diet_sc3_var)
+ggsave(here("results", "visualization_tool_ic95_sim", "diets_var_sc4.pdf"), plot = graph_diet_sc4_var)
 
 
 # Graphiques des valeurs de RR simulées par aliment, dans chaque scénario
@@ -1410,3 +1541,7 @@ export(simulations_summary_avoided_deaths_cum_2050, here("results", "visualizati
 ggsave(here("results", "visualization_tool_ic95_sim", "avoided_deaths_cum_2050.pdf"), plot = graph_avoided_deaths_cum_2050)
 ggsave(here("results", "visualization_tool_ic95_sim", "avoided_deaths_cum_2050_facet.pdf"), plot = graph_avoided_deaths_cum_2050_facet)
 
+# Contributions de chaque aliment au résultat
+export(contrib, here("results", "visualization_tool_ic95_sim", "contributions.xlsx"))
+
+ggsave(here("results", "visualization_tool_ic95_sim", "FG_contributions.pdf"), plot = graph_contrib_fg)
