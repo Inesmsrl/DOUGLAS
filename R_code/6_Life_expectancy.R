@@ -111,7 +111,7 @@ graph_yll <- ggplot(summary_yll %>%
 
 graph_yll_dates <- ggplot(summary_yll %>% 
          filter(year %in% c(2040, 2050, 2060),
-                scenario != "actuel"),
+                scenario %in% c("sc1", "sc2")),
        aes(x = scenario,
            y = mean_yll,
            fill = scenario))+
@@ -158,7 +158,7 @@ summary_le <- le %>%
   )
 
 graph_le <- ggplot(summary_le %>% 
-                      filter(scenario != "actuel"),
+                      filter(scenario %in% c("sc1", "sc2")),
                     aes(x = year,
                         y = mean_le,
                         group = scenario,
@@ -183,7 +183,7 @@ graph_le <- ggplot(summary_le %>%
 
 graph_le_dates <- ggplot(summary_le %>% 
                             filter(year %in% c(2040, 2050, 2060),
-                                   scenario != "actuel"),
+                                   scenario %in% c("sc1", "sc2")),
                           aes(x = scenario,
                               y = mean_le,
                               fill = scenario))+

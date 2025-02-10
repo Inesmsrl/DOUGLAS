@@ -49,7 +49,7 @@ costs <- costs %>%
   filter(year %in% c(2040, 2050, 2060))
   
 graph_yll_costs_dates <- ggplot(costs %>% 
-                                  filter(scenario != "actuel"),
+                                  filter(scenario %in% c("sc1", "sc2")),
                             aes(x = scenario,
                                 y = costs,
                                 fill = scenario))+

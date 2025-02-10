@@ -17,7 +17,7 @@ pacman::p_load(
 ################################################################################################################################
 
 # Expositions : régimes SISAE en 2050
-diets <- import(here("data", "DOUGLAS_diets.xlsx"))
+diets <- import(here("data", "FADNES_diets.xlsx"))
 
 # Risques relatifs / consommation (g/j), relations dose-réponse simulées
 rr_table <- import(here("data_clean", "rr_table_interpolated_sim.csv"))
@@ -42,7 +42,7 @@ year_f <- 2050 # Année finale
 age_limit <- 18
 
 # Dynamique d'implémentation des régimes (immediate, linear, cosine, sigmoidal)
-implementation <- "cosine"
+implementation <- "immediate"
 
 # paramètre de la courbe d'interpolation cosinus
 p <- 1
@@ -248,7 +248,7 @@ diets_evo <-  diets_evo %>%
 # Visualisation graphique des variations de consommation sur toute la période
   # Tous les scénarios
   graph_diets_var <- ggplot(diets_evo %>% 
-                              filter(scenario != "actuel"),
+                              filter(scenario %in% c("sc1", "sc2")),
                             aes(x = year,
                                 y = var,
                                 color = food_group))+
@@ -761,7 +761,7 @@ simulations_summary_rr_diets_relative <- rr_evo_diets %>%
 
 
 graph_rr_diets_relative_sim <- ggplot(simulations_summary_rr_diets_relative %>% 
-                                        filter(scenario != "actuel"),
+                                        filter(scenario %in% c("sc1", "sc2")),
                                       aes(x = year,
                                           y = mean_rr,
                                           color = scenario)) +
@@ -969,7 +969,7 @@ graph_total_avoided_deaths_facet  <- ggplot(simulations_summary_avoided_deaths %
         legend.position = "none")
 
 graph_total_avoided_deaths  <- ggplot(simulations_summary_avoided_deaths %>% 
-                                        filter(scenario != "actuel"),
+                                        filter(scenario %in% c("sc1", "sc2")),
                                       aes(x = year,
                                           y = mean_rr,
                                           group = scenario,
@@ -1067,7 +1067,7 @@ graph_total_avoided_deaths_shift <- ggplot(simulations_summary_avoided_deaths_sh
 # En 2040, 2050 et 2060
 graph_avoided_deaths_dates <- ggplot(simulations_summary_avoided_deaths %>% 
                            filter(year %in% c(2040, 2050, 2060),
-                                  scenario != "actuel"),
+                                  scenario %in% c("sc1", "sc2")),
                          aes(x = scenario,
                              y = mean_rr,
                              fill = scenario))+
@@ -1131,7 +1131,7 @@ graph_avoided_deaths_dates <- ggplot(simulations_summary_avoided_deaths %>%
   
   # Représentation graphique 
   graph_contrib_fg <- ggplot(contrib %>% 
-                               filter(scenario != "actuel"),
+                               filter(scenario %in% c("sc1", "sc2")),
                              aes(x = year,
                                  y = delta,
                                  color = food_group)) +
