@@ -821,7 +821,7 @@ simulations_summary_avoided_deaths_cum_2050 <- avoided_deaths_cum_2050 %>%
         )
       
 ################################################################################################################################
-#                                             17. Report des décès d'une année sur l'autre                                     #
+#                                             -. Report des décès d'une année sur l'autre                                     #
 ################################################################################################################################
 
 # deaths_report <- MR_adjusted %>%
@@ -902,7 +902,7 @@ simulations_summary_avoided_deaths_cum_2050 <- avoided_deaths_cum_2050 %>%
 
 
 ################################################################################################################################
-#                                             17. Représentations graphiques des simulations des décès évités par année        #
+#                                             23. Représentations graphiques des simulations des décès évités par année        #
 ################################################################################################################################
 
 # Sur toute la durée du modèle
@@ -1051,7 +1051,7 @@ graph_avoided_deaths_dates <- ggplot(simulations_summary_avoided_deaths %>%
   guides(fill = guide_legend(title = NULL))
 
 ################################################################################################################################
-#                                             18. Représentations graphiques des simulations des décès évités par age          #
+#                                             24. Représentations graphiques des simulations des décès évités par age          #
 ################################################################################################################################
 
 # 2035
@@ -1161,7 +1161,7 @@ graph_avoided_deaths_2050 <- ggplot(simulations_summary_deaths_2050 %>%
          fill = guide_legend(title = NULL))
 
 ################################################################################################################################
-#                                             19. Représentations graphiques des simulations des décès évités cumulés par age  #
+#                                             25. Représentations graphiques des simulations des décès évités cumulés par age  #
 ################################################################################################################################
 
 # Année initiale du changement de régime - 2035
@@ -1261,9 +1261,69 @@ graph_avoided_deaths_cum_2050 <- ggplot(simulations_summary_avoided_deaths_cum_2
         axis.text.y = element_text(size = 7))+
   guides(color = guide_legend(title = NULL),
          fill = guide_legend(title = NULL))
+  
+################################################################################################################################
+#                                             26. Contributions de chaque aliment au résultat                                  #
+################################################################################################################################
+  
+  # RR de chaque aliment/année relatif au RR du scénario baseline
+  rr_fg_relative <- rr_evo_food_combined %>% 
+    group_by(year_n, food_group, simulation_id) %>% 
+    mutate(rr_fg_relative = mean_rr / mean_rr[scenario == "actuel"]) %>% 
+    ungroup()
+  
+  rr_fg_relative <- rr_fg_relative %>% 
+    mutate(rr_fg_relative = case_when(
+      year_n == year_i - 2*ttfe_time ~ 1,
+      TRUE ~ rr_fg_relative))
+  
+  
+  # Calculer la moyenne et les IC95 pour chaque année
+  simulations_summary_rr_fg_relative <- rr_fg_relative %>%
+    group_by(scenario, year_n, food_group) %>%
+    summarise(
+      mean_rr_fg = mean(rr_fg_relative, na.rm = TRUE),  
+      lower_ci = quantile(rr_fg_relative, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
+      upper_ci = quantile(rr_fg_relative, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
+    ) 
+  
+  contrib <- simulations_summary_rr_fg_relative %>% 
+    mutate(delta = -(1-mean_rr_fg)*100,
+           delta_low = -(1-lower_ci)*100,
+           delta_upp = -(1-upper_ci)*100) %>% 
+    select(scenario, year_n, food_group, delta, delta_low, delta_upp) %>% 
+    rename("year" = "year_n")
+  
+  contrib$food_group <- factor(contrib$food_group, levels = order_food_groups)
+  
+  graph_contrib_fg <- ggplot(contrib %>% 
+                               filter(scenario != "actuel"),
+                             aes(x = year,
+                                 y = delta,
+                                 color = food_group)) +
+    geom_ribbon(aes(ymin = delta_low, ymax = delta_upp, fill = food_group), alpha = 0.5, linetype = 0) +
+    facet_wrap(~ scenario,
+               labeller = labeller(scenario = labels_scenario)) +
+    geom_line(size = 0.8, na.rm = TRUE)+ 
+    labs(
+      title = "",
+      x = "",
+      y = "% of deaths prevented",
+      color = "Food group",
+      fill = "Food group"
+    )+
+    scale_color_manual(values = col_food_groups)+
+    scale_fill_manual(values = col_food_groups)+
+    theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+          axis.text.y = element_text(size = 7),
+          strip.text = element_text(face = "bold",size = rel(1)),
+          legend.position = "bottom") +
+    guides(color = guide_legend(nrow = 3, 
+                                title.position = "top",
+                                title.hjust = 0.5))
 
 ################################################################################################################################
-#                                             20. Exportation des données                                                      #
+#                                             27. Exportation des données                                                      #
 ################################################################################################################################
 
 # Régimes, valeurs des RR et IC95 RR, distribution normale des valeurs de RR et simulations
