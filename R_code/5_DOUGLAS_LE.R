@@ -16,7 +16,7 @@ pacman::p_load(
 #                                             2. Importation des données                                                       #
 ################################################################################################################################
 
-population_evo <- import(here("results", "visualization_tool_ic95_sim", "avoided_deaths.csv"))
+population_evo <- import(here("results", "FADNES diets - Whole FR population", "avoided_deaths.csv"))
 
 col_scenario <- c("actuel" = "azure4",
                   "sc0" = "palevioletred3",
@@ -208,7 +208,7 @@ graph_le_dates <- ggplot(summary_le %>%
   guides(fill = guide_legend(title = NULL))
 
 ################################################################################################################################
-#                                             6. Figure 2040, 2050, 2060                                                       #
+#                                             6. Figure bénéfices en 2040, 2050, 2060                                          #
 ################################################################################################################################
 
 # Faire tourner les codes avoir les graphes des décès reportés et des coûts évités
@@ -227,8 +227,97 @@ list_graph <- lapply(list_graph, function(p) p + common_theme)
 common_graph <- reduce(list_graph, `+`) + plot_layout(ncol = 2)
 
 print(common_graph)
+
 ################################################################################################################################
-#                                             6. Exportation des données                                                       #
+#                                             7. Années de vie préservées âge et année spécifique                              #
+################################################################################################################################
+
+pop_sp <- population_evo %>% 
+  filter(year == 2035,
+         age == 30) 
+
+yll_sp <- pop_sp %>% 
+  group_by(scenario) %>% 
+  filter(between(ylg, quantile(ylg, 0.025), quantile(ylg, 0.975)))
+
+summary_yll_sp <- yll_sp %>% 
+  group_by(scenario, year) %>% 
+  summarise(
+    mean_yll = mean(ylg, na.rm = TRUE),
+    lower_ci = quantile(ylg, 0.025, na.rm = TRUE),
+    upper_ci = quantile(ylg, 0.975, na.rm = TRUE)
+  )
+
+
+graph_yll_sp <- ggplot(summary_yll_sp %>% 
+                            filter(scenario != "actuel"),
+                          aes(x = scenario,
+                              y = mean_yll,
+                              fill = scenario))+
+  geom_bar(stat = "identity",
+           position = "dodge",
+           alpha = 0.7)+
+  geom_errorbar(aes(ymin = lower_ci,
+                    ymax = upper_ci),
+                width = 0.2,
+                position = position_dodge(0.9))+
+  scale_y_continuous(labels = scales :: label_comma())+
+  scale_fill_manual(values = col_scenario,
+                    labels = labels_scenario)+
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = "bottom")+
+  labs(title = "",
+       x = "",
+       y = "YLL preserved")+
+  guides(fill = guide_legend(title = NULL))
+
+################################################################################################################################
+#                                             8. Espérance de vie gagnée âge et année spécifique                               #
+################################################################################################################################
+
+le_sp <- pop_sp %>% 
+  group_by(simulation_id, scenario) %>% 
+  summarise(le_year = mean(le)) %>% 
+  mutate(leg = (le_year - le_year[scenario == "actuel"])*12)
+
+le_sp <- le_sp %>% 
+  group_by(scenario) %>% 
+  filter(between(leg, quantile(leg, 0.025), quantile(leg, 0.975)))
+
+summary_le_sp <- le_sp %>% 
+  group_by(scenario) %>% 
+  summarise(
+    mean_le = mean(leg, na.rm = TRUE),
+    lower_ci = quantile(leg, 0.025, na.rm = TRUE),
+    upper_ci = quantile(leg, 0.975, na.rm = TRUE)
+  )
+
+graph_le_sp <- ggplot(summary_le_sp %>% 
+                           filter(scenario != "actuel"),
+                         aes(x = scenario,
+                             y = mean_le,
+                             fill = scenario))+
+  geom_bar(stat = "identity",
+           position = "dodge",
+           alpha = 0.7)+
+  geom_errorbar(aes(ymin = lower_ci,
+                    ymax = upper_ci),
+                width = 0.2,
+                position = position_dodge(0.9))+
+  scale_y_continuous(labels = scales :: label_comma())+
+  scale_fill_manual(values = col_scenario,
+                    labels = labels_scenario)+
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = "bottom")+
+  labs(title = "",
+       x = "",
+       y = "LE gained (months)")+
+  guides(fill = guide_legend(title = NULL))
+
+################################################################################################################################
+#                                             9. Exportation des données                                                       #
 ################################################################################################################################
 
 # YLL
@@ -241,6 +330,13 @@ export(summary_le, here("results", "IC95_LE_gained.xlsx"))
 ggsave(here("results", "LE_gained.pdf"), plot = graph_le)
 ggsave(here("results", "LE_gaines_dates.pdf"), plot = graph_le_dates)
 
+# YLL pour un âge et une année spécifique 
+export(summary_yll_sp, here("results", "IC95_yll_sp.xlsx"))
+ggsave(here("results", "yll_sp.pdf"), plot = graph_yll_sp)
+
+# LE pour un âge et une année spécifique
+export(summary_le_sp, here("results", "IC95_LE_sp.xlsx"))
+ggsave(here("results", "LE_sp.pdf"), plot = graph_le_sp)
+
 # Décès évités, YLL, LE, Couts en 2040, 2050, 2060
 ggsave(here("results", "HIA_dates.pdf"), plot = common_graph)
-
