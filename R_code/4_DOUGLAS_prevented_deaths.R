@@ -17,7 +17,7 @@ pacman::p_load(
 ################################################################################################################################
 
 # Expositions : régimes SISAE en 2050
-diets <- import(here("data", "FADNES_diets.xlsx"))
+diets <- import(here("data", "DOUGLAS_diets.xlsx"))
 
 # Risques relatifs / consommation (g/j), relations dose-réponse simulées
 rr_table <- import(here("data_clean", "rr_table_interpolated_sim.csv"))
@@ -42,7 +42,7 @@ year_f <- 2050 # Année finale
 age_limit <- 18
 
 # Dynamique d'implémentation des régimes (immediate, linear, cosine, sigmoidal)
-implementation <- "immediate"
+implementation <- "cosine"
 
 # paramètre de la courbe d'interpolation cosinus
 p <- 1
@@ -64,7 +64,7 @@ ttfe_time <- 10
 # Après changement de régime : 2 x ttfe_time
 
 # Dynamique (immediate, linear, cosine, sigmoidal, log)
-ttfe_dynamics <- "sigmoidal"
+ttfe_dynamics <- "linear"
 
 # paramètre de la courbe d'interpolation cosinus
 p_ttfe <- 1
@@ -212,7 +212,7 @@ calc_food_q_sig <- function(q_i, q_f, year_n, year_i, year_f, lambda) {
     rename("year" = "year_n")
 
 # Calcul des variations de consommation de chaque aliment par rapport au régime actuel (%)
-diets_evo <-  diets_evo %>%
+diets_var <-  diets_evo %>%
   group_by(food_group, year) %>%
   mutate(var = (quantity - quantity[scenario == "actuel"]) / quantity[scenario == "actuel"] *100)
 
@@ -248,7 +248,7 @@ diets_evo <-  diets_evo %>%
 # Visualisation graphique des variations de consommation sur toute la période
   # Tous les scénarios
   graph_diets_var <- ggplot(diets_evo %>% 
-                              filter(scenario %in% c("sc1", "sc2")),
+                              filter(scenario != "actuel"),
                             aes(x = year,
                                 y = var,
                                 color = food_group))+
@@ -848,6 +848,16 @@ total_deaths <- deaths_wide %>%
                  names_to = "year",
                  values_to = "total_deaths") %>% 
     mutate(year = as.numeric(year))
+  
+  # Calculer la moyenne et les IC95 pour chaque année
+  simulations_summary_total_deaths <- total_deaths_long %>%
+    group_by(scenario, year) %>%
+    summarise(
+      mean_total_deaths = mean(total_deaths, na.rm = TRUE),  # Moyenne des simulations
+      lower_ci = quantile(total_deaths, 0.025, na.rm = TRUE),  # Limite inférieure de l'IC à 95%
+      upper_ci = quantile(total_deaths, 0.975, na.rm = TRUE)   # Limite supérieure de l'IC à 95%
+    ) 
+  
 
 ################################################################################################################################
 #                                             21. Nombre de décès évités par rapport au baseline                               #
@@ -1131,7 +1141,7 @@ graph_avoided_deaths_dates <- ggplot(simulations_summary_avoided_deaths %>%
   
   # Représentation graphique 
   graph_contrib_fg <- ggplot(contrib %>% 
-                               filter(scenario %in% c("sc1", "sc2")),
+                               filter(scenario != "actuel"),
                              aes(x = year,
                                  y = delta,
                                  color = food_group)) +
@@ -1157,7 +1167,21 @@ graph_avoided_deaths_dates <- ggplot(simulations_summary_avoided_deaths %>%
     guides(color = guide_legend(nrow = 3, 
                                 title.position = "top",
                                 title.hjust = 0.5))
-
+  
+# Tableau des variations et contributions des aliments aux résultats pour l'année 2050
+  
+  summary_contrib <- contrib %>% 
+    inner_join(simulations_summary_total_deaths, by = c("scenario", "year")) %>% 
+    inner_join(diets_var, by = c("scenario", "year", "food_group")) %>% 
+    group_by("scenario", "year", "food_group") %>%
+    mutate(deaths = delta * mean_total_deaths /100,
+           quantity = round(quantity),
+           var = round(var, digits = 2),
+           delta = round(delta, digits = 2),
+           deaths = round(deaths)) %>% 
+    ungroup() %>%
+    select(scenario, year, food_group, quantity, var, delta, deaths)
+  
 ################################################################################################################################
 #                                             24. Exportation des données                                                      #
 ################################################################################################################################
