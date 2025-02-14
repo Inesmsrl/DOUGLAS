@@ -1229,6 +1229,7 @@ graph_avoided_deaths_dates <- ggplot(simulations_summary_avoided_deaths %>%
     merge_at(i = 1, j = 14:17, part = "header") %>%
     align(align = "center", j = c(2:17), part = "all") %>%  # Centrer le contenu des cellules sauf Food group
     bold(i = 1, part = "header") %>% # Mettre en gras la 1ère ligne d'en-tête
+    bg(part = "all", bg = "white") %>% # Fond blanc pour toutes les cellules
     bg(., i = ~ food_group %in% c("Legumes", "Nuts", "Processed meat", "Red meat", "Eggs", "Vegetables", "Whole grains"), part = "body", bg = "aquamarine2") %>% 
     bg(., i = ~ food_group %in% c("Fruits", "Fish", "White meat"), part = "body", bg = "indianred1")
   
