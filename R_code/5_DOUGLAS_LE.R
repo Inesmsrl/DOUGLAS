@@ -47,13 +47,13 @@ calc_conditional_LE <- function(df) {
     group_by(year, simulation_id, scenario) %>%
     mutate(
       qx = adjusted_mr,                           # Taux de mortalité par âge (déjà dans les données)
-      px = 1 - qx,                                   # Probabilité de survie à chaque âge
-      lx = cumprod(lag(px, default = 1)),            # Probabilité de survie jusqu'à chaque âge
-      dx = lx * qx,                                  # Nombre de décès attendu à chaque âge
-      Tx = rev(cumsum(rev(lx)))                      # Somme cumulée des survivants pour espérance de vie
+      px = 1 - qx,                                # Probabilité de survie entre l'âge x et x+1
+      lx = cumprod(lag(px, default = 1)),         # Probabilité de survie jusqu'à l'âge x
+      dx = lx * qx,                               # Nombre de décès attendu à chaque âge
+      Tx = rev(cumsum(rev(lx)))                   # Somme cumulée des survivants au delà d'un age x = nombre total d'années vécues au delà de l'âge x
     ) %>%
     mutate(
-      ex = Tx / lx                                   # Espérance de vie conditionnelle à chaque âge
+      ex = Tx / lx                                # Espérance de vie conditionnelle à chaque âge = répartition des années vécues au delà de l'âge x par le nombre de survivants à cet âge
     ) 
 }
 
