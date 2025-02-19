@@ -18,7 +18,7 @@ pacman::p_load(
 ################################################################################################################################
 
 # Expositions : régimes SISAE en 2050
-diets <- import(here("data", "DOUGLAS_diets.xlsx"))
+diets <- import(here("data", "FADNES_diets.xlsx"))
 
 # Risques relatifs / consommation (g/j), relations dose-réponse simulées
 rr_table <- import(here("data_clean", "rr_table_interpolated_sim.csv"))
@@ -43,7 +43,7 @@ year_f <- 2050 # Année finale
 age_limit <- 18
 
 # Dynamique d'implémentation des régimes (immediate, linear, cosine, sigmoidal)
-implementation <- "cosine"
+implementation <- "immediate"
 
 # paramètre de la courbe d'interpolation cosinus
 p <- 1
@@ -221,9 +221,11 @@ diets_var <-  diets_evo %>%
   diets_evo$food_group <- factor(diets_evo$food_group, levels = order_food_groups)
 
 # Visualisation graphique des consommations sur toute la période
-  graph_diets_evo <- ggplot(data = diets_evo, aes(x = year,
-                                                  y = quantity,
-                                                  fill = food_group))+
+  graph_diets_evo <- ggplot(data = diets_evo %>% 
+                              filter(scenario %in% c("sc1", "sc2")), 
+                            aes(x = year,
+                                y = quantity,
+                                fill = food_group))+
     geom_area(colour = "black", linewidth = 0.2, alpha = 0.6)+
     facet_wrap(~ scenario, 
                ncol = 3,
