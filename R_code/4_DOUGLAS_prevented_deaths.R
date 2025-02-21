@@ -1236,121 +1236,143 @@ graph_avoided_deaths_dates <- ggplot(simulations_summary_avoided_deaths %>%
     bg(., i = ~ food_group %in% c("Fruits", "Fish", "White meat"), part = "body", bg = "indianred1")
   
 ################################################################################################################################
-#                                             24. Repport des décès                                                            #
+#                                             24. Report des décès                                                            #
 ################################################################################################################################
+  
+# Préparation du tableau de données
+  deaths <- MR_adjusted %>%
+    left_join(population_select, by = c("age", "year"), relationship = "many-to-many") %>% # Jointure des données de population et des taux de mortalité ajustés
+    select(age, year, scenario, simulation_id, adjusted_mr, population) %>% # Sélection des variables pertinentes)
+    mutate(deaths = NA_real_, 
+           avoided_deaths = NA_real_,
+           simulation_id = as.numeric(gsub(".*_", "", simulation_id))) %>% # Variable numérique pour l'ID de simulation 
+    arrange(simulation_id, year, age)
+  
+# Data set avec nombre de simulations réduit
+  deaths <- deaths %>% 
+    filter(simulation_id %in% sample(simulation_id, 2)) # Sélection de 2 simulations
+  
+  # Création des vecteurs contenant les valeurs pour les boucles for 
+  years <- sort(unique(deaths$year))         # Vecteur des années
+  ages <- sort(unique(deaths$age))           # Vecteur des âges
+  simulation_id <- sort(unique(deaths$simulation_id))  # ID de simulation
   
   deaths_transfer <- function(scen) {
     
     # Filtrer les données pour les scénarios pertinents
     deaths <- MR_adjusted %>%
-      filter(scenario %in% c(scen, "actuel")) %>%
-      left_join(population_select, by = c("age", "year")) %>%
-      select(age, year, scenario, simulation_id, MR, adjusted_mr, population) %>%
-      arrange(simulation_id, year, age) %>%
-      mutate(deaths = NA_real_, avoided_deaths = NA_real_)
+      filter(scenario %in% c(scen, "actuel"))
     
-    # Extraire les âges et années uniques
-    ages <- sort(unique(deaths$age))
-    years <- sort(unique(deaths$year))
+    # Boucles sur les années et âges
+    for (y in years) {
+      for (a in ages) {
+        for (i in simulation_id) {
+          
+          # Calcul des décès évités de manière sécurisée
+          avoided_deaths_temp <- deaths %>%
+            filter(age == a, year == y, simulation_id == i, scenario == scen) %>%
+            { if (nrow(.) == 1) .$adjusted_mr * .$population else NA_real_ }
+          
+          avoided_deaths_actuel <- deaths %>%
+            filter(age == a, year == y, simulation_id == i, scenario == "actuel") %>%
+            { if (nrow(.) == 1) .$adjusted_mr * .$population else NA_real_ }
+          
+          # Calcul final en évitant les NA
+          avoided_deaths <- ifelse(is.na(avoided_deaths_temp) | is.na(avoided_deaths_actuel),
+                                   0, avoided_deaths_actuel - avoided_deaths_temp)
+          
+          # Mettre à jour la population pour l'année y+1
+          deaths <- deaths %>%
+            rowwise() %>%
+            mutate(population = list(case_when(
+              age == a + 1 & year == y + 1 & simulation_id == i & scenario == scen ~ population + avoided_deaths,
+              age == 105 & year == y + 1 & simulation_id == i & scenario == scen ~ population + avoided_deaths,
+              TRUE ~ population
+            ))) %>%
+            ungroup()
+        }
+      }
+    }
+    
+    return(deaths)
+  }
+
+  deaths_transfer <- function(scen) {
+    
+    # Initialisation du tableau de données
+    deaths <- MR_adjusted %>%
+      left_join(population_select, by = c("age", "year")) %>%
+      filter(scenario %in% c(scen, "actuel")) %>%
+      mutate(deaths = NA_real_, avoided_deaths = NA_real_)
     
     # Boucle sur les années
     for (y in years) {
+      
+      # 1. Calcul des décès et des décès évités pour chaque âge, simulation et scénario
       for (a in ages) {
-        
-        # Calcul des décès pour l'année et l'âge en cours
-        deaths <- deaths %>%
-          mutate(deaths = if_else(age == a & year == y, adjusted_mr * population, deaths))
-        
-        # Extraire les décès du scénario "actuel" pour cet âge et cette année
-        deaths_actuel <- deaths %>%
-          filter(age == a, year == y, scenario == "actuel") %>%
-          select(simulation_id, deaths) %>%
-          rename(deaths_actuel = deaths)
-        
-        # Joindre pour calculer les décès évités
-        deaths <- deaths %>%
-          left_join(deaths_actuel, by = c("simulation_id")) %>%
-          mutate(avoided_deaths = if_else(age == a & year == y & scenario == scen, 
-                                          deaths_actuel - deaths, 
-                                          avoided_deaths)) %>%
-          select(-deaths_actuel)
-        
-        # Transférer les décès évités à la classe d’âge supérieure l’année suivante
-        if (a < max(ages) & y < max(years)) {
-          avoided <- deaths %>%
-            filter(age == a, year == y, scenario == scen) %>%
-            select(simulation_id, avoided_deaths) %>%
-            rename(avoided = avoided_deaths)
+        for (i in simulation_id) {
           
-          deaths <- deaths %>%
-            left_join(avoided, by = "simulation_id") %>%
-            mutate(population = if_else(age == a + 1 & year == y + 1 & scenario == scen, 
-                                        population + avoided, 
-                                        population)) %>%
-            select(-avoided)
+          # Calcul des décès pour le scénario actuel et le scénario sélectionné
+          deaths_current <- deaths %>%
+            filter(age == a & year == y & simulation_id == i & scenario == "actuel") %>%
+            pull(deaths)
+          
+          deaths_scen <- deaths %>%
+            filter(age == a & year == y & simulation_id == i & scenario == scen) %>%
+            pull(deaths)
+          
+          avoided_deaths <- deaths_current - deaths_scen
+          
+          # Mettre à jour la population pour l'année suivante (y+1)
+          if (a < 105) {
+            # Transférer les décès évités à l'âge suivant (18-104)
+            deaths <- deaths %>%
+              mutate(population = if_else(age == a + 1 & year == y + 1 & simulation_id == i & scenario == scen,
+                                          population + avoided_deaths, population))
+          } else if (a == 105) {
+            # Conserver les décès évités dans la même classe d'âge (105)
+            deaths <- deaths %>%
+              mutate(population = if_else(age == 105 & year == y + 1 & simulation_id == i & scenario == scen,
+                                          population + avoided_deaths, population))
+          }
         }
-        
-      } # Fin boucle âges
-    } # Fin boucle années
+      }
+    }
     
     return(deaths)
   }
-  
-  library(data.table)
   
   deaths_transfer <- function(scen) {
     
-    # Convertir en data.table pour une mise à jour rapide
-    deaths <- as.data.table(MR_adjusted[scenario %in% c(scen, "actuel")])
-    pop <- as.data.table(population_select)
+    # Filtrer les données pour les scénarios pertinents
+    deaths <- MR_adjusted %>%
+      filter(scenario %in% c(scen, "actuel"))
     
-    # S'assurer que les colonnes 'scenario', 'age' et 'year' sont bien de type character
-    deaths[, scenario := as.character(scenario)]
-    deaths[, age := as.integer(age)]
-    deaths[, year := as.integer(year)]
-    pop[, age := as.integer(age)]
-    pop[, year := as.integer(year)]
-    
-    # Joindre population uniquement sur "age" et "year"
-    deaths <- merge(deaths, pop, by = c("age", "year"), all.x = TRUE)
-    deaths[, deaths := adjusted_mr * population] # Calcul initial des décès
-    
-    # Stocker les décès "actuels" avant la boucle
-    deaths_actuel <- deaths[scenario == "actuel", .(age, year, simulation_id, deaths)]
-    setnames(deaths_actuel, "deaths", "deaths_actuel") # Renommer la colonne
-    
-    # Ajouter les décès "actuels" en une seule jointure
-    deaths <- merge(deaths, deaths_actuel, by = c("age", "year", "simulation_id"), all.x = TRUE)
-    
-    # Initialisation de avoided_deaths
-    deaths[, avoided_deaths := 0]
-    
-    # Extraire les âges et années uniques
-    ages <- sort(unique(deaths$age))
-    years <- sort(unique(deaths$year))
-    
-    # Boucle sur les années et âges
+    # Boucles sur les années et âges
     for (y in years) {
-      for (a in ages) {
         
-        # Calcul des décès évités
-        deaths[age == a & year == y & scenario == scen, 
-               avoided_deaths := deaths_actuel - deaths]
+        df_temp <- deaths %>% 
+          filter(year == y) %>% 
+          group_by(age, simulation_id) %>%
+          mutate(deaths = adjusted_mr*population,
+                 avoided_deaths = deaths[scenario == "actuel"] - deaths)
         
-        # Transférer les décès évités à l'âge suivant et l'année suivante
-        if (a < max(ages) & y < max(years)) {
-          deaths[age == a + 1 & year == y + 1 & scenario == scen, 
-                 population := population + deaths[age == a & year == y & scenario == scen, avoided_deaths]]
-        }
-        
-      } # Fin boucle âges
-    } # Fin boucle années
-    
-    return(deaths)
-  }
+        for (a in ages){
+        deaths <- deaths %>%
+          group_by(year, simulation_id) %>% 
+          mutate(population = case_when(
+            age == 18 ~ population,
+            year == year_i - 20 ~ population,
+            year > year_i - 20 & age > 18 & age < 105 ~ population + avoided_deaths[year == y - 1 & age == a - 1],
+            year > year_i - 20 & age == 105 ~ population + avoided_deaths[year == y - 1 & age == 105],
+            TRUE ~ population),
+                 deaths = adjusted_mr*population,
+                 avoided_deaths = deaths[scenario == "actuel"] - deaths)
+      
+      }}}
   
+deaths_sc1 <- deaths_transfer("sc1")
   
-  deaths_sc1 <- deaths_transfer("sc1")
   
 ################################################################################################################################
 #                                             24. Exportation des données                                                      #
