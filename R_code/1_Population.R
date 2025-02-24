@@ -68,3 +68,85 @@ deaths <- import(here("data", "INSEE_Deaths.xlsx"))
 
 # Projection des décès par âge et par année
   export(deaths,here("data_clean","deaths_clean.xlsx"))
+  
+################################################################################################################################
+### Données du GDB 2019 (Reproduction des résultats de Fadnes) ###
+################################################################################################################################
+################################################################################################################################
+#                                             2. Importation des données                                                       #
+################################################################################################################################
+  
+# Effectifs de population (hommes et femmes) par âge de 1962 à 2021 et projetées jusqu'en 2120
+  population <- import(here("data", "GBD_EU_population.csv"))
+  
+# Décès par âge de 1962 à 2021 et projetées jusqu'en 2120
+  deaths <- import(here("data", "GBD_EU_deaths.csv"))
+  
+################################################################################################################################
+#                                             3. Nettoyage des données                                                         #
+################################################################################################################################
+  
+# Rendre les données homogènes (noms de variables, catégories d'âge,...) et utilisables pour l'EQIS
+  
+  # Effectifs de population H/F par âge et par année
+  population <- population %>% 
+    mutate(age = as.numeric(age),
+           year = as.numeric(year)) %>% 
+    select(sex, age, year, val) %>% 
+    rename("population" = val)
+  
+  
+  # Nombre de décès H/F par âge et par année
+  deaths <- deaths %>% 
+    select(sex, age, year, val) %>% 
+    rename("deaths" = val)
+  
+################################################################################################################################
+#                                             4. Vérifications                                                                 #
+################################################################################################################################
+  
+# Les vérifications doivent renvoyer TRUE
+  
+  all(names(population == names(deaths)))   # Mêmes variables dans les jeux de données
+  all(population$age == deaths$age)         # Mêmes catégories d'âge dans les jeux de données
+  
+
+################################################################################################################################
+#                                             5. Données H/F                                                                 #
+################################################################################################################################
+  
+# Données Hommes
+  population_m <- population %>%
+    filter(sex == "Homme") %>% 
+    select(-sex) %>% 
+    pivot_wider(names_from = year, values_from = population)
+  
+  deaths_m <- deaths %>%
+    filter(sex == "Homme") %>% 
+    select(-sex) %>% 
+    pivot_wider(names_from = year, values_from = deaths)
+  
+# Données Femmes
+  population_f <- population %>%
+    filter(sex == "Femme") %>% 
+    select(-sex) %>% 
+    pivot_wider(names_from = year, values_from = population)
+  
+  deaths_f <- deaths %>%
+    filter(sex == "Femme") %>% 
+    select(-sex) %>% 
+    pivot_wider(names_from = year, values_from = deaths)
+  
+  
+################################################################################################################################
+#                                             6. Exportation des données                                                       #
+################################################################################################################################
+  
+  # Projections des effectifs de population par âge et par année
+  export(population_f, here("data_clean","GBD_population_EU_f.xlsx"))
+  export(population_m, here("data_clean","GBD_population_EU_m.xlsx"))
+  
+  # Projection des décès par âge et par année
+  export(deaths_f, here("data_clean","GBD_deaths_EU_f.xlsx"))
+  export(deaths_m, here("data_clean","GBD_deaths_EU_m.xlsx"))
+  

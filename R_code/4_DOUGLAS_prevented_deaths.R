@@ -18,7 +18,7 @@ pacman::p_load(
 ################################################################################################################################
 
 # Expositions : régimes SISAE en 2050
-diets <- import(here("data", "FADNES_diets.xlsx"))
+diets <- import(here("data", "FADNES_2024_diets.xlsx"))
 
 # Risques relatifs / consommation (g/j), relations dose-réponse simulées
 rr_table <- import(here("data_clean", "rr_table_interpolated_sim.csv"))
@@ -222,13 +222,13 @@ diets_var <-  diets_evo %>%
 
 # Visualisation graphique des consommations sur toute la période
   graph_diets_evo <- ggplot(data = diets_evo %>% 
-                              filter(scenario %in% c("sc1", "sc2")), 
+                              filter(scenario != "actuel"), 
                             aes(x = year,
                                 y = quantity,
                                 fill = food_group))+
     geom_area(colour = "black", linewidth = 0.2, alpha = 0.6)+
     facet_wrap(~ scenario, 
-               ncol = 3,
+               ncol = 2,
                labeller = labeller(scenario = labels_scenario))+
     theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 9),
           axis.text.y = element_text(size = 9),
@@ -982,7 +982,7 @@ graph_total_avoided_deaths_facet  <- ggplot(simulations_summary_avoided_deaths %
         legend.position = "none")
 
 graph_total_avoided_deaths  <- ggplot(simulations_summary_avoided_deaths %>% 
-                                        filter(scenario %in% c("sc1", "sc2")),
+                                        filter(scenario != "actuel"),
                                       aes(x = year,
                                           y = mean_rr,
                                           group = scenario,
@@ -1080,7 +1080,7 @@ graph_total_avoided_deaths_shift <- ggplot(simulations_summary_avoided_deaths_sh
 # En 2040, 2050 et 2060
 graph_avoided_deaths_dates <- ggplot(simulations_summary_avoided_deaths %>% 
                            filter(year %in% c(2040, 2050, 2060),
-                                  scenario %in% c("sc1", "sc2")),
+                                  scenario != "actuel"),
                          aes(x = scenario,
                              y = mean_rr,
                              fill = scenario))+

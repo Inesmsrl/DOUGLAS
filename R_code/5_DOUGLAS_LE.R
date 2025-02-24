@@ -16,7 +16,7 @@ pacman::p_load(
 #                                             2. Importation des données                                                       #
 ################################################################################################################################
 
-population_evo <- import(here("results", "FADNES diets - Whole FR population", "avoided_deaths.csv"))
+population_evo <- import(here("results", "visualization_tool_ic95_sim", "avoided_deaths.csv"))
 
 col_scenario <- c("actuel" = "azure4",
                   "sc0" = "palevioletred3",
@@ -37,9 +37,7 @@ labels_scenario <- c("actuel" = "Current diet",
 ################################################################################################################################
 
 population_evo <- population_evo %>% 
-  select("age", "year", "scenario", "simulation_id", "adjusted_mr", "population", "deaths") %>% 
-  group_by(year, simulation_id, age) %>% 
-  mutate(avoided_deaths = deaths[scenario == "actuel"] - deaths)
+  select("age", "year", "scenario", "simulation_id", "adjusted_mr", "population", "deaths", "avoided_deaths")
 
 calc_conditional_LE <- function(df) {
   df %>%
@@ -183,7 +181,7 @@ graph_le <- ggplot(summary_le %>%
 
 graph_le_dates <- ggplot(summary_le %>% 
                             filter(year %in% c(2040, 2050, 2060),
-                                   scenario %in% c("sc1", "sc2")),
+                                   scenario != "actuel"),
                           aes(x = scenario,
                               y = mean_le,
                               fill = scenario))+
@@ -234,7 +232,7 @@ print(common_graph)
 
 pop_sp <- population_evo %>% 
   filter(year == 2035,
-         age == 30) 
+         age == 60) 
 
 yll_sp <- pop_sp %>% 
   group_by(scenario) %>% 

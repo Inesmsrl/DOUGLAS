@@ -14,10 +14,10 @@ pacman::p_load(
 ################################################################################################################################
 
 # Effectifs de population (hommes et femmes) par âge de 1962 à 2021 et projetées jusqu'en 2120
-population <- import(here("data_clean", "population_clean.xlsx"))
+population <- import(here("data_clean", "GBD_population_EU_f.xlsx"))
 
 # Décès par âge de 1962 à 2021 et projetées jusqu'en 2120
-deaths <- import(here("data_clean", "deaths_clean.xlsx"))
+deaths <- import(here("data_clean", "GBD_deaths_EU_f.xlsx"))
 
 
 ################################################################################################################################
@@ -81,4 +81,4 @@ mortality_rates <- population %>%
 ################################################################################################################################
 
 # Projections des taux de mortalité par âge et par année 
-export(mortality_rates, here("data_clean", "MR_table.xlsx"))
+export(mortality_rates, here("data_clean", "MR_table_GBD_EU_F.xlsx"))
