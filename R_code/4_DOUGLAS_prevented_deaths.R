@@ -10,7 +10,8 @@ pacman::p_load(
   tidyverse,           # Data management, inclus ggplot
   purrr,               # Opérations itératives
   flextable,           # Création de tableaux
-  scales               # Transformations en pourcentages notamment
+  scales,              # Transformations en pourcentages notamment
+  forestploter
 )
 
 ################################################################################################################################
@@ -18,7 +19,7 @@ pacman::p_load(
 ################################################################################################################################
 
 # Expositions : régimes SISAE en 2050
-diets <- import(here("data", "FADNES_2024_diets.xlsx"))
+diets <- import(here("data", "DOUGLAS_diets.xlsx"))
 
 # Risques relatifs / consommation (g/j), relations dose-réponse simulées
 rr_table <- import(here("data_clean", "rr_table_interpolated_sim.csv"))
@@ -43,7 +44,7 @@ year_f <- 2050 # Année finale
 age_limit <- 18
 
 # Dynamique d'implémentation des régimes (immediate, linear, cosine, sigmoidal)
-implementation <- "immediate"
+implementation <- "cosine"
 
 # paramètre de la courbe d'interpolation cosinus
 p <- 1
@@ -1139,8 +1140,51 @@ graph_avoided_deaths_dates <- ggplot(simulations_summary_avoided_deaths %>%
     select(scenario, year_n, food_group, delta, delta_low, delta_upp) %>% 
     rename("year" = "year_n")
   
+  #contrib <- import(here("results", "Main analysis", "contributions.xlsx"))
+  
   # Ordonner les groupes alimentaires
   contrib$food_group <- factor(contrib$food_group, levels = order_food_groups)
+  
+  #Forestplot
+  
+  forest_plot_contrib <- function(scen) {
+    
+    contrib_scen <- contrib %>% 
+      filter(scenario == scen,
+             year == 2050) %>% 
+      mutate(food_group = labels_food_groups[food_group])
+    
+    diets_var_scen <- diets_var %>% 
+      filter(scenario == scen,
+             year == 2050) %>% 
+      mutate(food_group = labels_food_groups[food_group],
+             var = round(var, 1))
+    
+    forest(data = setNames(
+      data.frame(contrib_scen$food_group, diets_var_scen$var, ""),  
+      c("Food Group", "Intake variation (%)", "                                              ")),
+           est = contrib_scen$delta,
+           lower = contrib_scen$delta_low,
+           upper = contrib_scen$delta_upp,
+           ci_column = 3,
+           ref_line = 0,
+      xlim = c(-6, 6),
+           xlab = "Contribution to the health impact (%)",
+           title = paste("2050 - ", labels_scenario[scen]),
+      footnote = "SSB = Sugar-sweetened beverages",
+           theme = forest_theme(core=list(fg_params=list(hjust = 0.5, x = 0.5)),
+                                colhead=list(fg_params=list(hjust = 0.5, x = 0.5)),
+                                footnote_gp = gpar(cex = 0.6, fontface = "italic", col = "azure4"),
+                                ci_pch = 20,
+                                ci_alpha = 0.8
+           ))
+  }
+  
+  forest_sc1 <- forest_plot_contrib("sc1")
+  forest_sc2 <- forest_plot_contrib("sc2")
+  forest_sc3 <- forest_plot_contrib("sc3")
+  forest_sc4 <- forest_plot_contrib("sc4")
+  
   
   # Représentation graphique 
   graph_contrib_fg <- ggplot(contrib %>% 
@@ -1454,3 +1498,10 @@ deaths_sc1 <- deaths_transfer("sc1")
   ggsave(here("results", "visualization_tool_ic95_sim", "FG_contributions.pdf"), plot = graph_contrib_fg)
   
   save_as_image(contrib_2050, here("results", "contributions_2050.png"))
+  
+  # Forest plots 
+  ggsave(here("results", "visualization_tool_ic95_sim", "forest_sc1.pdf"), plot = forest_sc1)
+  ggsave(here("results", "visualization_tool_ic95_sim", "forest_sc2.pdf"), plot = forest_sc2)
+  ggsave(here("results", "visualization_tool_ic95_sim", "forest_sc3.pdf"), plot = forest_sc3)  
+  ggsave(here("results", "visualization_tool_ic95_sim", "forest_sc4.pdf"), plot = forest_sc4)  
+  
