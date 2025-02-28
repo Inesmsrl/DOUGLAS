@@ -1283,7 +1283,8 @@ graph_avoided_deaths_dates <- ggplot(simulations_summary_avoided_deaths %>%
 #                                             24. Report des décès                                                            #
 ################################################################################################################################
   
- MR_adjusted <- import(here("results", "Main analysis", "mr_adjusted.csv"))
+ #MR_adjusted <- import(here("results", "Main analysis", "mr_adjusted.csv"))
+  #avoided_deaths <- import(here("results", "Main analysis", "avoided_deaths.csv"))
   
 # Préparation du tableau de données
   results <- MR_adjusted %>%
@@ -1296,7 +1297,7 @@ graph_avoided_deaths_dates <- ggplot(simulations_summary_avoided_deaths %>%
   
 # Data set avec nombre de simulations réduit
   results <- results %>% 
-    filter(simulation_id %in% sample(simulation_id, 2)) # Sélection de 2 simulations
+    filter(simulation_id %in% sample(simulation_id, 10)) # Sélection de 2 simulations
   
   # Création des vecteurs contenant les valeurs pour les boucles for 
   years <- sort(unique(results$year))         # Vecteur des années
@@ -1321,10 +1322,10 @@ deaths_transfer_3 <- function(scen) {
             TRUE ~ deaths
           ))
         
-        # Calculer les décès évités en alignant bien les valeurs du scénario "actuel"
+        # Calculer les décès évités pour l'année y et l'âge a
         results <- results %>%
           group_by(simulation_id, year, age) %>%
-          mutate(deaths_actuel = deaths[scenario == "actuel"]) %>%
+          mutate(deaths_actuel = first(deaths[scenario == "actuel"])) %>% # Colonne temporaire pour les décès actuels
           ungroup() %>%
           mutate(avoided_deaths = case_when(
             year == y & age == a ~ deaths_actuel - deaths,
@@ -1332,12 +1333,12 @@ deaths_transfer_3 <- function(scen) {
           )) %>%
           select(-deaths_actuel)  # Nettoyage de la colonne temporaire
         
-        # results <- results %>%
-        #     group_by(simulation_id) %>%
-        #     mutate(pop = case_when(
-        #       year == y + 1 & age > 18 & age < 105 ~ population + avoided_deaths[year == y & age == a - 1],
-        #       year == y + 1 & age == 105 ~ population + avoided_deaths[year == y & age == 105],
-        #       TRUE ~ population))
+        results <- results %>%
+          mutate(population = case_when(
+            year == y + 1 & age == a + 1 & age > 18 & age < 105 ~ population + avoided_deaths[year == y & age == a & simulation_id == simulation_id],
+            year == y + 1 & age == 105 ~ population + avoided_deaths[year == y & age == 105 & simulation_id == simulation_id],  
+            TRUE ~ population
+          ))
         
       }
     }
@@ -1346,6 +1347,71 @@ deaths_transfer_3 <- function(scen) {
   }
   
 deaths_sc1 <- deaths_transfer_3("sc1")
+
+library(data.table)
+
+
+deaths_transfer_optimized <- function(scen) {
+  
+  # Conversion en data.table
+  setDT(results)
+  
+  # Filtrer uniquement les scénarios nécessaires
+  results <- results[scenario %in% c(scen, "actuel")]
+  
+  # Boucle sur les années et les âges
+  for (y in years) {
+    for (a in ages) {
+      
+      # Mise à jour des décès pour l'année y et l'âge a
+      results[year == y & age == a, deaths := adjusted_mr * population, by = .(simulation_id, scenario)]
+      
+      # Calcul des décès évités
+      results[, deaths_actuel := deaths[scenario == "actuel"], by = .(simulation_id, year, age)]
+      results[year == y & age == a, avoided_deaths := deaths_actuel - deaths]
+      results[, deaths_actuel := NULL]  # Suppression de la colonne temporaire
+      
+      # Vérification des décès évités pour l'année et l'âge spécifiés
+      avoided_deaths_for_y_a <- results[year == y & age == a, sum(avoided_deaths, na.rm = TRUE)]
+      print(paste("Avoided deaths for year", y, "and age", a, ": ", avoided_deaths_for_y_a))
+      
+      # Transfert des décès évités pour l'année suivante et l'âge suivant
+      results[year == y & age == a, avoided_deaths_transfer := avoided_deaths]
+      
+      # Cas général : transfert des décès évités à (y+1, a+1) 
+      results[year == y + 1 & age == a + 1 & age > 18 & age < 105, 
+              population := population + avoided_deaths_transfer, 
+              by = simulation_id]
+      
+      # Cas spécifique : les 105 ans conservent les décès évités
+      results[year == y + 1 & age == 105, 
+              population := population + avoided_deaths_transfer, 
+              by = simulation_id]
+      
+      # Suppression de la colonne temporaire
+      results[, avoided_deaths_transfer := NULL]  
+    }
+  }
+  
+  # Vérification des résultats finaux
+  print(head(results))
+  
+  return(results)
+}
+
+
+
+deaths_sc1_opt <- deaths_transfer_optimized("sc1")
+
+# res_deaths <- deaths_sc1 %>% 
+#   bind_rows(deaths_sc2[scenario == "sc2"],
+#             deaths_sc3[scenario == "sc3"],
+#             deaths_sc4[scenario == "sc4"]) %>% 
+#   select(simulation_id, year, age, scenario, deaths, avoided_deaths)
+# 
+# tot_av_deaths <- res_deaths %>%
+#   pivot_wider(names_from = "year", values_from = "avoided_deaths") %>% 
+#   avoided_deaths = sum(c_across(!!sym(as.character(year_i - 20)) : !!sym(as.character(year_f + 2*ttfe_time))))
   
   
 ################################################################################################################################
