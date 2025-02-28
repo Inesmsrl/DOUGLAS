@@ -231,8 +231,8 @@ print(common_graph)
 ################################################################################################################################
 
 pop_sp <- population_evo %>% 
-  filter(year == 2035,
-         age == 60) 
+  filter(year == 2050,
+         age == 20) 
 
 yll_sp <- pop_sp %>% 
   group_by(scenario) %>% 
