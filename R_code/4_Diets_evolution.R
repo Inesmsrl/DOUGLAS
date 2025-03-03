@@ -1,0 +1,302 @@
+################################################################################################################################
+#                                             1. Chargement des packages                                                       #
+################################################################################################################################
+
+pacman::p_load(
+    rio, # Importation de fichiers
+    here, # Localisation des fichiers dans le dossier du projet
+    dplyr, # Manipulation des données
+    tidyr, # Manipulation des données
+    tidyverse # Data management, inclus ggplot
+)
+
+################################################################################################################################
+#                                             2. Importation des données                                                       #
+################################################################################################################################
+
+# Expositions : régimes SISAE en 2050
+diets <- import(here("data", "DOUGLAS_diets.xlsx"))
+
+################################################################################################################################
+#                                             3. Initialisation des paramètres                                                 #
+################################################################################################################################
+
+# Bornes temporelles des changements de régime alimentaire (années)
+year_i <- 2025 # Année initiale
+year_f <- 2050 # Année finale
+
+# Dynamique d'implémentation des régimes (immediate, linear, cosine, sigmoidal)
+implementation <- "cosine"
+
+# paramètre de la courbe d'interpolation cosinus
+p <- 1
+
+# paramètre de la courbe sigmoïdale
+lambda <- 8
+
+ttfe_time <- 10
+
+################################################################################################################################
+#                                             4. Charte graphique                                                              #
+################################################################################################################################
+
+# Couleur de chaque scénario
+col_scenario <- c(
+  "actuel" = "azure4",
+  "sc0" = "palevioletred3",
+  "sc1" = "aquamarine3",
+  "sc2" = "lightskyblue3",
+  "sc3" = "#882255",
+  "sc4" = "#DDCC77",
+  "sc5" = "royalblue4"
+)
+
+# Couleur de chaque groupe d'aliments
+col_food_groups <- c(
+  "red_meat" = "#F60239",
+  "processed_meat" = "#A40122",
+  "white_meat" = "#FF9DC8",
+  "dairy" = "#00489E",
+  "fish" = "#790149",
+  "eggs" = "#EF0096",
+  "fruits" = "#00735C",
+  "nuts" = "#FFAC3B",
+  "vegetables" = "#86FFDE",
+  "legumes" = "#00CBA7",
+  "whole_grains" = "#0079FA",
+  "reffined_grains" = "#00E5F8",
+  "added_plant_oils" = "#FF6E3A",
+  "sugar_sweetened_beverages" = "#004002"
+)
+
+# Ordonner les groupes alimentaires
+order_food_groups <- c(
+  "red_meat", "processed_meat", "white_meat", "fish", "eggs", "dairy",
+  "fruits", "vegetables", "legumes", "nuts", "whole_grains", "reffined_grains",
+  "added_plant_oils", "sugar_sweetened_beverages"
+)
+
+# Etiquettes des scénarios et groupes d'aliments
+labels_scenario <- c(
+  "actuel" = "Current diet",
+  "sc1" = "Scenario 1",
+  "sc2" = "Scenario 2",
+  "sc3" = "Scenario 3",
+  "sc4" = "Scenario 4"
+)
+
+labels_food_groups <- c(
+  "red_meat" = "Red meat",
+  "processed_meat" = "Processed meat",
+  "white_meat" = "White meat",
+  "dairy" = "Dairy",
+  "fish" = "Fish",
+  "eggs" = "Eggs",
+  "fruits" = "Fruits",
+  "nuts" = "Nuts",
+  "vegetables" = "Vegetables",
+  "legumes" = "Legumes",
+  "whole_grains" = "Whole grains",
+  "reffined_grains" = "Refined grains",
+  "added_plant_oils" = "Added plant oils",
+  "sugar_sweetened_beverages" = "SSB"
+)
+
+################################################################################################################################
+#                                             4. Fonctions d'implémentation des régimes                                        #
+################################################################################################################################
+
+# Implémentation linéaire
+calc_food_q_lin <- function(q_i, q_f, year_n, year_i, year_f) {
+    (q_f - q_i) / (year_f - year_i) * (year_n - year_f) + q_f
+}
+
+# Implémentation par interpolation cosinus
+calc_food_q_cos <- function(q_i, q_f, year_n, year_i, year_f, p) {
+    q_i + (q_f - q_i) * (1 - cos(pi * ((year_n - year_i) / (year_f - year_i))^p)) / 2
+}
+
+# Implémentation sigmoïdale
+calc_food_q_sig <- function(q_i, q_f, year_n, year_i, year_f, lambda) {
+    (q_i + q_f) / 2 + (q_f - q_i) * (1 / (1 + exp(-lambda * ((year_n - year_i) / (year_f - year_i) - 1 / 2))) - 1 / 2) * (-1 / (2 * (1 / (1 + exp(lambda / 2)) - 1 / 2)))
+}
+
+################################################################################################################################
+#                                             5. Evolution des régimes                                                         #
+################################################################################################################################
+
+# Calcul des quantités de chaque aliment consommées chaque année
+diets_evo <- diets %>%
+    select("food_group", "actuel", "sc1", "sc2", "sc3", "sc4") %>%
+    filter(food_group %in% c(
+        "red_meat", "processed_meat", "white_meat", "fish", "eggs", "dairy",
+        "fruits", "vegetables", "legumes", "nuts", "whole_grains", "reffined_grains",
+        "sugar_sweetened_beverages"
+    )) %>%
+    mutate(q_i = actuel) %>%
+    pivot_longer(
+        cols = c("actuel", "sc1", "sc2", "sc3", "sc4"),
+        names_to = "scenario",
+        values_to = "q_f"
+    ) %>%
+    crossing(year_n = (year_i - 2 * ttfe_time):(year_f + 2 * ttfe_time)) %>%
+    mutate(quantity = case_when(
+        implementation == "immediate" & year_n < year_i ~ q_i,
+        implementation == "immediate" & year_n >= year_i ~ q_f,
+        implementation == "linear" & year_n < year_i ~ q_i,
+        implementation == "linear" & year_n %in% c(year_i:year_f) ~ mapply(calc_food_q_lin, q_i, q_f, year_n, year_i, year_f),
+        implementation == "linear" & year_n > year_f ~ q_f,
+        implementation == "cosine" & year_n < year_i ~ q_i,
+        implementation == "cosine" & year_n %in% c(year_i:year_f) ~ mapply(calc_food_q_cos, q_i, q_f, year_n, year_i, year_f, p),
+        implementation == "cosine" & year_n > year_f ~ q_f,
+        implementation == "sigmoidal" & year_n < year_i ~ q_i,
+        implementation == "sigmoidal" & year_n %in% c(year_i:year_f) ~ mapply(calc_food_q_sig, q_i, q_f, year_n, year_i, year_f, lambda),
+        implementation == "sigmoidal" & year_n > year_f ~ q_f
+    )) %>%
+    select("food_group", "scenario", "year_n", "quantity") %>%
+    rename("year" = "year_n")
+
+# Ordonnner les groupes alimentaires
+diets_evo$food_group <- factor(diets_evo$food_group, levels = order_food_groups)
+
+# Visualisation graphique des consommations sur toute la période
+graph_diets_evo <- ggplot(
+  data = diets_evo %>%
+    filter(scenario != "actuel"),
+  aes(
+    x = year,
+    y = quantity,
+    fill = food_group
+  )
+) +
+  geom_area(colour = "black", linewidth = 0.2, alpha = 0.6) +
+  facet_wrap(~scenario,
+    ncol = 2,
+    labeller = labeller(scenario = labels_scenario)
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 60, hjust = 1, size = 9),
+    axis.text.y = element_text(size = 9),
+    strip.text = element_text(face = "bold", size = rel(0.8)),
+    legend.position = "bottom",
+    legend.text = element_text(size = 10),
+    legend.title = element_text(face = "bold", size = 12),
+    legend.key.size = unit(0.3, "cm"),
+    plot.margin = margin(0.2, 0.5, 0.2, 0.5, "cm")
+  ) +
+  scale_fill_manual(
+    values = col_food_groups,
+    labels = labels_food_groups
+  ) +
+  labs(
+    title = "",
+    x = "",
+    y = "Intakes (g/d/pers)",
+    fill = "Food type"
+  ) +
+  guides(fill = guide_legend(
+    nrow = 2,
+    title.position = "top",
+    title.hjust = 0.5
+  ))
+
+diets_evo_shift <- diets_evo %>%
+  filter(year %in% c(year_i:year_f))
+
+# Visualisation graphique des consommations sur la période de changement de régime
+graph_diets_evo_shift <- ggplot(data = diets_evo_shift, aes(
+  x = year,
+  y = quantity,
+  fill = food_group
+)) +
+  geom_area(colour = "black", linewidth = 0.2, alpha = 0.6) +
+  facet_wrap(~scenario,
+    ncol = 3,
+    labeller = labeller(scenario = labels_scenario)
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+    axis.text.y = element_text(size = 7),
+    strip.text = element_text(face = "bold", size = rel(0.8)),
+    legend.position = "bottom",
+    legend.text = element_text(size = 9),
+    legend.title = element_text(face = "bold", size = 10),
+    legend.key.size = unit(0.3, "cm"),
+    plot.margin = margin(0.2, 0.5, 0.2, 0.5, "cm")
+  ) +
+  scale_fill_manual(
+    values = col_food_groups,
+    labels = labels_food_groups
+  ) +
+  labs(
+    title = "",
+    x = "",
+    y = "Intakes (g/d/pers)",
+    fill = "Food type"
+  ) +
+  guides(fill = guide_legend(
+    nrow = 2,
+    title.position = "top",
+    title.hjust = 0.5
+  ))
+
+
+################################################################################################################################
+#                                             5. Variations des consommations par rapport au baseline                          #
+################################################################################################################################
+
+# Calcul des variations de consommation de chaque aliment par rapport au régime actuel (%)
+diets_var <- diets_evo %>%
+    group_by(food_group, year) %>%
+    mutate(var = (quantity - quantity[scenario == "actuel"]) / quantity[scenario == "actuel"] * 100)
+
+# Visualisation graphique des variations de consommation sur toute la période
+graph_diets_var <- ggplot(
+  diets_var %>%
+    filter(scenario != "actuel"),
+  aes(
+    x = year,
+    y = var,
+    color = food_group
+  )
+) +
+  facet_wrap(~scenario,
+    labeller = labeller(scenario = labels_scenario)
+  ) +
+  geom_line(linewidth = 0.8, na.rm = TRUE) +
+  labs(
+    title = "",
+    x = "",
+    y = "Variations of food intake (%)",
+    color = "Food group"
+  ) +
+  scale_color_manual(
+    values = col_food_groups,
+    labels = labels_food_groups
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+    axis.text.y = element_text(size = 7),
+    strip.text = element_text(face = "bold", size = rel(1)),
+    legend.position = "bottom"
+  ) +
+  guides(color = guide_legend(
+    nrow = 3,
+    title.position = "top",
+    title.hjust = 0.5
+  ))
+
+
+################################################################################################################################
+#                                             6. Exportation des données                                                      #
+################################################################################################################################
+
+# Implémentation des régimes
+# Quantités (g/j/pers)
+    export(diets_evo, here("results", "diets", "diets_rr_evo.csv"))
+    ggsave(here("results", "diets", "diets_evo.pdf"), graph_diets_evo)
+    ggsave(here("results", "diets", "diets_evo_shift.pdf"), graph_diets_evo_shift)
+
+# Variations (%)
+    export(diets_var, here("results", "diets", "diets_rr_var.csv"))
+    ggsave(here("results", "diets", "diets_var.pdf"), graph_diets_var)

@@ -11,13 +11,16 @@ pacman::p_load(
   patchwork            # Combinaison de graphes
 )
 
-
 ################################################################################################################################
 #                                             2. Importation des données                                                       #
 ################################################################################################################################
 
-population_evo <- import(here("results", "visualization_tool_ic95_sim", "avoided_deaths.csv"))
+deaths_data <- import(here("results","Main analysis", "data_python.csv"))
 
+
+################################################################################################################################
+#                                             3. Charte graphique                                                              #
+################################################################################################################################
 col_scenario <- c("actuel" = "azure4",
                   "sc0" = "palevioletred3",
                   "sc1" = "aquamarine3",
@@ -36,7 +39,7 @@ labels_scenario <- c("actuel" = "Current diet",
 #                                             3. Espérance de vie conditionnelle                                               #
 ################################################################################################################################
 
-population_evo <- population_evo %>% 
+deaths_data <- deaths_data %>%  
   select("age", "year", "scenario", "simulation_id", "adjusted_mr", "population", "deaths", "avoided_deaths")
 
 calc_conditional_LE <- function(df) {
@@ -55,90 +58,19 @@ calc_conditional_LE <- function(df) {
     ) 
 }
 
-population_evo <- calc_conditional_LE(population_evo)
+deaths_data <- calc_conditional_LE(deaths_data)
 
-population_evo <- population_evo %>% 
+deaths_data <- deaths_data %>% 
   group_by(age, year, scenario, simulation_id) %>% 
   mutate(le = age + ex,
          ylg = avoided_deaths * (le - age)) %>% 
   select(simulation_id, age, year, scenario, deaths, avoided_deaths, le, ylg)
 
 ################################################################################################################################
-#                                             4. Années de vie préservées                                                      #
+#                                             4. Espérance de vie gagnée                                                       #
 ################################################################################################################################
 
-yll <- population_evo %>% 
-  group_by(simulation_id, scenario, year) %>% 
-  summarise(yll = sum(ylg))
-
-yll <- yll %>% 
-  group_by(scenario, year) %>% 
-  filter(between(yll, quantile(yll, 0.025), quantile(yll, 0.975)))
-
-summary_yll <- yll %>% 
-  group_by(scenario, year) %>% 
-  summarise(
-    mean_yll = mean(yll, na.rm = TRUE),
-    lower_ci = quantile(yll, 0.025, na.rm = TRUE),
-    upper_ci = quantile(yll, 0.975, na.rm = TRUE)
-  )
-
-graph_yll <- ggplot(summary_yll %>% 
-                                        filter(scenario != "actuel"),
-                                      aes(x = year,
-                                          y = mean_yll,
-                                          group = scenario,
-                                          color = scenario)) +
-  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5, linetype = 0)+
-  geom_line(linewidth = 0.6, na.rm = TRUE)+ 
-  labs(
-    title = "",
-    x = "",
-    y = "YLL prevented"
-  )+
-  scale_color_manual(values = col_scenario,
-                     labels = labels_scenario)+
-  scale_fill_manual(values = col_scenario,
-                    labels = labels_scenario)+
-  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-        axis.text.y = element_text(size = 7),
-        strip.text = element_text(face = "bold",size = rel(1)),
-        legend.position = "bottom")+
-  guides(color = guide_legend(title = NULL),
-         fill = guide_legend(title = NULL))
-
-graph_yll_dates <- ggplot(summary_yll %>% 
-         filter(year %in% c(2040, 2050, 2060),
-                scenario %in% c("sc1", "sc2")),
-       aes(x = scenario,
-           y = mean_yll,
-           fill = scenario))+
-  geom_bar(stat = "identity",
-           position = "dodge",
-           alpha = 0.7)+
-  geom_errorbar(aes(ymin = lower_ci,
-                    ymax = upper_ci),
-                width = 0.2,
-                position = position_dodge(0.9))+
-  facet_wrap(~year,
-             ncol = 3)+
-  scale_y_continuous(labels = scales :: label_comma())+
-  scale_fill_manual(values = col_scenario,
-                     labels = labels_scenario)+
-  theme(axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        legend.position = "bottom")+
-  labs(title = "",
-       x = "",
-       y = "YLL preserved")+
-  guides(fill = guide_legend(title = NULL))
-
-            
-################################################################################################################################
-#                                             5. Espérance de vie gagnée                                                       #
-################################################################################################################################
-
-le <- population_evo %>% 
+le <- deaths_data %>% 
   group_by(simulation_id, year, scenario) %>% 
   summarise(le_year = mean(le)) %>% 
   mutate(leg = (le_year - le_year[scenario == "actuel"])*12)
@@ -155,8 +87,12 @@ summary_le <- le %>%
     upper_ci = quantile(leg, 0.975, na.rm = TRUE)
   )
 
+################################################################################################################################
+#                                             5. Figures : Espérance de vie gagnée                                             #
+################################################################################################################################
+
 graph_le <- ggplot(summary_le %>% 
-                      filter(scenario %in% c("sc1", "sc2")),
+                      filter(scenario != "actuel"),
                     aes(x = year,
                         y = mean_le,
                         group = scenario,
@@ -203,6 +139,80 @@ graph_le_dates <- ggplot(summary_le %>%
   labs(title = "",
        x = "",
        y = "LE gained (months)")+
+  guides(fill = guide_legend(title = NULL))
+ 
+################################################################################################################################
+#                                             6. Années de vie préservées                                                      #
+################################################################################################################################
+
+yll <- deaths_data %>% 
+  group_by(simulation_id, scenario, year) %>% 
+  summarise(yll = sum(ylg))
+
+yll <- yll %>% 
+  group_by(scenario, year) %>% 
+  filter(between(yll, quantile(yll, 0.025), quantile(yll, 0.975)))
+
+summary_yll <- yll %>% 
+  group_by(scenario, year) %>% 
+  summarise(
+    mean_yll = mean(yll, na.rm = TRUE),
+    lower_ci = quantile(yll, 0.025, na.rm = TRUE),
+    upper_ci = quantile(yll, 0.975, na.rm = TRUE)
+  )
+
+################################################################################################################################
+#                                             7. Figures : Années de vie préservées                                                      #
+################################################################################################################################
+
+graph_yll <- ggplot(summary_yll %>% 
+                                        filter(scenario != "actuel"),
+                                      aes(x = year,
+                                          y = mean_yll,
+                                          group = scenario,
+                                          color = scenario)) +
+  geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5, linetype = 0)+
+  geom_line(linewidth = 0.6, na.rm = TRUE)+ 
+  labs(
+    title = "",
+    x = "",
+    y = "YLL prevented"
+  )+
+  scale_color_manual(values = col_scenario,
+                     labels = labels_scenario)+
+  scale_fill_manual(values = col_scenario,
+                    labels = labels_scenario)+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+        axis.text.y = element_text(size = 7),
+        strip.text = element_text(face = "bold",size = rel(1)),
+        legend.position = "bottom")+
+  guides(color = guide_legend(title = NULL),
+         fill = guide_legend(title = NULL))
+
+graph_yll_dates <- ggplot(summary_yll %>% 
+         filter(year %in% c(2040, 2050, 2060),
+                scenario != "actuel"),
+       aes(x = scenario,
+           y = mean_yll,
+           fill = scenario))+
+  geom_bar(stat = "identity",
+           position = "dodge",
+           alpha = 0.7)+
+  geom_errorbar(aes(ymin = lower_ci,
+                    ymax = upper_ci),
+                width = 0.2,
+                position = position_dodge(0.9))+
+  facet_wrap(~year,
+             ncol = 3)+
+  scale_y_continuous(labels = scales :: label_comma())+
+  scale_fill_manual(values = col_scenario,
+                     labels = labels_scenario)+
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = "bottom")+
+  labs(title = "",
+       x = "",
+       y = "YLL preserved")+
   guides(fill = guide_legend(title = NULL))
 
 ################################################################################################################################
@@ -318,15 +328,16 @@ graph_le_sp <- ggplot(summary_le_sp %>%
 #                                             9. Exportation des données                                                       #
 ################################################################################################################################
 
-# YLL
-export(summary_yll, here("results", "IC95_yll.xlsx"))
-ggsave(here("results", "yll_reported.pdf"), plot = graph_yll)
-ggsave(here("results", "yll_reported_dates.pdf"), plot = graph_yll_dates)
-
 # LE
-export(summary_le, here("results", "IC95_LE_gained.xlsx"))
-ggsave(here("results", "LE_gained.pdf"), plot = graph_le)
-ggsave(here("results", "LE_gaines_dates.pdf"), plot = graph_le_dates)
+export(summary_le, here("results", "HIA", "IC95_LE_gained.xlsx"))
+ggsave(here("results","HIA", "LE_gained.pdf"), plot = graph_le)
+ggsave(here("results","HIA", "LE_gaines_dates.pdf"), plot = graph_le_dates)
+
+# YLL
+export(summary_yll, here("results", "HIA", "IC95_yll.xlsx"))
+ggsave(here("results", "HIA", "yll_reported.pdf"), plot = graph_yll)
+ggsave(here("results", "HIA", "yll_reported_dates.pdf"), plot = graph_yll_dates)
+
 
 # YLL pour un âge et une année spécifique 
 export(summary_yll_sp, here("results", "IC95_yll_sp.xlsx"))
