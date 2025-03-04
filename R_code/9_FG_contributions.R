@@ -22,6 +22,9 @@ rr_evo_food_combined <- import(here("results", "RR", "rr_evo_fg.csv"))
 # Variations des consommations alimentaires
 diets_var <- import(here("results", "diets", "diets_rr_var.csv"))
 
+# Décès totaux par scénario
+simulations_summary_total_deaths <- import(here("results", "HIA", "IC95_tot_deaths.xlsx"))
+
 ################################################################################################################################
 #                                             3. Initialisation des paramètres                                                 #
 ################################################################################################################################
@@ -116,8 +119,6 @@ contrib <- simulations_summary_rr_fg_relative %>%
 #                                             7. Forest plots                                                                  #
 ################################################################################################################################
 
-# Ordonner les groupes alimentaires
-contrib$food_group <- factor(contrib$food_group, levels = order_food_groups)
 
 # Forestplot
 forest_plot_contrib <- function(scen) {
@@ -140,7 +141,7 @@ forest_plot_contrib <- function(scen) {
 
   forest(
     data = setNames(
-      data.frame(contrib_scen$food_group, diets_var_scen$var, ""),
+      data.frame(diets_var_scen$food_group, diets_var_scen$var, ""),
       c("Food Group", "Intake variation (%)", "                                              ")
     ),
     est = contrib_scen$delta,
@@ -148,7 +149,7 @@ forest_plot_contrib <- function(scen) {
     upper = contrib_scen$delta_upp,
     ci_column = 3,
     ref_line = 0,
-    xlim = c(-6, 6),
+    xlim = c(-8, 5),
     xlab = "Contribution to the health impact (%)",
     title = paste("2050 - ", labels_scenario[scen]),
     footnote = "SSB = Sugar-sweetened beverages",
@@ -167,7 +168,6 @@ forest_sc2 <- forest_plot_contrib("sc2")
 forest_sc3 <- forest_plot_contrib("sc3")
 forest_sc4 <- forest_plot_contrib("sc4")
 
-
 ################################################################################################################################
 #                                             8. Tableau                                                                       #
 ################################################################################################################################
@@ -179,7 +179,7 @@ summary_contrib <- contrib %>%
   inner_join(diets_var, by = c("scenario", "year", "food_group")) %>%
   group_by("scenario", "year", "food_group") %>%
   mutate(
-    deaths = delta * mean_total_deaths / 100,
+    deaths = delta * mean_tot_deaths / 100,
     var = percent(var / 100, accuracy = 0.1),
     delta = percent(delta / 100, accuracy = 0.1)
   ) %>%
@@ -260,3 +260,6 @@ ggsave(here("results", "contributions", "forest_sc1.pdf"), forest_sc1)
 ggsave(here("results", "contributions", "forest_sc2.pdf"), forest_sc2)
 ggsave(here("results", "contributions", "forest_sc3.pdf"), forest_sc3)
 ggsave(here("results", "contributions", "forest_sc4.pdf"), forest_sc4)
+
+# Tableau contributions 2050
+save_as_image(contrib_2050, here("results", "contributions", "contributions_2050.png"))
