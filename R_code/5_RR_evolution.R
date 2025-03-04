@@ -6,7 +6,8 @@ pacman::p_load(
     rio, # Importation de fichiers
     here, # Localisation des fichiers dans le dossier du projet
     dplyr, # Manipulation des données
-    tidyr # Manipulation des données
+    tidyr, # Manipulation des données
+    tidyverse # Contient ggplot
 )
 
 ################################################################################################################################
@@ -204,7 +205,10 @@ diets_evo <- diets_evo %>%
 # Le RR d'un aliment une année n est la moyenne des RR de cet aliment générés avec le TTFE pour cette année
 rr_evo_food_combined <- diets_evo %>%
   group_by(scenario, year_n, food_group, simulation_id) %>%
-  summarize(mean_rr = sum(rr_n, na.rm = TRUE) / sum(ttfe$ttfe, na.rm = TRUE))
+  summarize(
+    mean_rr = sum(rr_n, na.rm = TRUE) / sum(ttfe$ttfe[match(pmin(year_n - year, ttfe_time), ttfe$time)], na.rm = TRUE),
+    .groups = "drop"
+  )
 
 # Calculer la moyenne et les IC95 pour chaque année
 simulations_summary_rr_fg_combined <- rr_evo_food_combined %>%
@@ -295,7 +299,7 @@ graph_rr_diets <- ggplot(simulations_summary_rr_diets, aes(
   facet_wrap(~scenario,
     labeller = labeller(scenario = labels_scenario)
   ) +
-  geom_line(size = 1, na.rm = TRUE) +
+  geom_line(linewidth = 1, na.rm = TRUE) +
   labs(
     title = "",
     x = "",

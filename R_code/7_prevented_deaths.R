@@ -15,7 +15,7 @@ pacman::p_load(
 ################################################################################################################################
 
 # Décès et décès évités par age et année
-deaths_data <- import(here("results","Main analysis", "data_python.csv"))
+deaths_data <- import(here("Python_code", "data_python.csv"))
 
 ################################################################################################################################
 #                                             3. Initialisation des paramètres                                                 #
