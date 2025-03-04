@@ -36,10 +36,10 @@ ttfe_time <- 10
 col_scenario <- c(
   "actuel" = "azure4",
   "sc0" = "palevioletred3",
-  "sc1" = "aquamarine3",
-  "sc2" = "lightskyblue3",
-  "sc3" = "#882255",
-  "sc4" = "#DDCC77",
+  "sc1" = "#699cc2",
+  "sc2" = "#974175",
+  "sc3" = "#50cd9f",
+  "sc4" = "#cb6c2d",
   "sc5" = "royalblue4"
 )
 
@@ -95,7 +95,7 @@ labels_food_groups <- c(
 )
 
 ################################################################################################################################
-#                                             5. Total des décès évités par rapport au baseline                                #
+#                                             5. Total des décès par rapport au baseline                                #
 ################################################################################################################################
 
 # Eliminer Les valeurs 5% les plus extrêmes
@@ -103,6 +103,23 @@ deaths_data <- deaths_data %>%
   group_by(scenario, year, age) %>%
   filter(between(deaths, quantile(deaths, 0.025), quantile(deaths, 0.975)))
 
+# Calcul du total des décès / an / scenario
+tot_deaths <- deaths_data %>%
+  group_by(scenario, year, simulation_id) %>%
+  summarise(total_deaths = sum(deaths, na.rm = TRUE))
+
+# Calcul de la moyenne et des IC95
+simulations_summary_tot_deaths <- tot_deaths %>%
+  group_by(scenario, year) %>%
+  summarise(
+    mean_tot_deaths = mean(total_deaths, na.rm = TRUE),
+    lower_ci = quantile(total_deaths, 0.025, na.rm = TRUE), # Limite inférieure de l'IC à 95%
+    upper_ci = quantile(total_deaths, 0.975, na.rm = TRUE) # Limite supérieure de l'IC à 95%
+  )
+
+################################################################################################################################
+#                                             6. Total des décès évités par rapport au baseline                                #
+################################################################################################################################
 
 # Calcul du total des décès évités / an / scenario
 tot_av_deaths <- deaths_data %>%
@@ -119,7 +136,7 @@ simulations_summary_tot_av_deaths <- tot_av_deaths %>%
   )
 
 ################################################################################################################################
-#                                             6. Figures : décès évités                                                        #
+#                                             7. Figures : décès évités                                                        #
 ################################################################################################################################
 
 graph_tot_av_deaths <- ggplot(
@@ -205,9 +222,15 @@ graph_tot_av_deaths_dates <- ggplot(
 
 
 ################################################################################################################################
-#                                             7. Exportation des données                                                      #
+#                                             8. Exportation des données                                                      #
 ################################################################################################################################
 
+# Total des décès
+export(tot_deaths, here("results", "HIA", "tot_deaths.csv"))
+export(simulations_summary_tot_deaths, here("results", "HIA", "IC95_tot_deaths.xlsx"))
+
+# Total des décès évités
+export(tot_av_deaths, here("results", "HIA", "tot_deaths_prev.csv"))
 export(simulations_summary_tot_av_deaths, here("results", "HIA", "tot_deaths_prev.csv"))
 
 ggsave(here("results", "HIA", "tot_deaths_prev.pdf"), graph_tot_av_deaths)

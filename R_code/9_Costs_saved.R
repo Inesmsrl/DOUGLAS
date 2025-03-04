@@ -15,7 +15,7 @@ pacman::p_load(
 #                                             2. Importation des données                                                       #
 ################################################################################################################################
 
-yll <- import(here("results", "IC95_yll.xlsx"))
+yll <- import(here("results", "HIA", "IC95_yll.xlsx"))
 
 cost_2040 <- 188000
 
@@ -49,7 +49,7 @@ costs <- costs %>%
   filter(year %in% c(2040, 2050, 2060))
   
 graph_yll_costs_dates <- ggplot(costs %>% 
-                                  filter(scenario %in% c("sc1", "sc2")),
+                                  filter(scenario != "actuel"),
                             aes(x = scenario,
                                 y = costs,
                                 fill = scenario))+
@@ -77,6 +77,6 @@ graph_yll_costs_dates <- ggplot(costs %>%
 #                                             4. Exportation des données                                                       #
 ################################################################################################################################
 
-export(costs, here("results", "IC958_costs_avoided.xlsx"))
-ggsave(here("results", "costs_avoided_dates.pdf"), plot = graph_yll_costs_dates)  
+export(costs, here("results", "HIA", "IC95_costs_avoided.xlsx"))
+ggsave(here("results", "HIA", "costs_avoided_dates.pdf"), plot = graph_yll_costs_dates)  
 

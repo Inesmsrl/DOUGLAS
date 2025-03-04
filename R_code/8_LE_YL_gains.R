@@ -15,19 +15,21 @@ pacman::p_load(
 #                                             2. Importation des données                                                       #
 ################################################################################################################################
 
-deaths_data <- import(here("results","Main analysis", "data_python.csv"))
+deaths_data <- import(here("Python_code", "data_python.csv"))
 
 
 ################################################################################################################################
 #                                             3. Charte graphique                                                              #
 ################################################################################################################################
-col_scenario <- c("actuel" = "azure4",
-                  "sc0" = "palevioletred3",
-                  "sc1" = "aquamarine3",
-                  "sc2" = "lightskyblue3",
-                  "sc3" = "#882255",
-                  "sc4" = "#DDCC77",
-                  "sc5" = "royalblue4")
+col_scenario <- c(
+  "actuel" = "azure4",
+  "sc0" = "palevioletred3",
+  "sc1" = "#699cc2",
+  "sc2" = "#974175",
+  "sc3" = "#50cd9f",
+  "sc4" = "#cb6c2d",
+  "sc5" = "royalblue4"
+)
 
 labels_scenario <- c("actuel" = "Current diet",
                      "sc1" = "Scenario 1",
@@ -216,12 +218,11 @@ graph_yll_dates <- ggplot(summary_yll %>%
   guides(fill = guide_legend(title = NULL))
 
 ################################################################################################################################
-#                                             6. Figure bénéfices en 2040, 2050, 2060                                          #
+#                                             6. Figure : Bénéfices en 2040, 2050, 2060                                          #
 ################################################################################################################################
 
 # Faire tourner les codes avoir les graphes des décès reportés et des coûts évités
-
-list_graph <- list(graph_avoided_deaths_dates, graph_yll_dates, graph_le_dates, graph_yll_costs_dates)
+list_graph <- list(graph_tot_av_deaths_dates, graph_yll_dates, graph_le_dates, graph_yll_costs_dates)
 
 common_theme <- theme(
   axis.title = element_text(size = 7, face = "bold"),
@@ -348,4 +349,4 @@ export(summary_le_sp, here("results", "IC95_LE_sp.xlsx"))
 ggsave(here("results", "LE_sp.pdf"), plot = graph_le_sp)
 
 # Décès évités, YLL, LE, Couts en 2040, 2050, 2060
-ggsave(here("results", "HIA_dates.pdf"), plot = common_graph)
+ggsave(here("results", "HIA", "HIA_dates.pdf"), plot = common_graph)
