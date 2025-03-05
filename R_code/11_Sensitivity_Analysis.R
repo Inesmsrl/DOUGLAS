@@ -17,13 +17,19 @@ pacman::p_load(
 
 sensi_data <- import(here("data", "sensitivity_analysis_2.xlsx"))
 
-col_scenario <- c("actuel" = "azure4",
-                  "sc0" = "palevioletred3",
-                  "sc1" = "aquamarine3",
-                  "sc2" = "lightskyblue3",
-                  "sc3" = "#882255",
-                  "sc4" = "#DDCC77",
-                  "sc5" = "royalblue4")
+################################################################################################################################
+#                                             3. Charte graphique                                                              #
+################################################################################################################################
+
+col_scenario <- c(
+  "actuel" = "azure4",
+  "sc0" = "palevioletred3",
+  "sc1" = "#699cc2",
+  "sc2" = "#974175",
+  "sc3" = "#50cd9f",
+  "sc4" = "#cb6c2d",
+  "sc5" = "royalblue4"
+)
 
 labels_scenario <- c("actuel" = "BAU",
                      "sc1" = "Scenario 1",
@@ -46,7 +52,7 @@ order_scenarios <- c("sc1", "sc2", "sc3", "sc4")
 sensi_data$scenario <- factor(sensi_data$scenario, levels = order_scenarios)
 
 ################################################################################################################################
-#                                             3. Représentation graphique                                                      #
+#                                             4. Représentation graphique                                                      #
 ################################################################################################################################
 
 graph_sensi <- ggplot(sensi_data %>% 
@@ -84,7 +90,7 @@ graph_sensi <- ggplot(sensi_data %>%
   guides(color = guide_legend(title = NULL))
 
 ################################################################################################################################
-#                                             4. Tableau                                                      #
+#                                             5. Tableau                                                      #
 ################################################################################################################################
 
 sensi_data_table <- sensi_data %>%
@@ -95,7 +101,7 @@ sensi_data_table <- sensi_data %>%
 
 
 ################################################################################################################################
-#                                             5. Exportation des données                                                      #
+#                                             6. Exportation des données                                                      #
 ################################################################################################################################
 
 ggsave(here("results", "sensitivity_analysis.pdf"), graph_sensi)

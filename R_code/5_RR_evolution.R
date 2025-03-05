@@ -54,36 +54,36 @@ lambda_ttfe <- 8
 eta_ttfe <- 1
 
 ################################################################################################################################
-#                                             3. Charte graphique                                                              #
+#                                             4. Charte graphique                                                              #
 ################################################################################################################################
 
 # Couleur de chaque scénario
 col_scenario <- c(
   "actuel" = "azure4",
   "sc0" = "palevioletred3",
-  "sc1" = "aquamarine3",
-  "sc2" = "lightskyblue3",
-  "sc3" = "#882255",
-  "sc4" = "#DDCC77",
+  "sc1" = "#699cc2",
+  "sc2" = "#974175",
+  "sc3" = "#50cd9f",
+  "sc4" = "#cb6c2d",
   "sc5" = "royalblue4"
 )
 
 # Couleur de chaque groupe d'aliments
 col_food_groups <- c(
-  "red_meat" = "#F60239",
-  "processed_meat" = "#A40122",
+  "red_meat" = "#ff1047",
+  "processed_meat" = "#650115",
   "white_meat" = "#FF9DC8",
-  "dairy" = "#00489E",
-  "fish" = "#790149",
-  "eggs" = "#EF0096",
-  "fruits" = "#00735C",
-  "nuts" = "#FFAC3B",
-  "vegetables" = "#86FFDE",
-  "legumes" = "#00CBA7",
-  "whole_grains" = "#0079FA",
-  "reffined_grains" = "#00E5F8",
+  "dairy" = "#022f66",
+  "fish" = "#4993a2",
+  "eggs" = "#ff764d",
+  "fruits" = "#00CBA7",
+  "nuts" = "#ffc744",
+  "vegetables" = "#00735C",
+  "legumes" = "#703895",
+  "whole_grains" = "#572d00",
+  "reffined_grains" = "#cbb4a1",
   "added_plant_oils" = "#FF6E3A",
-  "sugar_sweetened_beverages" = "#004002"
+  "sugar_sweetened_beverages" = "#1b1b1b"
 )
 
 # Ordonner les groupes alimentaires
@@ -93,7 +93,7 @@ order_food_groups <- c(
   "added_plant_oils", "sugar_sweetened_beverages"
 )
 
-# Etiquettes des scénarios et groupes d'aliments
+# Etiquettes des scénarios
 labels_scenario <- c(
   "actuel" = "Current diet",
   "sc1" = "Scenario 1",
@@ -102,6 +102,7 @@ labels_scenario <- c(
   "sc4" = "Scenario 4"
 )
 
+# Etiquettes des groupes alimentaires
 labels_food_groups <- c(
   "red_meat" = "Red meat",
   "processed_meat" = "Processed meat",
@@ -120,7 +121,7 @@ labels_food_groups <- c(
 )
 
 ################################################################################################################################
-#                                             4. Préparation des données                                                       #
+#                                             5. Préparation des données                                                       #
 ################################################################################################################################
 
 # Renommer la variable RR
@@ -128,7 +129,7 @@ rr_table <- rr_table %>%
   rename("rr" = "rr_interpolated")
 
 ################################################################################################################################
-#                                             5. Modification d'effet des RR                                                   #
+#                                             6. Modification d'effet des RR                                                   #
 ################################################################################################################################
 
 # Application du modification d'effet des RR (m)
@@ -141,7 +142,7 @@ rr_table <- rr_table %>%
   rename("rr" = "rr_a")
 
 ################################################################################################################################
-#                                             6. Attribution des RR à chaque régime                                            #
+#                                             7. Attribution des RR à chaque régime                                            #
 ################################################################################################################################
 
 # Quantités arrondies à l'unité pour matcher avec le tableau des RR
@@ -160,7 +161,7 @@ simulations_summary <- diets_evo %>%
   )
 
 ################################################################################################################################
-#                                             7. TTFE                                                                          #
+#                                             8. TTFE                                                                          #
 ################################################################################################################################
 
 # Durée du TTFE
@@ -182,7 +183,7 @@ ttfe <- ttfe %>%
   ))
 
 ################################################################################################################################
-#                                             7. Calcul des RR avec TTFE                                                       #
+#                                             9. Calcul des RR avec TTFE                                                       #
 ################################################################################################################################
 
 # Calcul de la valeur des RR sur la durée du TTFE
@@ -199,7 +200,7 @@ diets_evo <- diets_evo %>%
   ungroup()
 
 ################################################################################################################################
-#                                             8. Combinaison des RR de chaque aliment par année                                #
+#                                             10. Combinaison des RR de chaque aliment par année                                #
 ################################################################################################################################
 
 # Le RR d'un aliment une année n est la moyenne des RR de cet aliment générés avec le TTFE pour cette année
@@ -220,7 +221,7 @@ simulations_summary_rr_fg_combined <- rr_evo_food_combined %>%
   )
 
 ################################################################################################################################
-#                                             9. Figures : RR des groupes alimentaires                                         #
+#                                             11. Figures : RR des groupes alimentaires                                         #
 ################################################################################################################################
 
 
@@ -260,7 +261,7 @@ graph_rr_sc3 <- graph_rr_fg("sc3")
 graph_rr_sc4 <- graph_rr_fg("sc4")
 
 ################################################################################################################################
-#                                             9. Combinaison des RR de chaque régime par année                                #
+#                                             12. Combinaison des RR de chaque régime par année                                #
 ################################################################################################################################
 
 # Le RR d'un régime complet est calculé comme le produit des RR de chaque aliment pour une année
@@ -287,7 +288,7 @@ simulations_summary_rr_diets <- rr_evo_diets %>%
   )
 
 ################################################################################################################################
-#                                             9. Figures : RR des régimes                                                      #
+#                                             13. Figures : RR des régimes                                                      #
 ################################################################################################################################
 
 graph_rr_diets <- ggplot(simulations_summary_rr_diets, aes(
@@ -314,7 +315,7 @@ graph_rr_diets <- ggplot(simulations_summary_rr_diets, aes(
     legend.position = "none"
   )
 ################################################################################################################################
-#                                             10. RR relatif au RR actuel                                                      #
+#                                             14. RR relatif au RR actuel                                                      #
 ################################################################################################################################
 
 # Calcul des RR des régimes complets relatifs aux RR du scénario actuel
@@ -340,7 +341,7 @@ simulations_summary_rr_diets_relative <- rr_evo_diets %>%
   )
 
 ################################################################################################################################
-#                                             . Figures : RR des régimes relatifs au baseline                                  #
+#                                             15. Figures : RR des régimes relatifs au baseline                                  #
 ################################################################################################################################
 
 
@@ -382,7 +383,7 @@ graph_rr_diets_rel <- ggplot(
   )
 
 ################################################################################################################################
-#                                             11. Exportation des données                                                      #
+#                                             16. Exportation des données                                                      #
 ################################################################################################################################
 
 # RR des groupes alimentaires

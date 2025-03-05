@@ -34,39 +34,29 @@ p <- 1
 # paramètre de la courbe sigmoïdale
 lambda <- 8
 
+# Durée du time to full effect (années)
 ttfe_time <- 10
 
 ################################################################################################################################
 #                                             4. Charte graphique                                                              #
 ################################################################################################################################
 
-# Couleur de chaque scénario
-col_scenario <- c(
-  "actuel" = "azure4",
-  "sc0" = "palevioletred3",
-  "sc1" = "aquamarine3",
-  "sc2" = "lightskyblue3",
-  "sc3" = "#882255",
-  "sc4" = "#DDCC77",
-  "sc5" = "royalblue4"
-)
-
 # Couleur de chaque groupe d'aliments
 col_food_groups <- c(
-  "red_meat" = "#F60239",
-  "processed_meat" = "#A40122",
+  "red_meat" = "#ff1047",
+  "processed_meat" = "#650115",
   "white_meat" = "#FF9DC8",
-  "dairy" = "#00489E",
-  "fish" = "#790149",
-  "eggs" = "#EF0096",
-  "fruits" = "#00735C",
-  "nuts" = "#FFAC3B",
-  "vegetables" = "#86FFDE",
-  "legumes" = "#00CBA7",
-  "whole_grains" = "#0079FA",
-  "reffined_grains" = "#00E5F8",
+  "dairy" = "#022f66",
+  "fish" = "#4993a2",
+  "eggs" = "#ff764d",
+  "fruits" = "#00CBA7",
+  "nuts" = "#ffc744",
+  "vegetables" = "#00735C",
+  "legumes" = "#703895",
+  "whole_grains" = "#572d00",
+  "reffined_grains" = "#cbb4a1",
   "added_plant_oils" = "#FF6E3A",
-  "sugar_sweetened_beverages" = "#004002"
+  "sugar_sweetened_beverages" = "#1b1b1b"
 )
 
 # Ordonner les groupes alimentaires
@@ -76,7 +66,7 @@ order_food_groups <- c(
   "added_plant_oils", "sugar_sweetened_beverages"
 )
 
-# Etiquettes des scénarios et groupes d'aliments
+# Etiquettes des scénarios
 labels_scenario <- c(
   "actuel" = "Current diet",
   "sc1" = "Scenario 1",
@@ -85,6 +75,7 @@ labels_scenario <- c(
   "sc4" = "Scenario 4"
 )
 
+# Etiquettes des groupes alimentaires
 labels_food_groups <- c(
   "red_meat" = "Red meat",
   "processed_meat" = "Processed meat",

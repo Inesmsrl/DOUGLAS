@@ -66,7 +66,6 @@ population_select <- population %>%
   mutate(year = as.numeric(year)) %>%
   arrange(age)
 
-
 ################################################################################################################################
 #                                             5. Ajustement des taux de mortalité                                             #
 ################################################################################################################################
@@ -84,7 +83,7 @@ MR_adjusted <- MR_select %>%
 simulations_summary_mr_adjusted <- MR_adjusted %>%
   group_by(age, scenario, year) %>%
   summarise(
-    mean_rr = mean(adjusted_mr, na.rm = TRUE),
+    mean_mr = mean(adjusted_mr, na.rm = TRUE),
     lower_ci = quantile(adjusted_mr, 0.025, na.rm = TRUE), # Limite inférieure de l'IC à 95%
     upper_ci = quantile(adjusted_mr, 0.975, na.rm = TRUE) # Limite supérieure de l'IC à 95%
   )
@@ -101,8 +100,7 @@ pop_data <- MR_adjusted %>%
     avoided_deaths = NA_real_,
     simulation_id = as.numeric(gsub(".*_", "", simulation_id))
   ) %>% # Variable numérique pour l'ID de simulation
-  arrange(simulation_id, year, age)
-
+  arrange(simulation_id, year, age, scenario)
 
 ################################################################################################################################
 #                                             11. Exportation des données                                                      #

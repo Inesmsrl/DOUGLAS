@@ -18,18 +18,7 @@ pacman::p_load(
 deaths_data <- import(here("Python_code", "data_python.csv"))
 
 ################################################################################################################################
-#                                             3. Initialisation des paramètres                                                 #
-################################################################################################################################
-
-# Bornes temporelles des changements de régime alimentaire (années)
-year_i <- 2025 # Année initiale
-year_f <- 2050 # Année finale
-
-
-ttfe_time <- 10
-
-################################################################################################################################
-#                                             4. Charte graphique                                                              #
+#                                             3. Charte graphique                                                              #
 ################################################################################################################################
 
 # Couleur de chaque scénario
@@ -43,32 +32,7 @@ col_scenario <- c(
   "sc5" = "royalblue4"
 )
 
-# Couleur de chaque groupe d'aliments
-col_food_groups <- c(
-  "red_meat" = "#F60239",
-  "processed_meat" = "#A40122",
-  "white_meat" = "#FF9DC8",
-  "dairy" = "#00489E",
-  "fish" = "#790149",
-  "eggs" = "#EF0096",
-  "fruits" = "#00735C",
-  "nuts" = "#FFAC3B",
-  "vegetables" = "#86FFDE",
-  "legumes" = "#00CBA7",
-  "whole_grains" = "#0079FA",
-  "reffined_grains" = "#00E5F8",
-  "added_plant_oils" = "#FF6E3A",
-  "sugar_sweetened_beverages" = "#004002"
-)
-
-# Ordonner les groupes alimentaires
-order_food_groups <- c(
-  "red_meat", "processed_meat", "white_meat", "fish", "eggs", "dairy",
-  "fruits", "vegetables", "legumes", "nuts", "whole_grains", "reffined_grains",
-  "added_plant_oils", "sugar_sweetened_beverages"
-)
-
-# Etiquettes des scénarios et groupes d'aliments
+# Etiquettes des scénarios
 labels_scenario <- c(
   "actuel" = "Current diet",
   "sc1" = "Scenario 1",
@@ -77,25 +41,8 @@ labels_scenario <- c(
   "sc4" = "Scenario 4"
 )
 
-labels_food_groups <- c(
-  "red_meat" = "Red meat",
-  "processed_meat" = "Processed meat",
-  "white_meat" = "White meat",
-  "dairy" = "Dairy",
-  "fish" = "Fish",
-  "eggs" = "Eggs",
-  "fruits" = "Fruits",
-  "nuts" = "Nuts",
-  "vegetables" = "Vegetables",
-  "legumes" = "Legumes",
-  "whole_grains" = "Whole grains",
-  "reffined_grains" = "Refined grains",
-  "added_plant_oils" = "Added plant oils",
-  "sugar_sweetened_beverages" = "SSB"
-)
-
 ################################################################################################################################
-#                                             5. Total des décès par rapport au baseline                                #
+#                                             4. Total des décès par rapport au baseline                                       #
 ################################################################################################################################
 
 # Eliminer Les valeurs 5% les plus extrêmes
@@ -118,7 +65,7 @@ simulations_summary_tot_deaths <- tot_deaths %>%
   )
 
 ################################################################################################################################
-#                                             6. Total des décès évités par rapport au baseline                                #
+#                                             5. Total des décès évités par rapport au baseline                                #
 ################################################################################################################################
 
 # Calcul du total des décès évités / an / scenario
@@ -136,7 +83,7 @@ simulations_summary_tot_av_deaths <- tot_av_deaths %>%
   )
 
 ################################################################################################################################
-#                                             7. Figures : décès évités                                                        #
+#                                             6. Figures : décès évités                                                        #
 ################################################################################################################################
 
 graph_tot_av_deaths <- ggplot(
@@ -222,7 +169,7 @@ graph_tot_av_deaths_dates <- ggplot(
 
 
 ################################################################################################################################
-#                                             8. Exportation des données                                                      #
+#                                             7. Exportation des données                                                      #
 ################################################################################################################################
 
 # Total des décès

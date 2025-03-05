@@ -91,7 +91,6 @@ rr_fg_relative <- rr_fg_relative %>%
     TRUE ~ rr_fg_relative
   ))
 
-
 # Calculer la moyenne et les IC95 pour chaque année
 simulations_summary_rr_fg_relative <- rr_fg_relative %>%
   group_by(scenario, year_n, food_group) %>%
