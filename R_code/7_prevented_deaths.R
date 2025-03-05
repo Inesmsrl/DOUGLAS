@@ -42,13 +42,43 @@ labels_scenario <- c(
 )
 
 ################################################################################################################################
-#                                             4. Total des décès par rapport au baseline                                       #
+#                                             4. Décès par âge                                                                 #
 ################################################################################################################################
 
 # Eliminer Les valeurs 5% les plus extrêmes
 deaths_data <- deaths_data %>%
   group_by(scenario, year, age) %>%
   filter(between(deaths, quantile(deaths, 0.025), quantile(deaths, 0.975)))
+
+# Moyenne et IC95 des décès par âge
+simulations_summary_deaths <- deaths_data %>%
+  group_by(scenario, year, age) %>%
+  summarise(
+    mean_deaths = mean(deaths, na.rm = TRUE),
+    lower_ci = quantile(deaths, 0.025, na.rm = TRUE), # Limite inférieure de l'IC à 95%
+    upper_ci = quantile(deaths, 0.975, na.rm = TRUE) # Limite supérieure de l'IC à 95%
+  )
+
+################################################################################################################################
+#                                             5. Décès évités par âge par rapport au baseline                                  #
+################################################################################################################################
+
+av_deaths <- deaths_data %>%
+  group_by(scenario, year, age, simulation_id) %>%
+  summarise(prevented_deaths = sum(avoided_deaths, na.rm = TRUE))
+
+# Calcul de la moyenne et des IC95
+simulations_summary_av_deaths <- av_deaths %>%
+  group_by(scenario, age, year) %>%
+  summarise(
+    mean_prev_deaths = mean(prevented_deaths, na.rm = TRUE),
+    lower_ci = quantile(prevented_deaths, 0.025, na.rm = TRUE), # Limite inférieure de l'IC à 95%
+    upper_ci = quantile(prevented_deaths, 0.975, na.rm = TRUE) # Limite supérieure de l'IC à 95%
+  )
+
+################################################################################################################################
+#                                             6. Total des décès par année                                                     #
+################################################################################################################################
 
 # Calcul du total des décès / an / scenario
 tot_deaths <- deaths_data %>%
@@ -65,7 +95,7 @@ simulations_summary_tot_deaths <- tot_deaths %>%
   )
 
 ################################################################################################################################
-#                                             5. Total des décès évités par rapport au baseline                                #
+#                                             7. Total des décès évités par rapport au baseline                                #
 ################################################################################################################################
 
 # Calcul du total des décès évités / an / scenario
@@ -83,7 +113,7 @@ simulations_summary_tot_av_deaths <- tot_av_deaths %>%
   )
 
 ################################################################################################################################
-#                                             6. Figures : décès évités                                                        #
+#                                             8. Figures : décès évités                                                        #
 ################################################################################################################################
 
 graph_tot_av_deaths <- ggplot(
@@ -169,8 +199,15 @@ graph_tot_av_deaths_dates <- ggplot(
 
 
 ################################################################################################################################
-#                                             7. Exportation des données                                                      #
+#                                             9. Exportation des données                                                      #
 ################################################################################################################################
+
+# Décès par âge
+export(simulations_summary_deaths, here("results", "HIA", "deaths.csv"))
+
+# Décès évités par âge
+export(av_deaths, here("results", "HIA", "av_deaths.csv"))
+export(simulations_summary_av_deaths, here("results", "HIA", "av_deaths.csv"))
 
 # Total des décès
 export(tot_deaths, here("results", "HIA", "tot_deaths.csv"))
