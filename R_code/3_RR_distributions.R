@@ -11,6 +11,7 @@ pacman::p_load(
   patchwork            # Combinaison de graphes
 )
 
+rr_table_interpolated <- import(here("data_clean", "rr_table_interpolated_sim.csv"))
 ################################################################################################################################
 #                                             2. Importation des données et paramètres                                         #
 ################################################################################################################################
@@ -25,20 +26,22 @@ rr_table_low <- import(here("data", "rr_table_quanti.xlsx"), sheet = "Lower")
 rr_table_up <- import(here("data", "rr_table_quanti.xlsx"), sheet = "Upper")
 
 # Couleur de chaque groupe d'aliments
-col_food_groups <- c("red_meat" = "#F60239",
-                     "processed_meat" = "#A40122",
-                     "white_meat" = "#FF9DC8",
-                     "dairy" = "#00489E",
-                     "fish" = "#790149",
-                     "eggs" = "#EF0096",
-                     "fruits" = "#00735C",
-                     "nuts" = "#FFAC3B",
-                     "vegetables" = "#86FFDE",
-                     "legumes" = "#00CBA7",
-                     "whole_grains" = "#0079FA",
-                     "reffined_grains" = "#00E5F8",
-                     "added_plant_oils" = "#FF6E3A",
-                     "sugar_sweetened_beverages" = "#004002")
+col_food_groups <- c(
+  "red_meat" = "#ff1047",
+  "processed_meat" = "#650115",
+  "white_meat" = "#FF9DC8",
+  "dairy" = "#022f66",
+  "fish" = "#4993a2",
+  "eggs" = "#ff764d",
+  "fruits" = "#00CBA7",
+  "nuts" = "#ffc744",
+  "vegetables" = "#00735C",
+  "legumes" = "#703895",
+  "whole_grains" = "#572d00",
+  "reffined_grains" = "#cbb4a1",
+  "added_plant_oils" = "#FF6E3A",
+  "sugar_sweetened_beverages" = "#1b1b1b"
+)
 
 # Méthode d'interpolation ("linear", "spline")
   interpolation <- "spline"
@@ -401,19 +404,19 @@ col_food_groups <- c("red_meat" = "#F60239",
   export(rr_table_interpolated, here("data_clean", "rr_table_interpolated_sim.csv"))
   
 # Représentations graphiques
-  ggsave(here("results", "dose_response_curves_sim", "dr_sim_dairy.pdf"), plot = graph_dr_sim_dairy)
-  ggsave(here("results", "dose_response_curves_sim", "dr_sim_eggs.pdf"), plot = graph_dr_sim_eggs)
-  ggsave(here("results", "dose_response_curves_sim", "dr_sim_fish.pdf"), plot = graph_dr_sim_fish)
-  ggsave(here("results", "dose_response_curves_sim", "dr_sim_fruits.pdf"), plot = graph_dr_sim_fruits)
-  ggsave(here("results", "dose_response_curves_sim", "dr_sim_legumes.pdf"), plot = graph_dr_sim_legumes)
-  ggsave(here("results", "dose_response_curves_sim", "dr_sim_nuts.pdf"), plot = graph_dr_sim_nuts)
-  ggsave(here("results", "dose_response_curves_sim", "dr_sim_processed_meat.pdf"), plot = graph_dr_sim_processed_meat)
-  ggsave(here("results", "dose_response_curves_sim", "dr_sim_red_meat.pdf"), plot = graph_dr_sim_red_meat)  
-  ggsave(here("results", "dose_response_curves_sim", "dr_sim_refined_grains.pdf"), plot = graph_dr_sim_refined_grains)  
-  ggsave(here("results", "dose_response_curves_sim", "dr_sim_ssb.pdf"), plot = graph_dr_sim_ssb)  
-  ggsave(here("results", "dose_response_curves_sim", "dr_sim_vegetables.pdf"), plot = graph_dr_sim_vegetables)  
-  ggsave(here("results", "dose_response_curves_sim", "dr_sim_white_meat.pdf"), plot = graph_dr_sim_white_meat)  
-  ggsave(here("results", "dose_response_curves_sim", "dr_sim_whole_grains.pdf"), plot = graph_dr_sim_whole_grains)  
+  ggsave(here("results", "DRF", "drf_dairy.pdf"), plot = graph_dr_sim_dairy)
+  ggsave(here("results", "DRF", "drf_eggs.pdf"), plot = graph_dr_sim_eggs)
+  ggsave(here("results", "DRF", "drf_fish.pdf"), plot = graph_dr_sim_fish)
+  ggsave(here("results", "DRF", "drf_fruits.pdf"), plot = graph_dr_sim_fruits)
+  ggsave(here("results", "DRF", "drf_legumes.pdf"), plot = graph_dr_sim_legumes)
+  ggsave(here("results", "DRF", "drf_nuts.pdf"), plot = graph_dr_sim_nuts)
+  ggsave(here("results", "DRF", "drf_processed_meat.pdf"), plot = graph_dr_sim_processed_meat)
+  ggsave(here("results", "DRF", "drf_red_meat.pdf"), plot = graph_dr_sim_red_meat)  
+  ggsave(here("results", "DRF", "drf_refined_grains.pdf"), plot = graph_dr_sim_refined_grains)  
+  ggsave(here("results", "DRF", "drf_ssb.pdf"), plot = graph_dr_sim_ssb)  
+  ggsave(here("results", "DRF", "drf_vegetables.pdf"), plot = graph_dr_sim_vegetables)  
+  ggsave(here("results", "DRF", "drf_white_meat.pdf"), plot = graph_dr_sim_white_meat)  
+  ggsave(here("results", "DRF", "drf_whole_grains.pdf"), plot = graph_dr_sim_whole_grains)  
   
-  ggsave(here("results", "dose_response_curves_sim", "dr_all.pdf"), plot = combined_plot) 
+  ggsave(here("results", "DRF", "drf_all.pdf"), plot = combined_plot) 
   
