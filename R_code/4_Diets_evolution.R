@@ -15,18 +15,18 @@ pacman::p_load(
 ################################################################################################################################
 
 # Expositions : régimes SISAE en 2050
-diets <- import(here("data", "DOUGLAS_diets.xlsx"))
+diets <- import(here("data", "FADNES_2024_diets.xlsx"))
 
 ################################################################################################################################
 #                                             3. Initialisation des paramètres                                                 #
 ################################################################################################################################
 
 # Bornes temporelles des changements de régime alimentaire (années)
-year_i <- 2025 # Année initiale
-year_f <- 2050 # Année finale
+year_i <- 2019 # Année initiale
+year_f <- 2029 # Année finale
 
 # Dynamique d'implémentation des régimes (immediate, linear, cosine, sigmoidal)
-implementation <- "cosine"
+implementation <- "immediate"
 
 # paramètre de la courbe d'interpolation cosinus
 p <- 1
@@ -231,7 +231,6 @@ graph_diets_evo_shift <- ggplot(data = diets_evo_shift, aes(
     title.hjust = 0.5
   ))
 
-
 ################################################################################################################################
 #                                             5. Variations des consommations par rapport au baseline                          #
 ################################################################################################################################
@@ -277,17 +276,16 @@ graph_diets_var <- ggplot(
     title.hjust = 0.5
   ))
 
-
 ################################################################################################################################
 #                                             6. Exportation des données                                                      #
 ################################################################################################################################
 
 # Implémentation des régimes
 # Quantités (g/j/pers)
-    export(diets_evo, here("results", "diets", "diets_rr_evo.csv"))
-    ggsave(here("results", "diets", "diets_evo.pdf"), graph_diets_evo)
-    ggsave(here("results", "diets", "diets_evo_shift.pdf"), graph_diets_evo_shift)
+    export(diets_evo, here("results", "FADNES_2024_repro", "diets", "diets_rr_evo.csv"))
+    ggsave(here("results", "FADNES_2024_repro", "diets", "diets_evo.pdf"), graph_diets_evo)
+    ggsave(here("results", "FADNES_2024_repro", "diets", "diets_evo_shift.pdf"), graph_diets_evo_shift)
 
 # Variations (%)
-    export(diets_var, here("results", "diets", "diets_rr_var.csv"))
-    ggsave(here("results", "diets", "diets_var.pdf"), graph_diets_var)
+    export(diets_var, here("results", "FADNES_2024_repro", "diets", "diets_rr_var.csv"))
+    ggsave(here("results", "FADNES_2024_repro", "diets", "diets_var.pdf"), graph_diets_var)

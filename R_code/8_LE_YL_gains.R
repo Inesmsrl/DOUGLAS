@@ -17,6 +17,8 @@ pacman::p_load(
 
 deaths_data <- import(here("Python_code", "data_python.csv"))
 
+deaths_data <- import(here("results", "FADNES_2024_repro", "MR", "MR_adjusted_m.csv"))
+
 ################################################################################################################################
 #                                             3. Charte graphique                                                              #
 ################################################################################################################################
@@ -66,6 +68,11 @@ deaths_data <- deaths_data %>%
   mutate(le = age + ex,
          ylg = avoided_deaths * (le - age)) %>% 
   select(simulation_id, age, year, scenario, deaths, avoided_deaths, le, ylg)
+
+deaths_data <- deaths_data %>% 
+  group_by(age, year, scenario, simulation_id) %>% 
+  mutate(le = age + ex) %>% 
+  select(simulation_id, age, year, scenario, le)
 
 ################################################################################################################################
 #                                             4. Espérance de vie gagnée                                                       #
@@ -240,9 +247,9 @@ print(common_graph)
 #                                             7. Années de vie préservées âge et année spécifique                              #
 ################################################################################################################################
 
-pop_sp <- population_evo %>% 
-  filter(year == 2050,
-         age == 20) 
+pop_sp <- deaths_data %>% 
+  filter(year == 2028,
+         age == 60) 
 
 yll_sp <- pop_sp %>% 
   group_by(scenario) %>% 
