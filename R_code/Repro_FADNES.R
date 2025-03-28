@@ -20,16 +20,19 @@ pacman::p_load(
 # Décès par âge de 1962 à 2021 et projetées jusqu'en 2120
   deaths <- import(here("data", "GBD_EU_deaths.csv"))
 
+# MR du GBD
+  MR_GBD <- import(here("data", "GBD_FR_MR_2019.csv"))
+
 ################################################################################################################################
 #                                             3. Initialisation des paramètres                                                 #
 ################################################################################################################################
 
 # Bornes temporelles des changements de régime alimentaire (années)
 year_i <- 2019 # Année initiale
-year_f <- 2029 # Année finale
+year_f <- 2039 # Année finale
 
 # Durée du time to full effect (années)
-ttfe_time <- 10
+ttfe_time <- 20
   
 ################################################################################################################################
 #                                             3. Nettoyage des données                                                         #
@@ -54,6 +57,14 @@ ttfe_time <- 10
   all(population$age == deaths$age)         # Mêmes catégories d'âge dans les jeux de données
   
 
+# MR GBD 2019
+  MR_GBD <- MR_GBD %>%
+    select(sex, age, year, val, upper, lower) %>% 
+    rename("mr" = val,
+           "mr_upper" = upper,
+           "mr_lower" = lower)  
+  
+
 ################################################################################################################################
 #                                             4. Données H/F                                                                 #
 ################################################################################################################################
@@ -66,6 +77,10 @@ ttfe_time <- 10
   deaths_m <- deaths %>%
     filter(sex == "Homme") %>% 
     select(-sex)
+
+  MR_GBD_m <- MR_GBD %>%
+    filter(sex == "Homme") %>%
+    select(-sex)
   
 # Données Femmes
   population_f <- population %>%
@@ -76,6 +91,9 @@ ttfe_time <- 10
     filter(sex == "Femme") %>% 
     select(-sex)  
   
+  MR_GBD_f <- MR_GBD %>%
+    filter(sex == "Femme") %>%
+    select(-sex)
 
 ################################################################################################################################
 #                                             5. Calcul des taux de mortalité                                                  #
@@ -110,10 +128,14 @@ MR_m <- population_m %>%
   export(MR_f, here("data_clean", "GBD_MR_FR_f.xlsx"))
   export(MR_m, here("data_clean", "GBD_MR_FR_m.xlsx"))
 
+  export(MR_GBD_f, here("data_clean", "GBD_MR_2019_f.xlsx"))
+  export(MR_GBD_m, here("data_clean", "GBD_MR_2019_m.xlsx"))
+
 
 
 # Modification des dataframes sur excel #
 
+# A partir des effectifs et décès en population
 MR_f <- import(here("data_clean", "GBD_MR_FR_f_clean.xlsx"))
 MR_m <- import(here("data_clean", "GBD_MR_FR_m_clean.xlsx"))
 
@@ -129,3 +151,13 @@ MR_m <- MR_complete(MR_m, years)
 # Taux de mortalité par âge
   export(MR_f, here("data_clean", "GBD_MR_FR_f_complete.xlsx"))
   export(MR_m, here("data_clean", "GBD_MR_FR_m_complete.xlsx"))
+
+# MR du GBD 2019
+MR_GBD_f <- import(here("data_clean", "GBD_MR_2019_f_clean.xlsx"))
+MR_GBD_m <- import(here("data_clean", "GBD_MR_2019_m_clean.xlsx"))
+
+MR_GBD_f <- MR_complete(MR_GBD_f, years)
+MR_GBD_m <- MR_complete(MR_GBD_m, years)
+
+export(MR_GBD_f, here("data_clean", "GBD_2019_FR_MR_f_complete.xlsx"))
+export(MR_GBD_m, here("data_clean", "GBD_2019_FR_MR_m_complete.xlsx"))
