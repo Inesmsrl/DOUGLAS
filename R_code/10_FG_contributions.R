@@ -168,6 +168,63 @@ forest_sc3 <- forest_plot_contrib("sc3")
 forest_sc4 <- forest_plot_contrib("sc4")
 
 ################################################################################################################################
+#                                             8. Heat maps                                                                     #
+################################################################################################################################
+diets_var$food_group <- factor(diets_var$food_group, levels = order_food_groups)
+
+hm_var <- ggplot(data = diets_var %>%
+               filter(scenario != "actuel",
+                      year == 2050),
+             aes(x = scenario, y = food_group, fill = var)) +
+  geom_tile(color = "white",
+            lwd = 1.5,
+            linetype = 1) +
+  coord_fixed() +
+  scale_fill_gradient2(low = "#002414", 
+                       high = "#8b0066", 
+                       mid = "white", 
+                       midpoint = 0,
+                       limits = c(min(diets_var$var, na.rm = TRUE), max(diets_var$var, na.rm = TRUE))) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+  plot.title = element_text(size = rel(2), face = "bold", hjust = 0.5),
+  axis.title.x = element_text(size = rel(1.5)),
+  axis.title.y = element_text(size = rel(1.5)), 
+  legend.position = "right") +
+  labs(x = "", y = "", fill = "Intake variation (%)") +
+  ggtitle("Variations of intake compared to the baseline") +
+  scale_x_discrete(labels = labels_scenario[diets_var$scenario]) +
+  scale_y_discrete(labels = labels_food_groups[diets_var$food_group])
+
+plot(hm_var)
+
+range(diets_var$var)
+
+contrib$food_group <- factor(contrib$food_group, levels = order_food_groups)
+
+hm_contrib <- ggplot(data = contrib %>%
+               filter(scenario != "actuel",
+                      year == 2050),
+             aes(x = scenario, y = food_group, fill = delta)) +
+  geom_tile(color = "white",
+            lwd = 1.5,
+            linetype = 1) +
+  coord_fixed() +
+  scale_fill_gradient2(low = "#014d70", high = "#89000b", mid = "white", midpoint = 0) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+  plot.title = element_text(size = rel(2), face = "bold", hjust = 0.5),
+  axis.title.x = element_text(size = rel(1.5)),
+  axis.title.y = element_text(size = rel(1.5)), 
+  legend.position = "right") +
+  labs(x = "", y = "", fill = "Contribution to the\n health impact (%)") +
+  ggtitle("Contributions of intake variation to the health impact of diet shift") +
+  scale_x_discrete(labels = labels_scenario[diets_var$scenario]) +
+  scale_y_discrete(labels = labels_food_groups[diets_var$food_group])
+
+plot(hm_contrib)
+
+################################################################################################################################
 #                                             8. Tableau                                                                       #
 ################################################################################################################################
 
@@ -262,3 +319,9 @@ ggsave(here("results", "contributions", "forest_sc4.pdf"), forest_sc4)
 
 # Tableau contributions 2050
 save_as_image(contrib_2050, here("results", "contributions", "contributions_2050.png"))
+
+
+# Heat maps
+
+ggsave(here("results", "contributions", "hm_contrib.pdf"), hm_contrib)
+ggsave(here("results", "diets", "hm_var.pdf"), hm_var)
