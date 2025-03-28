@@ -23,7 +23,7 @@ diets <- import(here("data", "FADNES_2024_diets.xlsx"))
 
 # Bornes temporelles des changements de régime alimentaire (années)
 year_i <- 2019 # Année initiale
-year_f <- 2029 # Année finale
+year_f <- 2039 # Année finale
 
 # Dynamique d'implémentation des régimes (immediate, linear, cosine, sigmoidal)
 implementation <- "immediate"
@@ -35,7 +35,7 @@ p <- 1
 lambda <- 8
 
 # Durée du time to full effect (années)
-ttfe_time <- 10
+ttfe_time <- 20
 
 ################################################################################################################################
 #                                             4. Charte graphique                                                              #
@@ -276,6 +276,60 @@ graph_diets_var <- ggplot(
     title.hjust = 0.5
   ))
 
+
+# Tableau des variations de consommation
+
+table_diets_var <- diets_var %>%
+  filter(
+    year %in% c(2025, 2035, 2050)
+  ) %>%
+  mutate(quantity = round(quantity, 1), var = round(var, 1)) %>%
+  pivot_wider(
+    names_from = c("scenario", "year"),
+    values_from = c("quantity", "var")
+  ) %>%
+  select(
+    "food_group",
+    "quantity_actuel_2025",
+    "quantity_sc1_2050", "var_sc1_2035",, "var_sc1_2050",
+    "quantity_sc2_2050", "var_sc2_2035", "var_sc2_2050",
+    "quantity_sc3_2050", "var_sc3_2035", "var_sc3_2050",
+    "quantity_sc4_2050", "var_sc4_2035", "var_sc4_2050"
+  ) %>%
+  mutate(food_group = labels_food_groups[food_group]) %>% # Remplacer les noms des groupes alimentaires par les labels)
+  qflextable() %>% # Création du tableau et ajustement automatique de la largeur des colonnes
+  add_header_row(
+    top = TRUE, # Ajout d'une ligne d'en-tête
+    values = c("Food group", "Baseline", "S1", "", "", "S2", "", "", "S3", "", "", "S4", "", "")
+  ) %>%
+  set_header_labels( # Renommer des colonnes de la 2e ligne d'en-tête
+    "food_group" = "",
+    "quantity_actuel_2025" = "Intake(g/d/pers)",
+    "quantity_sc1_2050" = "Intake in 2050 (g/d/pers)",
+    "var_sc1_2035" = "Intake variation vs baseline in 2035 (%)",
+    "var_sc1_2050" = "Intake variation vs baseline in 2050 (%)",
+    "quantity_sc2_2050" = "Intake in 2050 (g/d/pers)",
+    "var_sc2_2035" = "Intake variation vs baseline in 2035 (%)",
+    "var_sc2_2050" = "Intake variation vs baseline in 2050 (%)",
+    "quantity_sc3_2050" = "Intake in 2050 (g/d/pers)",
+    "var_sc3_2035" = "Intake variation vs baseline in 2035 (%)",
+    "var_sc3_2050" = "Intake variation vs baseline in 2050 (%)",
+    "quantity_sc4_2050" = "Intake in 2050 (g/d/pers)",
+    "var_sc4_2035" = "Intake variation vs baseline in 2035 (%)",
+    "var_sc4_2050" = "Intake variation vs baseline in 2050 (%)"
+  ) %>%
+  vline(part = "all", j = 2) %>% # Ligne verticale après la colonne 2
+  vline(part = "all", j = 5) %>% # Ligne verticale après la colonne 6
+  vline(part = "all", j = 8) %>% # Ligne verticale après la colonne 9
+  vline(part = "all", j = 11) %>% # Ligne verticale après la colonne 13
+  merge_at(i = 1, j = 3:5, part = "header") %>% # Fusion des cellules de la 1ère ligne d'en-tête
+  merge_at(i = 1, j = 6:8, part = "header") %>%
+  merge_at(i = 1, j = 9:11, part = "header") %>%
+  merge_at(i = 1, j = 12:14, part = "header") %>%
+  align(align = "center", j = c(2:14), part = "all") %>% # Centrer le contenu des cellules sauf Food group
+  bold(i = 1, part = "header") %>% # Mettre en gras la 1ère ligne d'en-tête
+  bg(part = "all", bg = "white") # Fond blanc pour toutes les cellules
+
 ################################################################################################################################
 #                                             6. Exportation des données                                                      #
 ################################################################################################################################
@@ -289,3 +343,6 @@ graph_diets_var <- ggplot(
 # Variations (%)
     export(diets_var, here("results", "FADNES_2024_repro", "diets", "diets_rr_var.csv"))
     ggsave(here("results", "FADNES_2024_repro", "diets", "diets_var.pdf"), graph_diets_var)
+
+# Tableau des variations
+    save_as_image(table_diets_var, here("results", "diets", "table_diets_var.png"))
