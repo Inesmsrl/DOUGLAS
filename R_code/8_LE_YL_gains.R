@@ -17,7 +17,7 @@ pacman::p_load(
 
 deaths_data <- import(here("Python_code", "data_python.csv"))
 
-deaths_data <- import(here("results", "FADNES_2024_repro", "MR", "MR_adjusted_m.csv"))
+deaths_data <- import(here("results", "FADNES_2024_repro", "MR", "MR_GBD_2019_adjusted_f.csv"))
 
 ################################################################################################################################
 #                                             3. Charte graphique                                                              #
@@ -248,7 +248,7 @@ print(common_graph)
 ################################################################################################################################
 
 pop_sp <- deaths_data %>% 
-  filter(year == 2028,
+  filter(year == 2039,
          age == 60) 
 
 yll_sp <- pop_sp %>% 
@@ -294,7 +294,7 @@ graph_yll_sp <- ggplot(summary_yll_sp %>%
 le_sp <- pop_sp %>% 
   group_by(simulation_id, scenario) %>% 
   summarise(le_year = mean(le)) %>% 
-  mutate(leg = (le_year - le_year[scenario == "actuel"])*12)
+  mutate(leg = (le_year - le_year[scenario == "actuel"]))
 
 le_sp <- le_sp %>% 
   group_by(scenario) %>% 
@@ -331,6 +331,7 @@ graph_le_sp <- ggplot(summary_le_sp %>%
        y = "LE gained (months)")+
   guides(fill = guide_legend(title = NULL))
 
+plot(graph_le_sp)
 ################################################################################################################################
 #                                             9. Exportation des données                                                       #
 ################################################################################################################################
@@ -351,8 +352,8 @@ export(summary_yll_sp, here("results", "IC95_yll_sp.xlsx"))
 ggsave(here("results", "yll_sp.pdf"), plot = graph_yll_sp)
 
 # LE pour un âge et une année spécifique
-export(summary_le_sp, here("results", "IC95_LE_sp.xlsx"))
-ggsave(here("results", "LE_sp.pdf"), plot = graph_le_sp)
+export(summary_le_sp, here("results", "FADNES_2024_repro", "LE", "GBD2019_LE_2039_f_40.xlsx"))
+ggsave(here("results", "FADNES_2024_repro", "LE", "GBD2019_LE_2039_f_40.pdf"), plot = graph_le_sp)
 
 # Décès évités, YLL, LE, Couts en 2040, 2050, 2060
 ggsave(here("results", "HIA", "HIA_dates.pdf"), plot = common_graph)
