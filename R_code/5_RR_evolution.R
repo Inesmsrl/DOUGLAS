@@ -26,7 +26,7 @@ diets_evo <- import(here("results", "FADNES_2024_repro", "diets", "diets_rr_evo.
 
 # Bornes temporelles des changements de régime alimentaire (années)
 year_i <- 2019 # Année initiale
-year_f <- 2029 # Année finale
+year_f <- 2039 # Année finale
 
 # Paramètre de modification d'effet des RR
 # 0.5 à 1 = réduction d'effet, modèle conservateur
@@ -35,14 +35,14 @@ m <- 0.75
 
 #  Time to full effect
 # durée (années)
-ttfe_time <- 10
+ttfe_time <- 20
 
 # Durée du régime stationnaire
 # Avant changement de régime : ttfe_time
 # Après changement de régime : 2 x ttfe_time
 
 # Dynamique (immediate, linear, cosine, sigmoidal, log)
-ttfe_dynamics <- "linear"
+ttfe_dynamics <- "sigmoidal"
 
 # paramètre de la courbe d'interpolation cosinus
 p_ttfe <- 1
@@ -207,7 +207,7 @@ diets_evo <- diets_evo %>%
 rr_evo_food_combined <- diets_evo %>%
   group_by(scenario, year_n, food_group, simulation_id) %>%
   summarize(
-    mean_rr = sum(rr_n, na.rm = TRUE) / sum(ttfe$ttfe[match(pmin(year_n - year, ttfe_time), ttfe$time)], na.rm = TRUE),
+    mean_rr = sum(rr_n, na.rm = TRUE) / sum(ttfe$ttfe[match(pmin(year_n - year, ttfe_time), ttfe$time)], na.rm = TRUE), # pmin compare la valeur year_n-year à ttfe_time et choisit la plus faible
     .groups = "drop"
   )
 
