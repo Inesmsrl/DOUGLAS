@@ -14,7 +14,7 @@ pacman::p_load(
 ################################################################################################################################
 
 # Taux de mortalité (INSEE)
-MR <- import(here("data_clean", "GBD_MR_FR_m_complete.xlsx"))
+MR <- import(here("data_clean", "GBD_2019_FR_MR_m_complete.xlsx"))
 
 # Effectifs de population par age et par année (INSEE)
 population <- import(here("data_clean", "population_clean.xlsx"))
@@ -28,14 +28,14 @@ rr_evo_diets <- import(here("results", "FADNES_2024_repro", "RR", "rr_evo_diets.
 
 # Bornes temporelles des changements de régime alimentaire (années)
 year_i <- 2019 # Année initiale
-year_f <- 2029 # Année finale
+year_f <- 2039 # Année finale
 
 # Borne inférieure de l'âge de la population du modèle (années)
 age_limit <- 18
 
 #  Time to full effect
 # durée (années)
-ttfe_time <- 10
+ttfe_time <- 20
 
 ################################################################################################################################
 #                                             4. Préparation des données                                                       #
@@ -107,8 +107,8 @@ pop_data <- MR_adjusted %>%
 ################################################################################################################################
 
 # Taux de mortalité ajustés
-export(MR_adjusted, here("results", "FADNES_2024_repro", "MR", "MR_adjusted_m.csv"))
-export(simulations_summary_mr_adjusted, here("results", "FADNES_2024_repro", "MR", "IC95_MR_adjusted_m.xlsx"))
+export(MR_adjusted, here("results", "FADNES_2024_repro", "MR", "MR_GBD_2019_adjusted_m.csv"))
+export(simulations_summary_mr_adjusted, here("results", "FADNES_2024_repro", "MR", "IC95_MR_GBD_2019_adjusted_m.xlsx"))
 
 # Tableau de données de population et MR ajustés
 export(pop_data, here("results", "MR", "pop_data.csv"))
