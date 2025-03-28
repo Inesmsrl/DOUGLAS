@@ -11,19 +11,18 @@ pacman::p_load(
   patchwork            # Combinaison de graphes
 )
 
-rr_table_interpolated <- import(here("data_clean", "rr_table_interpolated_sim.csv"))
 ################################################################################################################################
 #                                             2. Importation des données et paramètres                                         #
 ################################################################################################################################
 
 # Table des risques relatifs pour chaque catégorie alimentaire, attribués à des quantités absolues (Fadnes)
-rr_table_mid <- import(here("data", "rr_table_quanti.xlsx"), sheet = "Mid")
+rr_table_mid <- import(here("data", "rr_table_quanti_2.xlsx"), sheet = "Mid")
 
 # Table des RR, IC95 lower
-rr_table_low <- import(here("data", "rr_table_quanti.xlsx"), sheet = "Lower")
+rr_table_low <- import(here("data", "rr_table_quanti_2.xlsx"), sheet = "Lower")
 
 # Table des RR, IC95 upper
-rr_table_up <- import(here("data", "rr_table_quanti.xlsx"), sheet = "Upper")
+rr_table_up <- import(here("data", "rr_table_quanti_2.xlsx"), sheet = "Upper")
 
 # Couleur de chaque groupe d'aliments
 col_food_groups <- c(
@@ -55,21 +54,21 @@ col_food_groups <- c(
 
 # Pivoter les dataframes des RR en format long
   rr_table_low <- rr_table_low %>% 
-    pivot_longer(cols = "0":"800",
+    pivot_longer(cols = "0":"1000",
                  names_to = "quantity",
                  values_to = "rr") %>% 
     mutate(quantity = as.numeric(quantity),
            rr =as.numeric(rr))
   
   rr_table_mid <- rr_table_mid %>% 
-    pivot_longer(cols = "0":"800",
+    pivot_longer(cols = "0":"1000",
                  names_to = "quantity",
                  values_to = "rr") %>% 
     mutate(quantity = as.numeric(quantity),
            rr =as.numeric(rr))
   
   rr_table_up <- rr_table_up %>% 
-    pivot_longer(cols = "0":"800",
+    pivot_longer(cols = "0":"1000",
                  names_to = "quantity",
                  values_to = "rr") %>% 
     mutate(quantity = as.numeric(quantity),
@@ -135,7 +134,7 @@ col_food_groups <- c(
 
   
 ################################################################################################################################
-#                                             7. Transformation au format long                                                 #
+#                                             7. Interpolation                                                                 #
 ################################################################################################################################
   
 # Transformer les simulations en format long
@@ -147,6 +146,7 @@ col_food_groups <- c(
       values_to = "simulated_rr"  # Nom de la colonne contenant les valeurs simulées
     )
 
+# Interpolation 
   rr_table_interpolated <- rr_table_long %>%
     group_by(food_group, simulation_id) %>%
     complete(quantity = full_seq(0:800, 1)) %>%
@@ -348,7 +348,7 @@ col_food_groups <- c(
 # White meat
   graph_dr_sim_white_meat <- ggplot(rr_table_interpolated %>% 
                                           filter(food_group == "white_meat",
-                                                 quantity %in% 0:400),
+                                                 quantity %in% 0:100),
                                         aes(x = quantity,
                                             y = rr_interpolated,
                                             group = simulation_id,
@@ -364,7 +364,7 @@ col_food_groups <- c(
 # Whole grains
   graph_dr_sim_whole_grains <- ggplot(rr_table_interpolated %>% 
                                           filter(food_group == "whole_grains",
-                                                 quantity %in% 0:250),
+                                                 quantity %in% 0:220),
                                         aes(x = quantity,
                                             y = rr_interpolated,
                                             group = simulation_id,
@@ -420,3 +420,13 @@ col_food_groups <- c(
   
   ggsave(here("results", "DRF", "drf_all.pdf"), plot = combined_plot) 
   
+
+# Nouvelles DRF
+export(rr_table_interpolated, here("data_clean", "rr_table_interpolated_sim_2.csv"))
+
+ggsave(here("results", "DRF", "NEW_DRF", "drf_white_meat_2.pdf"), plot = graph_dr_sim_white_meat)
+ggsave(here("results", "DRF", "NEW_DRF", "drf_nuts_2.pdf"), plot = graph_dr_sim_nuts)
+ggsave(here("results", "DRF", "NEW_DRF", "drf_whole_grains_2.pdf"), plot = graph_dr_sim_whole_grains)
+ggsave(here("results", "DRF", "NEW_DRF", "drf_refined_grains_2.pdf"), plot = graph_dr_sim_refined_grains)
+ggsave(here("results", "DRF", "NEW_DRF", "drf_ssb_2.pdf"), plot = graph_dr_sim_ssb)
+
