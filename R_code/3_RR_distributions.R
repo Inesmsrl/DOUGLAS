@@ -168,7 +168,16 @@ col_food_groups <- c(
 ################################################################################################################################
 #                                             8. Représentations graphique                                                     #
 ################################################################################################################################
-  
+
+# Nouvel ensemble de DRF 
+rr_table_interpolated_1 <- import(here("data_clean", "rr_table_interpolated_sim.csv"))
+
+rr_table_interpolated_1 <- rr_table_interpolated_1 %>% 
+  filter(food_group %in% c("red_meat", "fish", "dairy", "vegetables", "fruits", "legumes", "processed_meat"))
+
+rr_table_interpolated <- rr_table_interpolated %>%
+  bind_rows(rr_table_interpolated_1)
+
 # Dairy
   graph_dr_sim_dairy <- ggplot(rr_table_interpolated %>% 
                                  filter(food_group == "dairy"),
@@ -429,4 +438,14 @@ ggsave(here("results", "DRF", "NEW_DRF", "drf_nuts_2.pdf"), plot = graph_dr_sim_
 ggsave(here("results", "DRF", "NEW_DRF", "drf_whole_grains_2.pdf"), plot = graph_dr_sim_whole_grains)
 ggsave(here("results", "DRF", "NEW_DRF", "drf_refined_grains_2.pdf"), plot = graph_dr_sim_refined_grains)
 ggsave(here("results", "DRF", "NEW_DRF", "drf_ssb_2.pdf"), plot = graph_dr_sim_ssb)
+ggsave(here("results", "DRF", "NEW_DRF", "drf_eggs_2.pdf"), plot = graph_dr_sim_eggs)
+ggsave(here("results", "DRF", "NEW_DRF", "drf_dairy_2.pdf"), plot = graph_dr_sim_dairy)
+ggsave(here("results", "DRF", "NEW_DRF", "drf_fish_2.pdf"), plot = graph_dr_sim_fish)
+ggsave(here("results", "DRF", "NEW_DRF", "drf_vegetables_2.pdf"), plot = graph_dr_sim_vegetables)
+ggsave(here("results", "DRF", "NEW_DRF", "drf_legumes_2.pdf"), plot = graph_dr_sim_legumes)
+ggsave(here("results", "DRF", "NEW_DRF", "drf_fruits_2.pdf"), plot = graph_dr_sim_fruits)
+ggsave(here("results", "DRF", "NEW_DRF", "drf_red_meat_2.pdf"), plot = graph_dr_sim_red_meat)
+ggsave(here("results", "DRF", "NEW_DRF", "drf_processed_meat_2.pdf"), plot = graph_dr_sim_processed_meat)
+
+ggsave(here("results", "DRF", "NEW_DRF", "drf_all_2.pdf"), plot = combined_plot)
 

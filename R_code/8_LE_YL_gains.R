@@ -17,8 +17,6 @@ pacman::p_load(
 
 deaths_data <- import(here("Python_code", "data_python.csv"))
 
-deaths_data <- import(here("results", "FADNES_2024_repro", "MR", "MR_GBD_2019_adjusted_f.csv"))
-
 ################################################################################################################################
 #                                             3. Charte graphique                                                              #
 ################################################################################################################################
@@ -337,14 +335,14 @@ plot(graph_le_sp)
 ################################################################################################################################
 
 # LE
-export(summary_le, here("results", "HIA", "IC95_LE_gained.xlsx"))
-ggsave(here("results","HIA", "LE_gained.pdf"), plot = graph_le)
-ggsave(here("results","HIA", "LE_gaines_dates.pdf"), plot = graph_le_dates)
+export(summary_le, here("results", "1_Main_analysis_newDRF", "HIA", "IC95_LE_gained.xlsx"))
+ggsave(here("results", "1_Main_analysis_newDRF", "HIA", "LE_gained.pdf"), plot = graph_le)
+ggsave(here("results", "1_Main_analysis_newDRF", "HIA", "LE_gaines_dates.pdf"), plot = graph_le_dates)
 
 # YLL
-export(summary_yll, here("results", "HIA", "IC95_yll.xlsx"))
-ggsave(here("results", "HIA", "yll_reported.pdf"), plot = graph_yll)
-ggsave(here("results", "HIA", "yll_reported_dates.pdf"), plot = graph_yll_dates)
+export(summary_yll, here("results", "1_Main_analysis_newDRF", "HIA", "IC95_yll.xlsx"))
+ggsave(here("results","1_Main_analysis_newDRF", "HIA", "yll_reported.pdf"), plot = graph_yll)
+ggsave(here("results","1_Main_analysis_newDRF", "HIA", "yll_reported_dates.pdf"), plot = graph_yll_dates)
 
 
 # YLL pour un âge et une année spécifique 

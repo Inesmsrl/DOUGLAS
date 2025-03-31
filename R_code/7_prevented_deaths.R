@@ -203,19 +203,19 @@ graph_tot_av_deaths_dates <- ggplot(
 ################################################################################################################################
 
 # Décès par âge
-export(simulations_summary_deaths, here("results", "HIA", "deaths.csv"))
+export(simulations_summary_deaths, here("results", "1_Main_analysis_newDRF", "HIA", "deaths.csv"))
 
 # Décès évités par âge
-export(av_deaths, here("results", "HIA", "av_deaths.csv"))
-export(simulations_summary_av_deaths, here("results", "HIA", "av_deaths.csv"))
+export(av_deaths, here("results", "1_Main_analysis_newDRF", "HIA", "av_deaths.csv"))
+export(simulations_summary_av_deaths, here("results", "1_Main_analysis_newDRF", "HIA", "av_deaths.csv"))
 
 # Total des décès
-export(tot_deaths, here("results", "HIA", "tot_deaths.csv"))
-export(simulations_summary_tot_deaths, here("results", "HIA", "IC95_tot_deaths.xlsx"))
+export(tot_deaths, here("results", "1_Main_analysis_newDRF", "HIA", "tot_deaths.csv"))
+export(simulations_summary_tot_deaths, here("results", "1_Main_analysis_newDRF", "HIA", "IC95_tot_deaths.xlsx"))
 
 # Total des décès évités
-export(tot_av_deaths, here("results", "HIA", "tot_deaths_prev.csv"))
-export(simulations_summary_tot_av_deaths, here("results", "HIA", "tot_deaths_prev.csv"))
+export(tot_av_deaths, here("results", "1_Main_analysis_newDRF", "HIA", "tot_deaths_prev.csv"))
+export(simulations_summary_tot_av_deaths, here("results", "1_Main_analysis_newDRF", "HIA", "IC95_tot_deaths_prev.csv"))
 
-ggsave(here("results", "HIA", "tot_deaths_prev.pdf"), graph_tot_av_deaths)
-ggsave(here("results", "HIA", "tot_deaths_prev_dates.pdf"), graph_tot_av_deaths_dates)
+ggsave(here("results", "1_Main_analysis_newDRF", "HIA", "tot_deaths_prev.pdf"), graph_tot_av_deaths)
+ggsave(here("results", "1_Main_analysis_newDRF", "HIA", "tot_deaths_prev_dates.pdf"), graph_tot_av_deaths_dates)

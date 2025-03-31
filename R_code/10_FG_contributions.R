@@ -7,6 +7,7 @@ pacman::p_load(
     here, # Localisation des fichiers dans le dossier du projet
     dplyr, # Manipulation des données
     tidyr, # Manipulation des données
+    tidyverse, # Data management, inclus ggplot
     flextable, # Création de tableaux
     scales, # Transformations en pourcentages notamment
     forestploter
@@ -17,13 +18,13 @@ pacman::p_load(
 ################################################################################################################################
 
 # RR de chaque aliment
-rr_evo_food_combined <- import(here("results", "RR", "rr_evo_fg.csv"))
+rr_evo_food_combined <- import(here("results", "1_Main_analysis_newDRF", "RR", "rr_evo_fg.csv"))
 
 # Variations des consommations alimentaires
 diets_var <- import(here("results", "diets", "diets_rr_var.csv"))
 
 # Décès totaux par scénario
-simulations_summary_total_deaths <- import(here("results", "HIA", "IC95_tot_deaths.xlsx"))
+simulations_summary_total_deaths <- import(here("results", "1_Main_analysis_newDRF", "HIA", "IC95_tot_deaths.xlsx"))
 
 ################################################################################################################################
 #                                             3. Initialisation des paramètres                                                 #
@@ -118,7 +119,6 @@ contrib <- simulations_summary_rr_fg_relative %>%
 #                                             7. Forest plots                                                                  #
 ################################################################################################################################
 
-
 # Forestplot
 forest_plot_contrib <- function(scen) {
   contrib_scen <- contrib %>%
@@ -192,13 +192,11 @@ hm_var <- ggplot(data = diets_var %>%
   axis.title.y = element_text(size = rel(1.5)), 
   legend.position = "right") +
   labs(x = "", y = "", fill = "Intake variation (%)") +
-  ggtitle("Variations of intake compared to the baseline") +
+  ggtitle("Variations of the intake of several food groups\n compared to the baseline") +
   scale_x_discrete(labels = labels_scenario[diets_var$scenario]) +
   scale_y_discrete(labels = labels_food_groups[diets_var$food_group])
 
 plot(hm_var)
-
-range(diets_var$var)
 
 contrib$food_group <- factor(contrib$food_group, levels = order_food_groups)
 
@@ -210,15 +208,15 @@ hm_contrib <- ggplot(data = contrib %>%
             lwd = 1.5,
             linetype = 1) +
   coord_fixed() +
-  scale_fill_gradient2(low = "#014d70", high = "#89000b", mid = "white", midpoint = 0) +
+  scale_fill_gradient2(low = "#00388d", high = "#850028", mid = "#ffffff", midpoint = 0) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
   plot.title = element_text(size = rel(2), face = "bold", hjust = 0.5),
   axis.title.x = element_text(size = rel(1.5)),
   axis.title.y = element_text(size = rel(1.5)), 
   legend.position = "right") +
-  labs(x = "", y = "", fill = "Contribution to the\n health impact (%)") +
-  ggtitle("Contributions of intake variation to the health impact of diet shift") +
+  labs(x = "", y = "", fill = "Contribution to\nmortality (%)") +
+  ggtitle("Contributions of the intake variation of several food groups\n to mortality in each scenario compared to the baseline ") +
   scale_x_discrete(labels = labels_scenario[diets_var$scenario]) +
   scale_y_discrete(labels = labels_food_groups[diets_var$food_group])
 
@@ -309,19 +307,19 @@ contrib_2050 <- summary_contrib %>%
 ################################################################################################################################
 
 # Données
-export(contrib, here("results", "contributions", "FG_contributions.xlsx"))
+export(contrib, here("results", "1_Main_analysis_newDRF", "contributions", "FG_contributions.xlsx"))
 
 # Forest plots
-ggsave(here("results", "contributions", "forest_sc1.pdf"), forest_sc1)
-ggsave(here("results", "contributions", "forest_sc2.pdf"), forest_sc2)
-ggsave(here("results", "contributions", "forest_sc3.pdf"), forest_sc3)
-ggsave(here("results", "contributions", "forest_sc4.pdf"), forest_sc4)
+ggsave(here("results", "1_Main_analysis_newDRF", "contributions", "forest_sc1.pdf"), forest_sc1)
+ggsave(here("results", "1_Main_analysis_newDRF", "contributions", "forest_sc2.pdf"), forest_sc2)
+ggsave(here("results", "1_Main_analysis_newDRF", "contributions", "forest_sc3.pdf"), forest_sc3)
+ggsave(here("results", "1_Main_analysis_newDRF", "contributions", "forest_sc4.pdf"), forest_sc4)
 
 # Tableau contributions 2050
-save_as_image(contrib_2050, here("results", "contributions", "contributions_2050.png"))
+save_as_image(contrib_2050, here("results", "1_Main_analysis_newDRF", "contributions", "contributions_2050.png"))
 
 
 # Heat maps
-
-ggsave(here("results", "contributions", "hm_contrib.pdf"), hm_contrib)
-ggsave(here("results", "diets", "hm_var.pdf"), hm_var)
+ggsave(here("results", "1_Main_analysis_newDRF", "contributions", "hm_contrib.pdf"), hm_contrib)
+ggsave(here("results", "1_Main_analysis_newDRF", "diets", "hm_var.pdf"), hm_var)
+ 
