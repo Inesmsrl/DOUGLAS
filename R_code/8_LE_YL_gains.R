@@ -17,6 +17,8 @@ pacman::p_load(
 
 deaths_data <- import(here("Python_code", "data_python.csv"))
 
+deaths_data <- import(here("results", "FADNES_2022_repro", "MR", "MR_adjusted_EU_M.csv"))
+
 ################################################################################################################################
 #                                             3. Charte graphique                                                              #
 ################################################################################################################################
@@ -246,8 +248,8 @@ print(common_graph)
 ################################################################################################################################
 
 pop_sp <- deaths_data %>% 
-  filter(year == 2039,
-         age == 60) 
+  filter(year == 2029,
+         age == 80) 
 
 yll_sp <- pop_sp %>% 
   group_by(scenario) %>% 
@@ -350,8 +352,8 @@ export(summary_yll_sp, here("results", "IC95_yll_sp.xlsx"))
 ggsave(here("results", "yll_sp.pdf"), plot = graph_yll_sp)
 
 # LE pour un âge et une année spécifique
-export(summary_le_sp, here("results", "FADNES_2024_repro", "LE", "GBD2019_LE_2039_f_40.xlsx"))
-ggsave(here("results", "FADNES_2024_repro", "LE", "GBD2019_LE_2039_f_40.pdf"), plot = graph_le_sp)
+export(summary_le_sp, here("results", "FADNES_2022_repro", "LE", "LE_EU_M_80.xlsx"))
+ggsave(here("results", "FADNES_2024_repro", "LE", "LE_China_W_20.xlsx"), plot = graph_le_sp)
 
 # Décès évités, YLL, LE, Couts en 2040, 2050, 2060
 ggsave(here("results", "HIA", "HIA_dates.pdf"), plot = common_graph)

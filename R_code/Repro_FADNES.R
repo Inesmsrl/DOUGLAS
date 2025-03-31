@@ -21,7 +21,12 @@ pacman::p_load(
   deaths <- import(here("data", "GBD_EU_deaths.csv"))
 
 # MR du GBD
-  MR_GBD <- import(here("data", "GBD_FR_MR_2019.csv"))
+  MR_GBD_USA_W <- import(here("data", "GBD_MR_2019.xlsx"), sheet = "USA W")
+  MR_GBD_USA_M <- import(here("data", "GBD_MR_2019.xlsx"), sheet = "USA M")
+  MR_GBD_EU_W <- import(here("data", "GBD_MR_2019.xlsx"), sheet = "EU W")
+  MR_GBD_EU_M <- import(here("data", "GBD_MR_2019.xlsx"), sheet = "EU M")
+  MR_GBD_CHINA_W <- import(here("data", "GBD_MR_2019.xlsx"), sheet = "China W")
+  MR_GBD_CHINA_M <- import(here("data", "GBD_MR_2019.xlsx"), sheet = "China M")
 
 ################################################################################################################################
 #                                             3. Initialisation des paramètres                                                 #
@@ -32,7 +37,7 @@ year_i <- 2019 # Année initiale
 year_f <- 2039 # Année finale
 
 # Durée du time to full effect (années)
-ttfe_time <- 20
+ttfe_time <- 10
   
 ################################################################################################################################
 #                                             3. Nettoyage des données                                                         #
@@ -145,19 +150,17 @@ MR_complete <- function(df_mr, years) {
   bind_rows(lapply(years, function(y) df_mr %>% mutate(year = y)))
 }
 
-MR_f <- MR_complete(MR_f, years)
-MR_m <- MR_complete(MR_m, years)
+MR_GBD_CHINA_W <- MR_complete(MR_GBD_CHINA_W, years)
+MR_GBD_CHINA_M <- MR_complete(MR_GBD_CHINA_M, years)
+MR_GBD_EU_W <- MR_complete(MR_GBD_EU_W, years)
+MR_GBD_EU_M <- MR_complete(MR_GBD_EU_M, years)
+MR_GBD_USA_W <- MR_complete(MR_GBD_USA_W, years)
+MR_GBD_USA_M <- MR_complete(MR_GBD_USA_M, years)
 
-# Taux de mortalité par âge
-  export(MR_f, here("data_clean", "GBD_MR_FR_f_complete.xlsx"))
-  export(MR_m, here("data_clean", "GBD_MR_FR_m_complete.xlsx"))
 
-# MR du GBD 2019
-MR_GBD_f <- import(here("data_clean", "GBD_MR_2019_f_clean.xlsx"))
-MR_GBD_m <- import(here("data_clean", "GBD_MR_2019_m_clean.xlsx"))
-
-MR_GBD_f <- MR_complete(MR_GBD_f, years)
-MR_GBD_m <- MR_complete(MR_GBD_m, years)
-
-export(MR_GBD_f, here("data_clean", "GBD_2019_FR_MR_f_complete.xlsx"))
-export(MR_GBD_m, here("data_clean", "GBD_2019_FR_MR_m_complete.xlsx"))
+export(MR_GBD_CHINA_W, here("results", "FADNES_2022_repro", "MR", "GBD_2019_CHINA_W_complete.xlsx"))
+export(MR_GBD_CHINA_M, here("results", "FADNES_2022_repro", "MR", "GBD_2019_CHINA_M_complete.xlsx"))
+export(MR_GBD_EU_W, here("results", "FADNES_2022_repro", "MR", "GBD_2019_EU_W_complete.xlsx"))
+export(MR_GBD_EU_M, here("results", "FADNES_2022_repro", "MR", "GBD_2019_EU_M_complete.xlsx"))
+export(MR_GBD_USA_W, here("results", "FADNES_2022_repro", "MR", "GBD_2019_USA_W_complete.xlsx"))
+export(MR_GBD_USA_M, here("results", "FADNES_2022_repro", "MR", "GBD_2019_USA_M_complete.xlsx"))

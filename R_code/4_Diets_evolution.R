@@ -7,7 +7,8 @@ pacman::p_load(
     here, # Localisation des fichiers dans le dossier du projet
     dplyr, # Manipulation des données
     tidyr, # Manipulation des données
-    tidyverse # Data management, inclus ggplot
+    tidyverse, # Data management, inclus ggplot
+    flextable # Tableaux
 )
 
 ################################################################################################################################
@@ -15,7 +16,7 @@ pacman::p_load(
 ################################################################################################################################
 
 # Expositions : régimes SISAE en 2050
-diets <- import(here("data", "FADNES_2024_diets.xlsx"))
+diets <- import(here("data", "FADNES_diets.xlsx"))
 
 ################################################################################################################################
 #                                             3. Initialisation des paramètres                                                 #
@@ -35,7 +36,7 @@ p <- 1
 lambda <- 8
 
 # Durée du time to full effect (années)
-ttfe_time <- 20
+ttfe_time <- 10
 
 ################################################################################################################################
 #                                             4. Charte graphique                                                              #
@@ -336,13 +337,13 @@ table_diets_var <- diets_var %>%
 
 # Implémentation des régimes
 # Quantités (g/j/pers)
-    export(diets_evo, here("results", "FADNES_2024_repro", "diets", "diets_rr_evo.csv"))
-    ggsave(here("results", "FADNES_2024_repro", "diets", "diets_evo.pdf"), graph_diets_evo)
-    ggsave(here("results", "FADNES_2024_repro", "diets", "diets_evo_shift.pdf"), graph_diets_evo_shift)
+    export(diets_evo, here("results", "FADNES_2022_repro", "diets", "diets_rr_evo.csv"))
+    ggsave(here("results", "FADNES_2022_repro", "diets", "diets_evo.pdf"), graph_diets_evo)
+    ggsave(here("results", "FADNES_2022_repro", "diets", "diets_evo_shift.pdf"), graph_diets_evo_shift)
 
 # Variations (%)
-    export(diets_var, here("results", "FADNES_2024_repro", "diets", "diets_rr_var.csv"))
-    ggsave(here("results", "FADNES_2024_repro", "diets", "diets_var.pdf"), graph_diets_var)
+    export(diets_var, here("results", "FADNES_2022_repro", "diets", "diets_rr_var.csv"))
+    ggsave(here("results", "FADNES_2022_repro", "diets", "diets_var.pdf"), graph_diets_var)
 
 # Tableau des variations
-    save_as_image(table_diets_var, here("results", "diets", "table_diets_var.png"))
+    save_as_image(table_diets_var, here("results", "FADNES_2022_repro", "diets", "table_diets_var.png"))
