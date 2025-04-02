@@ -18,13 +18,13 @@ pacman::p_load(
 ################################################################################################################################
 
 # RR de chaque aliment
-rr_evo_food_combined <- import(here("results", "1_Main_analysis_newDRF", "RR", "rr_evo_fg.csv"))
+rr_evo_food_combined <- import(here("results", "1_Main_analysis_newDRF", "CORRECTION", "RR", "rr_evo_fg.csv"))
 
 # Variations des consommations alimentaires
 diets_var <- import(here("results", "diets", "diets_rr_var.csv"))
 
 # Décès totaux par scénario
-simulations_summary_total_deaths <- import(here("results", "1_Main_analysis_newDRF", "HIA", "IC95_tot_deaths.xlsx"))
+simulations_summary_total_deaths <- import(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "IC95_tot_deaths.xlsx"))
 
 ################################################################################################################################
 #                                             3. Initialisation des paramètres                                                 #
@@ -46,25 +46,24 @@ ttfe_time <- 10
 order_food_groups <- c(
   "red_meat", "processed_meat", "white_meat", "fish", "eggs", "dairy",
   "fruits", "vegetables", "legumes", "nuts", "whole_grains", "reffined_grains",
-  "added_plant_oils", "sugar_sweetened_beverages"
+  "sugar_sweetened_beverages"
 )
 
 # Etiquettes des groupes d'aliments
 labels_food_groups <- c(
-  "red_meat" = "Red meat",
-  "processed_meat" = "Processed meat",
-  "white_meat" = "White meat",
-  "dairy" = "Dairy",
-  "fish" = "Fish",
-  "eggs" = "Eggs",
-  "fruits" = "Fruits",
-  "nuts" = "Nuts",
-  "vegetables" = "Vegetables",
-  "legumes" = "Legumes",
-  "whole_grains" = "Whole grains",
-  "reffined_grains" = "Refined grains",
-  "added_plant_oils" = "Added plant oils",
-  "sugar_sweetened_beverages" = "SSB"
+  "red_meat" = expression(Delta ~ "Red meat"),
+  "processed_meat" = expression(Delta ~ "Processed meat"),
+  "white_meat" = expression(Delta ~ "White meat"),
+  "dairy" = expression(Delta ~ "Dairy"),
+  "fish" = expression(Delta ~ "Fish"),
+  "eggs" = expression(Delta ~ "Eggs"),
+  "fruits" = expression(Delta ~ "Fruits"),
+  "nuts" = expression(Delta ~ "Nuts"),
+  "vegetables" = expression(Delta ~ "Vegetables"),
+  "legumes" = expression(Delta ~ "Legumes"),
+  "whole_grains" = expression(Delta ~ "Whole grains"),
+  "reffined_grains" = expression(Delta ~ "Refined grains"),
+  "sugar_sweetened_beverages" = expression(Delta ~ "SSB")
 )
 
 # Etiquettes des scénarios
@@ -175,7 +174,7 @@ diets_var$food_group <- factor(diets_var$food_group, levels = order_food_groups)
 hm_var <- ggplot(data = diets_var %>%
                filter(scenario != "actuel",
                       year == 2050),
-             aes(x = scenario, y = food_group, fill = var)) +
+             aes(x = scenario, y = food_group, fill = sign(var) * log1p(abs(var)))) +
   geom_tile(color = "white",
             lwd = 1.5,
             linetype = 1) +
@@ -184,15 +183,20 @@ hm_var <- ggplot(data = diets_var %>%
                        high = "#8b0066", 
                        mid = "white", 
                        midpoint = 0,
-                       limits = c(min(diets_var$var, na.rm = TRUE), max(diets_var$var, na.rm = TRUE))) +
+                       limits = c(min(sign(diets_var$var) * log1p(abs(diets_var$var)), na.rm = TRUE), 
+                                  max(sign(diets_var$var) * log1p(abs(diets_var$var)), na.rm = TRUE)),
+                       breaks = sign(c(-50, -20, -10, 0, 10, 20, 50, 100, 200, 600)) * log1p(abs(c(-50, -20, -10, 0, 10, 20, 50, 100, 200, 600))),  # Breaks adaptés
+                       labels = c("-50%", "-20%", "-10%", "0%", "10%", "20%", "50%", "100%", "200%", "600%")) +  # Étiquettes adaptées) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
   plot.title = element_text(size = rel(2), face = "bold", hjust = 0.5),
   axis.title.x = element_text(size = rel(1.5)),
-  axis.title.y = element_text(size = rel(1.5)), 
-  legend.position = "right") +
-  labs(x = "", y = "", fill = "Intake variation (%)") +
-  ggtitle("Variations of the intake of several food groups\n compared to the baseline") +
+  axis.title.y = element_text(size = rel(1.5)),
+  legend.key.size = unit(1.2, "cm"), 
+  legend.position = "right",
+  legend.title = element_text(face = "bold", size = rel(1.5))) +
+  labs(x = "", y = "", fill = "Intake variation") +
+  ggtitle("Intake variation of several food groups\n compared to the baseline scenario") +
   scale_x_discrete(labels = labels_scenario[diets_var$scenario]) +
   scale_y_discrete(labels = labels_food_groups[diets_var$food_group])
 
@@ -214,11 +218,12 @@ hm_contrib <- ggplot(data = contrib %>%
   plot.title = element_text(size = rel(2), face = "bold", hjust = 0.5),
   axis.title.x = element_text(size = rel(1.5)),
   axis.title.y = element_text(size = rel(1.5)), 
-  legend.position = "right") +
-  labs(x = "", y = "", fill = "Contribution to\nmortality (%)") +
-  ggtitle("Contributions of the intake variation of several food groups\n to mortality in each scenario compared to the baseline ") +
-  scale_x_discrete(labels = labels_scenario[diets_var$scenario]) +
-  scale_y_discrete(labels = labels_food_groups[diets_var$food_group])
+  legend.position = "right",
+  legend.title = element_text(face = "bold", size = rel(1.5))) +
+  labs(x = "", y = "", fill = "Change in\nmortality (%)") +
+  ggtitle("Change in mortality due to the intake variation of several\nfood groups compared to the baseline in 2050") +
+  scale_x_discrete(labels = labels_scenario) +
+  scale_y_discrete(labels = labels_food_groups)
 
 plot(hm_contrib)
 
@@ -307,19 +312,19 @@ contrib_2050 <- summary_contrib %>%
 ################################################################################################################################
 
 # Données
-export(contrib, here("results", "1_Main_analysis_newDRF", "contributions", "FG_contributions.xlsx"))
+export(contrib, here("results", "1_Main_analysis_newDRF", "CORRECTION", "contributions", "FG_contributions.xlsx"))
 
 # Forest plots
-ggsave(here("results", "1_Main_analysis_newDRF", "contributions", "forest_sc1.pdf"), forest_sc1)
-ggsave(here("results", "1_Main_analysis_newDRF", "contributions", "forest_sc2.pdf"), forest_sc2)
-ggsave(here("results", "1_Main_analysis_newDRF", "contributions", "forest_sc3.pdf"), forest_sc3)
-ggsave(here("results", "1_Main_analysis_newDRF", "contributions", "forest_sc4.pdf"), forest_sc4)
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "contributions", "forest_sc1.pdf"), forest_sc1)
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "contributions", "forest_sc2.pdf"), forest_sc2)
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "contributions", "forest_sc3.pdf"), forest_sc3)
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "contributions", "forest_sc4.pdf"), forest_sc4)
 
 # Tableau contributions 2050
-save_as_image(contrib_2050, here("results", "1_Main_analysis_newDRF", "contributions", "contributions_2050.png"))
+save_as_image(contrib_2050, here("results", "1_Main_analysis_newDRF", "CORRECTION", "contributions", "contributions_2050.png"))
 
 
 # Heat maps
-ggsave(here("results", "1_Main_analysis_newDRF", "contributions", "hm_contrib.pdf"), hm_contrib)
-ggsave(here("results", "1_Main_analysis_newDRF", "diets", "hm_var.pdf"), hm_var)
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "contributions", "hm_contrib.pdf"), hm_contrib)
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "contributions", "hm_var.pdf"), hm_var)
  

@@ -14,7 +14,7 @@ pacman::p_load(
 #                                             2. Importation des données                                                       #
 ################################################################################################################################
 
-yll <- import(here("results", "HIA", "IC95_yll.xlsx"))
+yll <- import(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "IC95_yll.xlsx"))
 
 cost_2040 <- 188000
 
@@ -96,6 +96,6 @@ graph_yll_costs_dates <- ggplot(costs %>%
 #                                             4. Exportation des données                                                       #
 ################################################################################################################################
 
-export(costs, here("results", "HIA", "IC95_costs_avoided.xlsx"))
-ggsave(here("results", "HIA", "costs_avoided_dates.pdf"), plot = graph_yll_costs_dates)  
+export(costs, here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "IC95_costs_avoided.xlsx"))
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "costs_avoided_dates.pdf"), plot = graph_yll_costs_dates)  
 

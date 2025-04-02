@@ -16,18 +16,18 @@ pacman::p_load(
 ################################################################################################################################
 
 # Expositions : régimes SISAE en 2050
-diets <- import(here("data", "FADNES_diets.xlsx"))
+diets <- import(here("data", "DOUGLAS_diets.xlsx"))
 
 ################################################################################################################################
 #                                             3. Initialisation des paramètres                                                 #
 ################################################################################################################################
 
 # Bornes temporelles des changements de régime alimentaire (années)
-year_i <- 2019 # Année initiale
-year_f <- 2039 # Année finale
+year_i <- 2025 # Année initiale
+year_f <- 2050 # Année finale
 
 # Dynamique d'implémentation des régimes (immediate, linear, cosine, sigmoidal)
-implementation <- "immediate"
+implementation <- "cosine"
 
 # paramètre de la courbe d'interpolation cosinus
 p <- 1
@@ -346,4 +346,4 @@ table_diets_var <- diets_var %>%
     ggsave(here("results", "FADNES_2022_repro", "diets", "diets_var.pdf"), graph_diets_var)
 
 # Tableau des variations
-    save_as_image(table_diets_var, here("results", "FADNES_2022_repro", "diets", "table_diets_var.png"))
+    save_as_image(table_diets_var, here("results", "diets", "table_diets_var.png"))

@@ -77,14 +77,14 @@ col_food_groups <- c(
 # Un tableau unique
   rr_table <- rr_table_mid %>% 
     left_join(rr_table_low, by = c("food_group", "quantity")) %>% 
-    left_join(rr_table_up, by = c("food_group", "quantity")) %>% 
-    rename("rr_low" = "rr.x",
-           "rr_mid" = "rr.y",
-           "rr_up"="rr") %>% 
+    left_join(rr_table_up, by = c("food_group", "quantity")) %>%     
+    rename("rr_mid" = "rr.x",
+           "rr_low" = "rr.y",
+           "rr_up"="rr") %>%
     mutate(rr_low = ifelse(is.na(rr_low), rr_mid, rr_low),
            rr_up = ifelse(is.na(rr_up), rr_mid, rr_up)) %>% 
     drop_na(rr_low, rr_mid, rr_up)
-  
+
 ################################################################################################################################
 #                                             4. Fonction de génération de distributions normales                              #
 ################################################################################################################################
@@ -170,7 +170,7 @@ col_food_groups <- c(
 ################################################################################################################################
 
 # Nouvel ensemble de DRF 
-rr_table_interpolated_1 <- import(here("data_clean", "rr_table_interpolated_sim.csv"))
+rr_table_interpolated_1 <- import(here("data_clean", "CORRECTION", "rr_table_interpolated_sim.csv"))
 
 rr_table_interpolated_1 <- rr_table_interpolated_1 %>% 
   filter(food_group %in% c("red_meat", "fish", "dairy", "vegetables", "fruits", "legumes", "processed_meat"))
@@ -244,7 +244,7 @@ rr_table_interpolated <- rr_table_interpolated %>%
 # Legumes
   graph_dr_sim_legumes <- ggplot(rr_table_interpolated %>% 
                                   filter(food_group == "legumes",
-                                         quantity %in% 0:600),
+                                         quantity %in% 0:150),
                                 aes(x = quantity,
                                     y = rr_interpolated,
                                     group = simulation_id,
@@ -410,24 +410,24 @@ rr_table_interpolated <- rr_table_interpolated %>%
 ################################################################################################################################
   
 # Table des relations dose-réponse simulées
-  export(rr_table_interpolated, here("data_clean", "rr_table_interpolated_sim.csv"))
+  export(rr_table_interpolated, here("data_clean", "CORRECTION", "rr_table_interpolated_sim.csv"))
   
 # Représentations graphiques
-  ggsave(here("results", "DRF", "drf_dairy.pdf"), plot = graph_dr_sim_dairy)
-  ggsave(here("results", "DRF", "drf_eggs.pdf"), plot = graph_dr_sim_eggs)
-  ggsave(here("results", "DRF", "drf_fish.pdf"), plot = graph_dr_sim_fish)
-  ggsave(here("results", "DRF", "drf_fruits.pdf"), plot = graph_dr_sim_fruits)
-  ggsave(here("results", "DRF", "drf_legumes.pdf"), plot = graph_dr_sim_legumes)
-  ggsave(here("results", "DRF", "drf_nuts.pdf"), plot = graph_dr_sim_nuts)
-  ggsave(here("results", "DRF", "drf_processed_meat.pdf"), plot = graph_dr_sim_processed_meat)
-  ggsave(here("results", "DRF", "drf_red_meat.pdf"), plot = graph_dr_sim_red_meat)  
-  ggsave(here("results", "DRF", "drf_refined_grains.pdf"), plot = graph_dr_sim_refined_grains)  
-  ggsave(here("results", "DRF", "drf_ssb.pdf"), plot = graph_dr_sim_ssb)  
-  ggsave(here("results", "DRF", "drf_vegetables.pdf"), plot = graph_dr_sim_vegetables)  
-  ggsave(here("results", "DRF", "drf_white_meat.pdf"), plot = graph_dr_sim_white_meat)  
-  ggsave(here("results", "DRF", "drf_whole_grains.pdf"), plot = graph_dr_sim_whole_grains)  
+  ggsave(here("results", "DRF", "CORRECTION", "drf_dairy.pdf"), plot = graph_dr_sim_dairy)
+  ggsave(here("results", "DRF", "CORRECTION", "drf_eggs.pdf"), plot = graph_dr_sim_eggs)
+  ggsave(here("results", "DRF", "CORRECTION", "drf_fish.pdf"), plot = graph_dr_sim_fish)
+  ggsave(here("results", "DRF", "CORRECTION", "drf_fruits.pdf"), plot = graph_dr_sim_fruits)
+  ggsave(here("results", "DRF", "CORRECTION", "drf_legumes.pdf"), plot = graph_dr_sim_legumes)
+  ggsave(here("results", "DRF", "CORRECTION", "drf_nuts.pdf"), plot = graph_dr_sim_nuts)
+  ggsave(here("results", "DRF", "CORRECTION", "drf_processed_meat.pdf"), plot = graph_dr_sim_processed_meat)
+  ggsave(here("results", "DRF", "CORRECTION", "drf_red_meat.pdf"), plot = graph_dr_sim_red_meat)  
+  ggsave(here("results", "DRF", "CORRECTION", "drf_refined_grains.pdf"), plot = graph_dr_sim_refined_grains)  
+  ggsave(here("results", "DRF", "CORRECTION", "drf_ssb.pdf"), plot = graph_dr_sim_ssb)  
+  ggsave(here("results", "DRF", "CORRECTION", "drf_vegetables.pdf"), plot = graph_dr_sim_vegetables)  
+  ggsave(here("results", "DRF", "CORRECTION", "drf_white_meat.pdf"), plot = graph_dr_sim_white_meat)  
+  ggsave(here("results", "DRF", "CORRECTION", "drf_whole_grains.pdf"), plot = graph_dr_sim_whole_grains)  
   
-  ggsave(here("results", "DRF", "drf_all.pdf"), plot = combined_plot) 
+  ggsave(here("results", "DRF", "CORRECTION", "drf_all.pdf"), plot = combined_plot) 
   
 
 # Nouvelles DRF

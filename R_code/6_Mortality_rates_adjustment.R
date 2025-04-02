@@ -14,6 +14,9 @@ pacman::p_load(
 ################################################################################################################################
 
 # Taux de mortalité (INSEE)
+MR <- import(here("data_clean", "MR_table.xlsx"))
+
+# GBD 2019
 MR_GBD_CHINA_W <- import(here("results", "FADNES_2022_repro", "MR", "GBD_2019_CHINA_W_complete.xlsx"))
 MR_GBD_CHINA_M <- import(here("results", "FADNES_2022_repro", "MR", "GBD_2019_CHINA_M_complete.xlsx"))
 MR_GBD_USA_W <- import(here("results", "FADNES_2022_repro", "MR", "GBD_2019_USA_W_complete.xlsx"))
@@ -25,15 +28,15 @@ MR_GBD_EU_M <- import(here("results", "FADNES_2022_repro", "MR", "GBD_2019_EU_M_
 population <- import(here("data_clean", "population_clean.xlsx"))
 
 # RR des régimes
-rr_evo_diets <- import(here("results", "FADNES_2022_repro", "RR", "rr_evo_diets.csv"))
+rr_evo_diets <- import(here("results", "1_Main_analysis_newDRF", "CORRECTION", "RR", "rr_evo_diets.csv"))
 
 ################################################################################################################################
 #                                             3. Initialisation des paramètres                                                 #
 ################################################################################################################################
 
 # Bornes temporelles des changements de régime alimentaire (années)
-year_i <- 2019 # Année initiale
-year_f <- 2039 # Année finale
+year_i <- 2025 # Année initiale
+year_f <- 2050 # Année finale
 
 # Borne inférieure de l'âge de la population du modèle (années)
 age_limit <- 18
@@ -150,6 +153,8 @@ pop_data <- MR_adjusted %>%
 ################################################################################################################################
 
 # Taux de mortalité ajustés
+export(MR_adjusted, here("results", "1_Main_analysis_newDRF", "CORRECTION", "MR", "MR_adjusted.csv"))
+
 export(MR_adj_CHINA_W, here("results", "FADNES_2022_repro", "MR", "MR_adjusted_CHINA_W.csv"))
 export(MR_adj_CHINA_M, here("results", "FADNES_2022_repro", "MR", "MR_adjusted_CHINA_M.csv"))
 export(MR_adj_USA_W, here("results", "FADNES_2022_repro", "MR", "MR_adjusted_USA_W.csv"))
@@ -158,6 +163,8 @@ export(MR_adj_EU_W, here("results", "FADNES_2022_repro", "MR", "MR_adjusted_EU_W
 export(MR_adj_EU_M, here("results", "FADNES_2022_repro", "MR", "MR_adjusted_EU_M.csv"))
 
 # Résumé des simulations ajustées
+export(simulations_summary_mr_adjusted, here("results", "1_Main_analysis_newDRF", "CORRECTION", "MR", "simulations_summary_mr_adjusted.csv"))
+
 export(simulations_summary_mr_adjusted_CHINA_W, here("results", "FADNES_2022_repro", "MR", "simulations_summary_mr_adjusted_CHINA_W.csv"))
 export(simulations_summary_mr_adjusted_CHINA_M, here("results", "FADNES_2022_repro", "MR", "simulations_summary_mr_adjusted_CHINA_M.csv"))
 export(simulations_summary_mr_adjusted_USA_W, here("results", "FADNES_2022_repro", "MR", "simulations_summary_mr_adjusted_USA_W.csv"))
@@ -166,4 +173,4 @@ export(simulations_summary_mr_adjusted_EU_W, here("results", "FADNES_2022_repro"
 export(simulations_summary_mr_adjusted_EU_M, here("results", "FADNES_2022_repro", "MR", "simulations_summary_mr_adjusted_EU_M.csv"))
 
 # Tableau de données de population et MR ajustés
-export(pop_data, here("results", "1_Main_analysis_newDRF", "MR", "pop_data.csv"))
+export(pop_data, here("results", "1_Main_analysis_newDRF", "CORRECTION", "MR", "pop_data.csv"))

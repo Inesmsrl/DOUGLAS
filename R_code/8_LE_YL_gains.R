@@ -248,7 +248,7 @@ print(common_graph)
 ################################################################################################################################
 
 pop_sp <- deaths_data %>% 
-  filter(year == 2029,
+  filter(year == 2050,
          age == 80) 
 
 yll_sp <- pop_sp %>% 
@@ -294,7 +294,7 @@ graph_yll_sp <- ggplot(summary_yll_sp %>%
 le_sp <- pop_sp %>% 
   group_by(simulation_id, scenario) %>% 
   summarise(le_year = mean(le)) %>% 
-  mutate(leg = (le_year - le_year[scenario == "actuel"]))
+  mutate(leg = (le_year - le_year[scenario == "actuel"])*12) # Gain d'espérance de vie en MOIS
 
 le_sp <- le_sp %>% 
   group_by(scenario) %>% 
@@ -337,14 +337,14 @@ plot(graph_le_sp)
 ################################################################################################################################
 
 # LE
-export(summary_le, here("results", "1_Main_analysis_newDRF", "HIA", "IC95_LE_gained.xlsx"))
-ggsave(here("results", "1_Main_analysis_newDRF", "HIA", "LE_gained.pdf"), plot = graph_le)
-ggsave(here("results", "1_Main_analysis_newDRF", "HIA", "LE_gaines_dates.pdf"), plot = graph_le_dates)
+export(summary_le, here("results", "1_Main_analysis_newDRF","CORRECTION", "HIA", "IC95_LE_gained.xlsx"))
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "LE_gained.pdf"), plot = graph_le)
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "LE_gaines_dates.pdf"), plot = graph_le_dates)
 
 # YLL
-export(summary_yll, here("results", "1_Main_analysis_newDRF", "HIA", "IC95_yll.xlsx"))
-ggsave(here("results","1_Main_analysis_newDRF", "HIA", "yll_reported.pdf"), plot = graph_yll)
-ggsave(here("results","1_Main_analysis_newDRF", "HIA", "yll_reported_dates.pdf"), plot = graph_yll_dates)
+export(summary_yll, here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "IC95_yll.xlsx"))
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "yll_reported.pdf"), plot = graph_yll)
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "yll_reported_dates.pdf"), plot = graph_yll_dates)
 
 
 # YLL pour un âge et une année spécifique 
@@ -352,8 +352,8 @@ export(summary_yll_sp, here("results", "IC95_yll_sp.xlsx"))
 ggsave(here("results", "yll_sp.pdf"), plot = graph_yll_sp)
 
 # LE pour un âge et une année spécifique
-export(summary_le_sp, here("results", "FADNES_2022_repro", "LE", "LE_EU_M_80.xlsx"))
-ggsave(here("results", "FADNES_2024_repro", "LE", "LE_China_W_20.xlsx"), plot = graph_le_sp)
+export(summary_le_sp, here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "LE_2050_80.xlsx"))
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "LE_2050_80.pdf"), plot = graph_le_sp)
 
 # Décès évités, YLL, LE, Couts en 2040, 2050, 2060
-ggsave(here("results", "HIA", "HIA_dates.pdf"), plot = common_graph)
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "HIA_dates.pdf"), plot = common_graph)

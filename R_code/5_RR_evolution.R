@@ -15,18 +15,18 @@ pacman::p_load(
 ################################################################################################################################
 
 # Risques relatifs / consommation (g/j), relations dose-réponse simulées
-rr_table <- import(here("data_clean", "rr_table_interpolated_sim.csv"))
+rr_table <- import(here("data_clean", "rr_table_interpolated_sim_2.csv"))
 
 # Expositions : régimes au cours du temps
-diets_evo <- import(here("results", "FADNES_2022_repro", "diets", "diets_rr_evo.csv"))
+diets_evo <- import(here("results", "diets", "diets_rr_evo.csv"))
 
 ################################################################################################################################
 #                                             3. Initialisation des paramètres                                                 #
 ################################################################################################################################
 
 # Bornes temporelles des changements de régime alimentaire (années)
-year_i <- 2019 # Année initiale
-year_f <- 2039 # Année finale
+year_i <- 2025 # Année initiale
+year_f <- 2050 # Année finale
 
 # Paramètre de modification d'effet des RR
 # 0.5 à 1 = réduction d'effet, modèle conservateur
@@ -387,16 +387,16 @@ graph_rr_diets_rel <- ggplot(
 ################################################################################################################################
 
 # RR des groupes alimentaires
-export(rr_evo_food_combined, here("results", "FADNES_2022_repro", "RR", "rr_evo_fg.csv"))
+export(rr_evo_food_combined, here("results", "1_Main_analysis_newDRF", "CORRECTION", "RR", "rr_evo_fg.csv"))
 
-ggsave(here("results", "FADNES_2022_repro", "RR", "rr_evo_fg_sc1.pdf"), graph_rr_fg_sc1)
-ggsave(here("results", "FADNES_2022_repro", "RR", "rr_evo_fg_sc2.pdf"), graph_rr_sc2)
-ggsave(here("results", "FADNES_2022_repro", "RR", "rr_evo_fg_sc3.pdf"), graph_rr_sc3)
-ggsave(here("results", "FADNES_2022_repro", "RR", "rr_evo_fg_sc4.pdf"), graph_rr_sc4)
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "RR", "rr_evo_fg_sc1.pdf"), graph_rr_fg_sc1)
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "RR", "rr_evo_fg_sc2.pdf"), graph_rr_sc2)
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "RR", "rr_evo_fg_sc3.pdf"), graph_rr_sc3)
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "RR", "rr_evo_fg_sc4.pdf"), graph_rr_sc4)
 
 
 # RR des régimes
-export(rr_evo_diets, here("results", "FADNES_2022_repro", "RR", "rr_evo_diets.csv"))
+export(rr_evo_diets, here("results", "1_Main_analysis_newDRF", "CORRECTION", "RR", "rr_evo_diets.csv"))
 
-ggsave(here("results", "FADNES_2022_repro", "RR", "rr_evo_diets.pdf"), graph_rr_diets)
-ggsave(here("results", "FADNES_2022_repro", "RR", "rr_evo_diets_rel.pdf"), graph_rr_diets_rel)
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "RR", "rr_evo_diets.pdf"), graph_rr_diets)
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "RR", "rr_evo_diets_rel.pdf"), graph_rr_diets_rel)
