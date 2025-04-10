@@ -16,7 +16,7 @@ pacman::p_load(
 ################################################################################################################################
 
 # Expositions : régimes SISAE en 2050
-diets <- import(here("data", "DOUGLAS_diets.xlsx"))
+diets <- import(here("data", "DOUGLAS_diets_WG.xlsx"))
 
 ################################################################################################################################
 #                                             3. Initialisation des paramètres                                                 #
@@ -337,13 +337,13 @@ table_diets_var <- diets_var %>%
 
 # Implémentation des régimes
 # Quantités (g/j/pers)
-    export(diets_evo, here("results", "FADNES_2022_repro", "diets", "diets_rr_evo.csv"))
-    ggsave(here("results", "FADNES_2022_repro", "diets", "diets_evo.pdf"), graph_diets_evo)
-    ggsave(here("results", "FADNES_2022_repro", "diets", "diets_evo_shift.pdf"), graph_diets_evo_shift)
+    export(diets_evo, here("results", "2_WG_S3_S4", "diets", "diets_rr_evo.csv"))
+    ggsave(here("results", "2_WG_S3_S4", "diets", "diets_evo.pdf"), graph_diets_evo)
+    ggsave(here("results", "2_WG_S3_S4", "diets", "diets_evo_shift.pdf"), graph_diets_evo_shift)
 
 # Variations (%)
-    export(diets_var, here("results", "FADNES_2022_repro", "diets", "diets_rr_var.csv"))
-    ggsave(here("results", "FADNES_2022_repro", "diets", "diets_var.pdf"), graph_diets_var)
+    export(diets_var, here("results", "2_WG_S3_S4", "diets", "diets_rr_var.csv"))
+    ggsave(here("results", "2_WG_S3_S4", "diets", "diets_var.pdf"), graph_diets_var)
 
 # Tableau des variations
-    save_as_image(table_diets_var, here("results", "diets", "table_diets_var.png"))
+    save_as_image(table_diets_var, here("results", "2_WG_S3_S4", "diets", "table_diets_var.png"))

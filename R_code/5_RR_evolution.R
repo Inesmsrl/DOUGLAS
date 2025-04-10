@@ -18,7 +18,7 @@ pacman::p_load(
 rr_table <- import(here("data_clean", "rr_table_interpolated_sim_2.csv"))
 
 # Expositions : régimes au cours du temps
-diets_evo <- import(here("results", "diets", "diets_rr_evo.csv"))
+diets_evo <- import(here("results", "2_WG_S3_S4", "diets", "diets_rr_evo.csv"))
 
 ################################################################################################################################
 #                                             3. Initialisation des paramètres                                                 #
@@ -344,7 +344,6 @@ simulations_summary_rr_diets_relative <- rr_evo_diets %>%
 #                                             15. Figures : RR des régimes relatifs au baseline                                  #
 ################################################################################################################################
 
-
 graph_rr_diets_rel <- ggplot(
   simulations_summary_rr_diets_relative %>%
     filter(scenario != "actuel"),
@@ -387,16 +386,16 @@ graph_rr_diets_rel <- ggplot(
 ################################################################################################################################
 
 # RR des groupes alimentaires
-export(rr_evo_food_combined, here("results", "1_Main_analysis_newDRF", "CORRECTION", "RR", "rr_evo_fg.csv"))
+export(rr_evo_food_combined, here("results", "2_WG_S3_S4", "RR", "rr_evo_fg.csv"))
 
-ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "RR", "rr_evo_fg_sc1.pdf"), graph_rr_fg_sc1)
-ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "RR", "rr_evo_fg_sc2.pdf"), graph_rr_sc2)
-ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "RR", "rr_evo_fg_sc3.pdf"), graph_rr_sc3)
-ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "RR", "rr_evo_fg_sc4.pdf"), graph_rr_sc4)
+ggsave(here("results", "2_WG_S3_S4", "RR", "rr_evo_fg_sc1.pdf"), graph_rr_fg_sc1)
+ggsave(here("results", "2_WG_S3_S4", "RR", "rr_evo_fg_sc2.pdf"), graph_rr_sc2)
+ggsave(here("results", "2_WG_S3_S4", "RR", "rr_evo_fg_sc3.pdf"), graph_rr_sc3)
+ggsave(here("results", "2_WG_S3_S4", "RR", "rr_evo_fg_sc4.pdf"), graph_rr_sc4)
 
 
 # RR des régimes
-export(rr_evo_diets, here("results", "1_Main_analysis_newDRF", "CORRECTION", "RR", "rr_evo_diets.csv"))
+export(rr_evo_diets, here("results", "2_WG_S3_S4", "RR", "rr_evo_diets.csv"))
 
-ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "RR", "rr_evo_diets.pdf"), graph_rr_diets)
-ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "RR", "rr_evo_diets_rel.pdf"), graph_rr_diets_rel)
+ggsave(here("results", "2_WG_S3_S4", "RR", "rr_evo_diets.pdf"), graph_rr_diets)
+ggsave(here("results", "2_WG_S3_S4", "RR", "rr_evo_diets_rel.pdf"), graph_rr_diets_rel)

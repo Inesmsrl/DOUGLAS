@@ -50,7 +50,7 @@ order_food_groups <- c(
 )
 
 # Etiquettes des groupes d'aliments
-labels_food_groups <- c(
+labels_food_groups_delta <- c(
   "red_meat" = expression(Delta ~ "Red meat"),
   "processed_meat" = expression(Delta ~ "Processed meat"),
   "white_meat" = expression(Delta ~ "White meat"),
@@ -64,6 +64,23 @@ labels_food_groups <- c(
   "whole_grains" = expression(Delta ~ "Whole grains"),
   "reffined_grains" = expression(Delta ~ "Refined grains"),
   "sugar_sweetened_beverages" = expression(Delta ~ "SSB")
+)
+
+labels_food_groups <- c(
+  "red_meat" = "Red meat",
+  "processed_meat" = "Processed meat",
+  "white_meat" = "White meat",
+  "dairy" = "Dairy",
+  "fish" = "Fish",
+  "eggs" = "Eggs",
+  "fruits" = "Fruits",
+  "nuts" = "Nuts",
+  "vegetables" = "Vegetables",
+  "legumes" = "Legumes",
+  "whole_grains" = "Whole grains",
+  "reffined_grains" = "Refined grains",
+  "added_plant_oils" = "Added plant oils",
+  "sugar_sweetened_beverages" = "SSB"
 )
 
 # Etiquettes des scénarios
@@ -134,6 +151,7 @@ forest_plot_contrib <- function(scen) {
     ) %>%
     mutate(
       food_group = labels_food_groups[food_group],
+      food_group = factor(food_group, levels = labels_food_groups[order_food_groups]),
       var = round(var, 1)
     )
 
@@ -148,7 +166,7 @@ forest_plot_contrib <- function(scen) {
     ci_column = 3,
     ref_line = 0,
     xlim = c(-8, 5),
-    xlab = "Contribution to the health impact (%)",
+    xlab = "Change in mortality (%)",
     title = paste("2050 - ", labels_scenario[scen]),
     footnote = "SSB = Sugar-sweetened beverages",
     theme = forest_theme(
@@ -232,10 +250,9 @@ plot(hm_contrib)
 ################################################################################################################################
 
 # Tableau des variations et contributions des aliments aux résultats pour l'année 2050
-
 summary_contrib <- contrib %>%
   inner_join(simulations_summary_total_deaths, by = c("scenario", "year")) %>%
-  inner_join(diets_var, by = c("scenario", "year", "food_group")) %>%
+  inner_join(diets_var, by = c("scenario", "year", "food_group")) %>%  
   group_by("scenario", "year", "food_group") %>%
   mutate(
     deaths = delta * mean_tot_deaths / 100,
@@ -246,9 +263,9 @@ summary_contrib <- contrib %>%
   select(scenario, year, food_group, quantity, var, delta, deaths) %>%
   mutate(
     quantity = round(quantity),
-    deaths = round(deaths)
-  )
-
+    deaths = round(deaths),
+    food_group = labels_food_groups[food_group],
+    food_group = factor(food_group, levels = labels_food_groups[order_food_groups]))
 
 # Contributions pour l'année 2050
 
@@ -267,9 +284,8 @@ contrib_2050 <- summary_contrib %>%
     "quantity_sc1", "var_sc1", "delta_sc1", "deaths_sc1",
     "quantity_sc2", "var_sc2", "delta_sc2", "deaths_sc2",
     "quantity_sc3", "var_sc3", "delta_sc3", "deaths_sc3",
-    "quantity_sc4", "var_sc4", "delta_sc4", "deaths_sc4"
+    "quantity_sc4", "var_sc4", "delta_sc4", "deaths_sc4",
   ) %>%
-  mutate(food_group = labels_food_groups[food_group]) %>% # Remplacer les noms des groupes alimentaires par les labels)
   qflextable() %>% # Création du tableau et ajustement automatique de la largeur des colonnes
   add_header_row(
     top = TRUE, # Ajout d'une ligne d'en-tête
@@ -277,21 +293,21 @@ contrib_2050 <- summary_contrib %>%
   ) %>%
   set_header_labels( # Renommer des colonnes de la 2e ligne d'en-tête
     "food_group" = "",
-    "quantity_sc1" = "Intake (g/d/pers)",
+    "quantity_sc1" = "Intake in 2050 (g/d/pers)",
     "var_sc1" = "Intake variation vs baseline",
-    "delta_sc1" = "Contribution to results",
+    "delta_sc1" = "Change in mortality",
     "deaths_sc1" = "Deaths due to intake variation",
-    "quantity_sc2" = "Intake (g/d/pers)",
+    "quantity_sc2" = "Intake in 2050 (g/d/pers)",
     "var_sc2" = "Intake variation vs baseline",
-    "delta_sc2" = "Contribution to results",
+    "delta_sc2" = "Change in mortality",
     "deaths_sc2" = "Deaths due to intake variation",
-    "quantity_sc3" = "Intake (g/d/pers)",
+    "quantity_sc3" = "Intake in 2050 (g/d/pers)",
     "var_sc3" = "Intake variation vs baseline",
-    "delta_sc3" = "Contribution to results",
+    "delta_sc3" = "Change in mortality",
     "deaths_sc3" = "Deaths due to intake variation",
-    "quantity_sc4" = "Intake (g/d/pers)",
+    "quantity_sc4" = "Intake (Intake in 2050 (g/d/pers)",
     "var_sc4" = "Intake variation vs baseline",
-    "delta_sc4" = "Contribution to results",
+    "delta_sc4" = "Change in mortality",
     "deaths_sc4" = "Deaths due to intake variation"
   ) %>%
   vline(part = "all", j = 5) %>% # Ligne verticale après la colonne 5
@@ -303,28 +319,27 @@ contrib_2050 <- summary_contrib %>%
   merge_at(i = 1, j = 14:17, part = "header") %>%
   align(align = "center", j = c(2:17), part = "all") %>% # Centrer le contenu des cellules sauf Food group
   bold(i = 1, part = "header") %>% # Mettre en gras la 1ère ligne d'en-tête
-  bg(part = "all", bg = "white") %>% # Fond blanc pour toutes les cellules
-  bg(., i = ~ food_group %in% c("Legumes", "Nuts", "Processed meat", "Red meat", "Eggs", "Vegetables", "Whole grains"), part = "body", bg = "aquamarine2") %>%
-  bg(., i = ~ food_group %in% c("Fruits", "Fish", "White meat"), part = "body", bg = "indianred1")
+  bg(part = "all", bg = "white") %>%
+  bg(., i = ~ food_group %in% c("Fruits", "Whole grains"), j = c("food_group", "delta_sc3", "delta_sc4"), part = "body", bg = "#b95151") %>%
+  bg(., i = ~ food_group %in% c("Eggs", "Nuts", "Fish"), j = c("food_group", "delta_sc3", "delta_sc4"), part = "body", bg =  "#f38585")
 
 ################################################################################################################################
 #                                             11. Exportation des données                                                      #
 ################################################################################################################################
 
 # Données
-export(contrib, here("results", "1_Main_analysis_newDRF", "CORRECTION", "contributions", "FG_contributions.xlsx"))
+export(contrib, here("results", "2_WG_S3_S4", "contributions", "FG_contributions.xlsx"))
 
 # Forest plots
 ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "contributions", "forest_sc1.pdf"), forest_sc1)
-ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "contributions", "forest_sc2.pdf"), forest_sc2)
-ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "contributions", "forest_sc3.pdf"), forest_sc3)
-ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "contributions", "forest_sc4.pdf"), forest_sc4)
+ggsave(here("results", "2_WG_S3_S4", "contributions", "forest_sc2.pdf"), forest_sc2)
+ggsave(here("results", "2_WG_S3_S4", "contributions", "forest_sc3.pdf"), forest_sc3)
+ggsave(here("results", "2_WG_S3_S4", "contributions", "forest_sc4.pdf"), forest_sc4)
 
 # Tableau contributions 2050
 save_as_image(contrib_2050, here("results", "1_Main_analysis_newDRF", "CORRECTION", "contributions", "contributions_2050.png"))
 
-
 # Heat maps
-ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "contributions", "hm_contrib.pdf"), hm_contrib)
-ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "contributions", "hm_var.pdf"), hm_var)
+ggsave(here("results", "2_WG_S3_S4", "contributions", "hm_contrib.pdf"), hm_contrib)
+ggsave(here("results", "2_WG_S3_S4", "contributions", "hm_var.pdf"), hm_var)
  

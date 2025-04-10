@@ -17,7 +17,7 @@ pacman::p_load(
 
 deaths_data <- import(here("Python_code", "data_python.csv"))
 
-deaths_data <- import(here("results", "FADNES_2022_repro", "MR", "MR_adjusted_EU_M.csv"))
+deaths_data <- import(here("results", "FADNES_2022_repro", "CORRECTION", "MR", "MR_adjusted_China_W.csv"))
 
 ################################################################################################################################
 #                                             3. Charte graphique                                                              #
@@ -248,7 +248,7 @@ print(common_graph)
 ################################################################################################################################
 
 pop_sp <- deaths_data %>% 
-  filter(year == 2050,
+  filter(year == 2029,
          age == 80) 
 
 yll_sp <- pop_sp %>% 
@@ -294,7 +294,7 @@ graph_yll_sp <- ggplot(summary_yll_sp %>%
 le_sp <- pop_sp %>% 
   group_by(simulation_id, scenario) %>% 
   summarise(le_year = mean(le)) %>% 
-  mutate(leg = (le_year - le_year[scenario == "actuel"])*12) # Gain d'espérance de vie en MOIS
+  mutate(leg = (le_year - le_year[scenario == "actuel"]))
 
 le_sp <- le_sp %>% 
   group_by(scenario) %>% 
@@ -352,8 +352,8 @@ export(summary_yll_sp, here("results", "IC95_yll_sp.xlsx"))
 ggsave(here("results", "yll_sp.pdf"), plot = graph_yll_sp)
 
 # LE pour un âge et une année spécifique
-export(summary_le_sp, here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "LE_2050_80.xlsx"))
-ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "LE_2050_80.pdf"), plot = graph_le_sp)
+export(summary_le_sp, here("results", "FADNES_2022_repro", "CORRECTION", "HIA", "LE_CHINA_W_80.xlsx"))
+ggsave(here("results", "FADNES_2022_repro", "CORRECTION", "HIA", "LE_EU_M_20.pdf"), plot = graph_le_sp)
 
 # Décès évités, YLL, LE, Couts en 2040, 2050, 2060
 ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "HIA_dates.pdf"), plot = common_graph)
