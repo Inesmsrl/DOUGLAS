@@ -18,13 +18,13 @@ pacman::p_load(
 ################################################################################################################################
 
 # RR de chaque aliment
-rr_evo_food_combined <- import(here("results", "1_Main_analysis_newDRF", "CORRECTION", "RR", "rr_evo_fg.csv"))
+rr_evo_food_combined <- import(here("results", "5_actuel_meat2", "RR", "rr_evo_fg.csv"))
 
 # Variations des consommations alimentaires
-diets_var <- import(here("results", "diets", "diets_rr_var.csv"))
+diets_var <- import(here("results", "5_actuel_meat2", "diets", "diets_var.csv"))
 
 # Décès totaux par scénario
-simulations_summary_total_deaths <- import(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "IC95_tot_deaths.xlsx"))
+simulations_summary_total_deaths <- import(here("results", "5_actuel_meat2", "HIA", "IC95_tot_deaths.xlsx"))
 
 ################################################################################################################################
 #                                             3. Initialisation des paramètres                                                 #
@@ -216,7 +216,7 @@ hm_var <- ggplot(data = diets_var %>%
   labs(x = "", y = "", fill = "Intake variation") +
   ggtitle("Intake variation of several food groups\n compared to the baseline scenario") +
   scale_x_discrete(labels = labels_scenario[diets_var$scenario]) +
-  scale_y_discrete(labels = labels_food_groups[diets_var$food_group])
+  scale_y_discrete(labels = labels_food_groups)
 
 plot(hm_var)
 
@@ -241,7 +241,7 @@ hm_contrib <- ggplot(data = contrib %>%
   labs(x = "", y = "", fill = "Change in\nmortality (%)") +
   ggtitle("Change in mortality due to the intake variation of several\nfood groups compared to the baseline in 2050") +
   scale_x_discrete(labels = labels_scenario) +
-  scale_y_discrete(labels = labels_food_groups)
+  scale_y_discrete(labels = labels_food_groups_delta)
 
 plot(hm_contrib)
 
@@ -320,15 +320,15 @@ contrib_2050 <- summary_contrib %>%
   align(align = "center", j = c(2:17), part = "all") %>% # Centrer le contenu des cellules sauf Food group
   bold(i = 1, part = "header") %>% # Mettre en gras la 1ère ligne d'en-tête
   bg(part = "all", bg = "white") %>%
-  bg(., i = ~ food_group %in% c("Fruits", "Whole grains"), j = c("food_group", "delta_sc3", "delta_sc4"), part = "body", bg = "#b95151") %>%
-  bg(., i = ~ food_group %in% c("Eggs", "Nuts", "Fish"), j = c("food_group", "delta_sc3", "delta_sc4"), part = "body", bg =  "#f38585")
+  bg(., i = ~ food_group %in% c("Whole grains"), j = c("food_group", "delta_sc3", "delta_sc4"), part = "body", bg = "#b95151") %>%
+  bg(., i = ~ food_group %in% c("Fruits", "Nuts", "Fish", "Eggs"), j = c("food_group", "delta_sc3", "delta_sc4"), part = "body", bg =  "#f38585")
 
 ################################################################################################################################
 #                                             11. Exportation des données                                                      #
 ################################################################################################################################
 
 # Données
-export(contrib, here("results", "2_WG_S3_S4", "contributions", "FG_contributions.xlsx"))
+export(contrib, here("results", "5_actuel_meat2", "contributions", "FG_contributions.xlsx"))
 
 # Forest plots
 ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "contributions", "forest_sc1.pdf"), forest_sc1)
@@ -337,9 +337,9 @@ ggsave(here("results", "2_WG_S3_S4", "contributions", "forest_sc3.pdf"), forest_
 ggsave(here("results", "2_WG_S3_S4", "contributions", "forest_sc4.pdf"), forest_sc4)
 
 # Tableau contributions 2050
-save_as_image(contrib_2050, here("results", "1_Main_analysis_newDRF", "CORRECTION", "contributions", "contributions_2050.png"))
+save_as_image(contrib_2050, here("results", "5_actuel_meat2", "contributions", "contributions_2050.png"))
 
 # Heat maps
-ggsave(here("results", "2_WG_S3_S4", "contributions", "hm_contrib.pdf"), hm_contrib)
-ggsave(here("results", "2_WG_S3_S4", "contributions", "hm_var.pdf"), hm_var)
+ggsave(here("results", "5_actuel_meat2", "contributions", "hm_contrib.pdf"), hm_contrib)
+ggsave(here("results", "5_actuel_meat2", "contributions", "hm_var.pdf"), hm_var)
  

@@ -28,7 +28,7 @@ MR_GBD_EU_M <- import(here("results", "FADNES_2022_repro", "MR", "GBD_2019_EU_M_
 population <- import(here("data_clean", "population_clean.xlsx"))
 
 # RR des régimes
-rr_evo_diets <- import(here("results", "2_WG_S3_S4", "RR", "rr_evo_diets.csv"))
+rr_evo_diets <- import(here("results", "Observed_to_Optimized", "vegan", "RR", "rr_evo_diets.csv"))
 
 ################################################################################################################################
 #                                             3. Initialisation des paramètres                                                 #
@@ -153,7 +153,7 @@ pop_data <- MR_adjusted %>%
 ################################################################################################################################
 
 # Taux de mortalité ajustés
-export(MR_adjusted, here("results", "2_WG_S3_S4", "MR", "MR_adjusted.csv"))
+export(MR_adjusted, here("results", "Observed_to_Optimized", "vegan", "MR", "MR_adjusted.csv"))
 
 export(MR_adj_CHINA_W, here("results", "FADNES_2022_repro", "CORRECTION", "MR", "MR_adjusted_CHINA_W.csv"))
 export(MR_adj_CHINA_M, here("results", "FADNES_2022_repro", "CORRECTION", "MR", "MR_adjusted_CHINA_M.csv"))
@@ -163,7 +163,7 @@ export(MR_adj_EU_W, here("results", "FADNES_2022_repro", "CORRECTION", "MR", "MR
 export(MR_adj_EU_M, here("results", "FADNES_2022_repro", "CORRECTION", "MR", "MR_adjusted_EU_M.csv"))
 
 # Résumé des simulations ajustées
-export(simulations_summary_mr_adjusted, here("results", "2_WG_S3_S4", "MR", "simulations_summary_mr_adjusted.csv"))
+export(simulations_summary_mr_adjusted, here("results", "Observed_to_Optimized", "vegan", "MR", "simulations_summary_mr_adjusted.csv"))
 
 export(simulations_summary_mr_adjusted_CHINA_W, here("results", "FADNES_2022_repro", "CORRECTION", "MR", "simulations_summary_mr_adjusted_CHINA_W.csv"))
 export(simulations_summary_mr_adjusted_CHINA_M, here("results", "FADNES_2022_repro", "CORRECTION", "MR", "simulations_summary_mr_adjusted_CHINA_M.csv"))
@@ -173,4 +173,4 @@ export(simulations_summary_mr_adjusted_EU_W, here("results", "FADNES_2022_repro"
 export(simulations_summary_mr_adjusted_EU_M, here("results", "FADNES_2022_repro", "CORRECTION", "MR", "simulations_summary_mr_adjusted_EU_M.csv"))
 
 # Tableau de données de population et MR ajustés
-export(pop_data, here("results", "2_WG_S3_S4", "MR", "pop_data.csv"))
+export(pop_data, here("results", "Observed_to_Optimized", "vegan", "MR", "pop_data.csv"))

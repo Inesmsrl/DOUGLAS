@@ -18,7 +18,7 @@ pacman::p_load(
 rr_table <- import(here("data_clean", "rr_table_interpolated_sim_2.csv"))
 
 # Expositions : régimes au cours du temps
-diets_evo <- import(here("results", "2_WG_S3_S4", "diets", "diets_rr_evo.csv"))
+diets_evo <- import(here("results", "Observed_to_Optimized", "vegan", "diets", "diets_evo_vegan.csv"))
 
 ################################################################################################################################
 #                                             3. Initialisation des paramètres                                                 #
@@ -65,7 +65,19 @@ col_scenario <- c(
   "sc2" = "#974175",
   "sc3" = "#50cd9f",
   "sc4" = "#cb6c2d",
-  "sc5" = "royalblue4"
+  "sc5" = "royalblue4",
+  "meat3" = "#cd0030",
+  "meat2" = "#d95668",
+  "meat1" = "#fcb901",
+  "pesce" = "#027474",
+  "vege" = "#007643",
+  "vegan" = "#54a300",
+  "meat3_optim" = "#98606d",
+  "meat2_optim" = "#f4a1ac",
+  "meat1_optim" = "#f1d68c",
+  "pesce_optim" = "#5a8787",
+  "vege_optim" = "#568470",
+  "vegan_optim" = "#a3c084"
 )
 
 # Couleur de chaque groupe d'aliments
@@ -95,11 +107,26 @@ order_food_groups <- c(
 
 # Etiquettes des scénarios
 labels_scenario <- c(
-  "actuel" = "Current diet",
-  "sc1" = "Scenario 1",
-  "sc2" = "Scenario 2",
-  "sc3" = "Scenario 3",
-  "sc4" = "Scenario 4"
+    "meat3" = "Omnivore-1",
+    "meat2" = "Omnivore-2",
+    "meat1" = "Flexitarian",
+    "pesce" = "Pescetarian",
+    "vege" = "Vegetarian",
+    "vegan" = "Vegan",
+    "meat3_optim" = "Omnivore-1 optimized",
+    "meat2_optim" = "Omnivore-2 optimized",
+    "meat1_optim" = "Flexitarian optimized",
+    "pesce_optim" = "Pescetarian optimized",
+    "vege_optim" = "Vegetarian optimized",
+    "vegan_optim" = "Vegan optimized",
+    "actuel" = "Current diet",
+    "actuel_calage" = "Current diet (calibrated)",
+    "sc0" = "Tendancial",
+    "sc1" = "Scenario 1",
+    "sc2" = "Scenario 2",
+    "sc3" = "Scenario 3",
+    "sc4" = "Scenario 4",
+    "sc5" = "SNBC"
 )
 
 # Etiquettes des groupes alimentaires
@@ -314,6 +341,8 @@ graph_rr_diets <- ggplot(simulations_summary_rr_diets, aes(
     strip.text = element_text(face = "bold", size = rel(0.5)),
     legend.position = "none"
   )
+
+plot(graph_rr_diets)  
 ################################################################################################################################
 #                                             14. RR relatif au RR actuel                                                      #
 ################################################################################################################################
@@ -321,7 +350,7 @@ graph_rr_diets <- ggplot(simulations_summary_rr_diets, aes(
 # Calcul des RR des régimes complets relatifs aux RR du scénario actuel
 rr_evo_diets <- rr_evo_diets %>%
   group_by(year, simulation_id) %>%
-  mutate(relative_rr = combined_rr / combined_rr[scenario == "actuel"]) %>%
+  mutate(relative_rr = combined_rr / combined_rr[scenario == "vegan"]) %>%
   ungroup()
 
 # Tant que l'implémentation des régimes n'a pas commencé, le RR relatif est égal à 1
@@ -346,7 +375,7 @@ simulations_summary_rr_diets_relative <- rr_evo_diets %>%
 
 graph_rr_diets_rel <- ggplot(
   simulations_summary_rr_diets_relative %>%
-    filter(scenario != "actuel"),
+    filter(scenario != "vegan"),
   aes(
     x = year,
     y = mean_rr,
@@ -381,21 +410,22 @@ graph_rr_diets_rel <- ggplot(
     fill = guide_legend(title = NULL)
   )
 
+plot(graph_rr_diets_rel)
 ################################################################################################################################
 #                                             16. Exportation des données                                                      #
 ################################################################################################################################
 
 # RR des groupes alimentaires
-export(rr_evo_food_combined, here("results", "2_WG_S3_S4", "RR", "rr_evo_fg.csv"))
+export(rr_evo_food_combined, here("results", "Observed_to_Optimized", "vegan", "RR", "rr_evo_fg.csv"))
 
-ggsave(here("results", "2_WG_S3_S4", "RR", "rr_evo_fg_sc1.pdf"), graph_rr_fg_sc1)
-ggsave(here("results", "2_WG_S3_S4", "RR", "rr_evo_fg_sc2.pdf"), graph_rr_sc2)
-ggsave(here("results", "2_WG_S3_S4", "RR", "rr_evo_fg_sc3.pdf"), graph_rr_sc3)
-ggsave(here("results", "2_WG_S3_S4", "RR", "rr_evo_fg_sc4.pdf"), graph_rr_sc4)
+ggsave(here("results", "Observed_to_Optimized", "meat3", "RR", "rr_evo_fg_sc1.pdf"), graph_rr_fg_sc1)
+ggsave(here("results", "Observed_to_Optimized", "meat3", "RR", "rr_evo_fg_sc2.pdf"), graph_rr_sc2)
+ggsave(here("results", "Observed_to_Optimized", "meat3", "RR", "rr_evo_fg_sc3.pdf"), graph_rr_sc3)
+ggsave(here("results", "Observed_to_Optimized", "meat3", "RR", "rr_evo_fg_sc4.pdf"), graph_rr_sc4)
 
 
 # RR des régimes
-export(rr_evo_diets, here("results", "2_WG_S3_S4", "RR", "rr_evo_diets.csv"))
+export(rr_evo_diets, here("results", "Observed_to_Optimized", "vegan", "RR", "rr_evo_diets.csv"))
 
-ggsave(here("results", "2_WG_S3_S4", "RR", "rr_evo_diets.pdf"), graph_rr_diets)
-ggsave(here("results", "2_WG_S3_S4", "RR", "rr_evo_diets_rel.pdf"), graph_rr_diets_rel)
+ggsave(here("results", "Observed_to_Optimized", "meat2", "RR", "rr_evo_diets.pdf"), graph_rr_diets)
+ggsave(here("results", "Observed_to_Optimized", "vegan", "RR", "rr_evo_diets_rel.pdf"), graph_rr_diets_rel)
