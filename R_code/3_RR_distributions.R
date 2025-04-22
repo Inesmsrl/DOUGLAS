@@ -16,13 +16,13 @@ pacman::p_load(
 ################################################################################################################################
 
 # Table des risques relatifs pour chaque catégorie alimentaire, attribués à des quantités absolues (Fadnes)
-rr_table_mid <- import(here("data", "rr_table_quanti_2.xlsx"), sheet = "Mid")
+rr_table_mid <- import(here("data", "rr_table_quanti.xlsx"), sheet = "Mid")
 
 # Table des RR, IC95 lower
-rr_table_low <- import(here("data", "rr_table_quanti_2.xlsx"), sheet = "Lower")
+rr_table_low <- import(here("data", "rr_table_quanti.xlsx"), sheet = "Lower")
 
 # Table des RR, IC95 upper
-rr_table_up <- import(here("data", "rr_table_quanti_2.xlsx"), sheet = "Upper")
+rr_table_up <- import(here("data", "rr_table_quanti.xlsx"), sheet = "Upper")
 
 # Couleur de chaque groupe d'aliments
 col_food_groups <- c(
@@ -54,21 +54,21 @@ col_food_groups <- c(
 
 # Pivoter les dataframes des RR en format long
   rr_table_low <- rr_table_low %>% 
-    pivot_longer(cols = "0":"1000",
+    pivot_longer(cols = "0":"800",
                  names_to = "quantity",
                  values_to = "rr") %>% 
     mutate(quantity = as.numeric(quantity),
            rr =as.numeric(rr))
   
   rr_table_mid <- rr_table_mid %>% 
-    pivot_longer(cols = "0":"1000",
+    pivot_longer(cols = "0":"800",
                  names_to = "quantity",
                  values_to = "rr") %>% 
     mutate(quantity = as.numeric(quantity),
            rr =as.numeric(rr))
   
   rr_table_up <- rr_table_up %>% 
-    pivot_longer(cols = "0":"1000",
+    pivot_longer(cols = "0":"800",
                  names_to = "quantity",
                  values_to = "rr") %>% 
     mutate(quantity = as.numeric(quantity),

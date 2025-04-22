@@ -15,7 +15,7 @@ pacman::p_load(
 ################################################################################################################################
 
 # Risques relatifs / consommation (g/j), relations dose-réponse simulées
-rr_table <- import(here("data_clean", "rr_table_interpolated_sim_2.csv"))
+rr_table <- import(here("data_clean", "rr_table_interpolated_sim.csv"))
 
 # Expositions : régimes au cours du temps
 diets_evo <- import(here("results", "Observed_to_Optimized", "vegan", "diets", "diets_evo_vegan.csv"))
@@ -416,7 +416,7 @@ plot(graph_rr_diets_rel)
 ################################################################################################################################
 
 # RR des groupes alimentaires
-export(rr_evo_food_combined, here("results", "Observed_to_Optimized", "vegan", "RR", "rr_evo_fg.csv"))
+export(rr_evo_food_combined, here("results", "Observed_to_Optimized", "vegan", "Fadnes_DRF", "RR", "rr_evo_fg.csv"))
 
 ggsave(here("results", "Observed_to_Optimized", "meat3", "RR", "rr_evo_fg_sc1.pdf"), graph_rr_fg_sc1)
 ggsave(here("results", "Observed_to_Optimized", "meat3", "RR", "rr_evo_fg_sc2.pdf"), graph_rr_sc2)
@@ -425,7 +425,7 @@ ggsave(here("results", "Observed_to_Optimized", "meat3", "RR", "rr_evo_fg_sc4.pd
 
 
 # RR des régimes
-export(rr_evo_diets, here("results", "Observed_to_Optimized", "vegan", "RR", "rr_evo_diets.csv"))
+export(rr_evo_diets, here("results", "Observed_to_Optimized", "vegan", "Fadnes_DRF", "RR", "rr_evo_diets.csv"))
 
-ggsave(here("results", "Observed_to_Optimized", "meat2", "RR", "rr_evo_diets.pdf"), graph_rr_diets)
-ggsave(here("results", "Observed_to_Optimized", "vegan", "RR", "rr_evo_diets_rel.pdf"), graph_rr_diets_rel)
+ggsave(here("results", "Observed_to_Optimized", "vegan", "Fadnes_DRF", "RR", "rr_evo_diets.pdf"), graph_rr_diets)
+ggsave(here("results", "Observed_to_Optimized", "vegan", "Fadnes_DRF", "RR", "rr_evo_diets_rel.pdf"), graph_rr_diets_rel)
