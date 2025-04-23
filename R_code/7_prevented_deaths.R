@@ -1,121 +1,106 @@
 ################################################################################################################################
-#                                             1. Chargement des packages                                                       #
+#                                             1. Loading packages                                                              #
 ################################################################################################################################
 
 pacman::p_load(
-    rio, # Importation de fichiers
-    here, # Localisation des fichiers dans le dossier du projet
-    dplyr, # Manipulation des données
-    tidyr, # Manipulation des données
-    tidyverse # Data management, inclus ggplot
+    rio, # File import/export
+    here, # File path management
+    dplyr, # Data manipulation
+    tidyr, # Data manipulation
+    tidyverse # Data management, ggplot included
 )
 
 ################################################################################################################################
 #                                             2. Importation des données                                                       #
 ################################################################################################################################
 
-# Décès et décès évités par age et année
+# Deaths and prevented deaths by year
 deaths_data <- import(here("Python_code", "data_python.csv"))
 
 ################################################################################################################################
-#                                             3. Charte graphique                                                              #
+#                                             3. Parameters                                                                    #
 ################################################################################################################################
 
-# Couleur de chaque scénario
-col_scenario <- c(
-  "actuel" = "azure4",
-  "sc0" = "palevioletred3",
-  "sc1" = "#699cc2",
-  "sc2" = "#974175",
-  "sc3" = "#50cd9f",
-  "sc4" = "#cb6c2d",
-  "sc5" = "royalblue4"
-)
-
-# Etiquettes des scénarios
-labels_scenario <- c(
-  "actuel" = "Current diet",
-  "sc1" = "Scenario 1",
-  "sc2" = "Scenario 2",
-  "sc3" = "Scenario 3",
-  "sc4" = "Scenario 4"
-)
+source(here("R_code", "0_parameters.R"))
 
 ################################################################################################################################
-#                                             4. Décès par âge                                                                 #
+#                                             4. Data preparation                                                              #
 ################################################################################################################################
 
-# Eliminer Les valeurs 5% les plus extrêmes
+# Delete the 5% most extreme values
 deaths_data <- deaths_data %>%
   group_by(scenario, year, age) %>%
   filter(between(deaths, quantile(deaths, 0.025), quantile(deaths, 0.975)))
 
-# Moyenne et IC95 des décès par âge
+################################################################################################################################
+#                                             5. Deaths by age                                                                 #
+################################################################################################################################
+
+# Mean and 95% CI of deaths by age
 simulations_summary_deaths <- deaths_data %>%
   group_by(scenario, year, age) %>%
   summarise(
     mean_deaths = mean(deaths, na.rm = TRUE),
-    lower_ci = quantile(deaths, 0.025, na.rm = TRUE), # Limite inférieure de l'IC à 95%
-    upper_ci = quantile(deaths, 0.975, na.rm = TRUE) # Limite supérieure de l'IC à 95%
+    lower_ci = quantile(deaths, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
+    upper_ci = quantile(deaths, 0.975, na.rm = TRUE) # Upper limit of the 95% CI
   )
 
 ################################################################################################################################
-#                                             5. Décès évités par âge par rapport au baseline                                  #
+#                                             6. Prevented deaths to baseline by age                                           #
 ################################################################################################################################
 
 av_deaths <- deaths_data %>%
   group_by(scenario, year, age, simulation_id) %>%
   summarise(prevented_deaths = sum(avoided_deaths, na.rm = TRUE))
 
-# Calcul de la moyenne et des IC95
+# Mean and 95% CI of prevented deaths by age
 simulations_summary_av_deaths <- av_deaths %>%
   group_by(scenario, age, year) %>%
   summarise(
     mean_prev_deaths = mean(prevented_deaths, na.rm = TRUE),
-    lower_ci = quantile(prevented_deaths, 0.025, na.rm = TRUE), # Limite inférieure de l'IC à 95%
-    upper_ci = quantile(prevented_deaths, 0.975, na.rm = TRUE) # Limite supérieure de l'IC à 95%
+    lower_ci = quantile(prevented_deaths, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
+    upper_ci = quantile(prevented_deaths, 0.975, na.rm = TRUE) # Upper limit of the 95% CI
   )
 
 ################################################################################################################################
-#                                             6. Total des décès par année                                                     #
+#                                             7. Total deaths / year / scenario                                                #
 ################################################################################################################################
 
-# Calcul du total des décès / an / scenario
 tot_deaths <- deaths_data %>%
   group_by(scenario, year, simulation_id) %>%
   summarise(total_deaths = sum(deaths, na.rm = TRUE))
 
-# Calcul de la moyenne et des IC95
+# Calculation of the mean and 95% CI
 simulations_summary_tot_deaths <- tot_deaths %>%
   group_by(scenario, year) %>%
   summarise(
     mean_tot_deaths = mean(total_deaths, na.rm = TRUE),
-    lower_ci = quantile(total_deaths, 0.025, na.rm = TRUE), # Limite inférieure de l'IC à 95%
-    upper_ci = quantile(total_deaths, 0.975, na.rm = TRUE) # Limite supérieure de l'IC à 95%
+    lower_ci = quantile(total_deaths, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
+    upper_ci = quantile(total_deaths, 0.975, na.rm = TRUE) # Upper limit of the 95% CI
   )
 
 ################################################################################################################################
-#                                             7. Total des décès évités par rapport au baseline                                #
+#                                             8. Total prevented deaths / year / scenario                                      #
 ################################################################################################################################
 
-# Calcul du total des décès évités / an / scenario
 tot_av_deaths <- deaths_data %>%
   group_by(scenario, year, simulation_id) %>%
   summarise(total_av_deaths = sum(avoided_deaths, na.rm = TRUE))
 
-# Calcul de la moyenne et des IC95
+# Mean and 95% CI of total prevented deaths
 simulations_summary_tot_av_deaths <- tot_av_deaths %>%
   group_by(scenario, year) %>%
   summarise(
     mean_rr = mean(total_av_deaths, na.rm = TRUE),
-    lower_ci = quantile(total_av_deaths, 0.025, na.rm = TRUE), # Limite inférieure de l'IC à 95%
-    upper_ci = quantile(total_av_deaths, 0.975, na.rm = TRUE) # Limite supérieure de l'IC à 95%
+    lower_ci = quantile(total_av_deaths, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
+    upper_ci = quantile(total_av_deaths, 0.975, na.rm = TRUE) # Upper limit of the 95% CI
   )
 
 ################################################################################################################################
-#                                             8. Figures : décès évités                                                        #
+#                                             9. Figures : Total prevented deaths                                              #
 ################################################################################################################################
 
+# During the all period of time
 graph_tot_av_deaths <- ggplot(
   simulations_summary_tot_av_deaths %>%
     filter(scenario != "actuel"),
@@ -152,6 +137,7 @@ graph_tot_av_deaths <- ggplot(
     fill = guide_legend(title = NULL)
   )
 
+# At specific dates
 graph_tot_av_deaths_dates <- ggplot(
   simulations_summary_tot_av_deaths %>%
     filter(
@@ -199,21 +185,21 @@ graph_tot_av_deaths_dates <- ggplot(
 
 
 ################################################################################################################################
-#                                             9. Exportation des données                                                      #
+#                                             10. Data exportation                                                             #
 ################################################################################################################################
 
-# Décès par âge
-export(simulations_summary_deaths, here("results", "5_actuel_meat2", "HIA", "deaths.csv"))
+# Deaths by age
+export(simulations_summary_deaths, here("results", "5_actuel_meat2", "HIA", "IC95_deaths.xlsx"))
 
-# Décès évités par âge
+# Prevented deaths by age
 export(av_deaths, here("results", "5_actuel_meat2", "HIA", "av_deaths.csv"))
-export(simulations_summary_av_deaths, here("results", "5_actuel_meat2", "HIA", "av_deaths.csv"))
+export(simulations_summary_av_deaths, here("results", "5_actuel_meat2", "HIA", "IC95_av_deaths.xlsx"))
 
-# Total des décès
+# Total deaths by year
 export(tot_deaths, here("results", "5_actuel_meat2", "HIA", "tot_deaths.csv"))
 export(simulations_summary_tot_deaths, here("results", "5_actuel_meat2", "HIA", "IC95_tot_deaths.xlsx"))
 
-# Total des décès évités
+# Total prevented deaths by year
 export(tot_av_deaths, here("results", "5_actuel_meat2", "HIA", "tot_deaths_prev.csv"))
 export(simulations_summary_tot_av_deaths, here("results", "5_actuel_meat2", "HIA", "IC95_tot_deaths_prev.csv"))
 

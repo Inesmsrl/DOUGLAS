@@ -1,165 +1,43 @@
 ################################################################################################################################
-#                                             1. Chargement des packages                                                       #
+#                                             1. Loading packages                                                              #
 ################################################################################################################################
 
 pacman::p_load(
-    rio, # Importation de fichiers
-    here, # Localisation des fichiers dans le dossier du projet
-    dplyr, # Manipulation des données
-    tidyr, # Manipulation des données
-    tidyverse # Contient ggplot
+    rio, # File import/export
+    here, # File path management
+    dplyr, # Data manipulation
+    tidyr, # Data manipulation
+    tidyverse # Data management, ggplot included
 )
 
 ################################################################################################################################
-#                                             2. Importation des données                                                       #
+#                                             2. Data importation                                                              #
 ################################################################################################################################
 
-# Risques relatifs / consommation (g/j), relations dose-réponse simulées
-rr_table <- import(here("data_clean", "rr_table_interpolated_sim.csv"))
+# RR by intake (g/day), simulated dose-response relationships
+rr_table <- import(here("data_clean", "CORRECTION", "rr_table_interpolated_sim.csv"))
 
-# Expositions : régimes au cours du temps
-diets_evo <- import(here("results", "Observed_to_Optimized", "vegan", "diets", "diets_evo_vegan.csv"))
-
-################################################################################################################################
-#                                             3. Initialisation des paramètres                                                 #
-################################################################################################################################
-
-# Bornes temporelles des changements de régime alimentaire (années)
-year_i <- 2025 # Année initiale
-year_f <- 2050 # Année finale
-
-# Paramètre de modification d'effet des RR
-# 0.5 à 1 = réduction d'effet, modèle conservateur
-# 1 à 1.5 = augmentation d'effet, modèle radical
-m <- 0.75
-
-#  Time to full effect
-# durée (années)
-ttfe_time <- 10
-
-# Durée du régime stationnaire
-# Avant changement de régime : ttfe_time
-# Après changement de régime : 2 x ttfe_time
-
-# Dynamique (immediate, linear, cosine, sigmoidal, log)
-ttfe_dynamics <- "linear"
-
-# paramètre de la courbe d'interpolation cosinus
-p_ttfe <- 1
-
-# paramètre de la courbe sigmoïdale
-lambda_ttfe <- 8
-
-# paramètre de la courbe log
-eta_ttfe <- 1
+# Expositions : diets evolution through time
+diets_evo <- import(here("results", "Observed_to_Optimized", "meat3", "diets", "diets_evo_meat3.csv"))
 
 ################################################################################################################################
-#                                             4. Charte graphique                                                              #
+#                                             3. Parameters                                                                    #
 ################################################################################################################################
 
-# Couleur de chaque scénario
-col_scenario <- c(
-  "actuel" = "azure4",
-  "sc0" = "palevioletred3",
-  "sc1" = "#699cc2",
-  "sc2" = "#974175",
-  "sc3" = "#50cd9f",
-  "sc4" = "#cb6c2d",
-  "sc5" = "royalblue4",
-  "meat3" = "#cd0030",
-  "meat2" = "#d95668",
-  "meat1" = "#fcb901",
-  "pesce" = "#027474",
-  "vege" = "#007643",
-  "vegan" = "#54a300",
-  "meat3_optim" = "#98606d",
-  "meat2_optim" = "#f4a1ac",
-  "meat1_optim" = "#f1d68c",
-  "pesce_optim" = "#5a8787",
-  "vege_optim" = "#568470",
-  "vegan_optim" = "#a3c084"
-)
-
-# Couleur de chaque groupe d'aliments
-col_food_groups <- c(
-  "red_meat" = "#ff1047",
-  "processed_meat" = "#650115",
-  "white_meat" = "#FF9DC8",
-  "dairy" = "#022f66",
-  "fish" = "#4993a2",
-  "eggs" = "#ff764d",
-  "fruits" = "#00CBA7",
-  "nuts" = "#ffc744",
-  "vegetables" = "#00735C",
-  "legumes" = "#703895",
-  "whole_grains" = "#572d00",
-  "reffined_grains" = "#cbb4a1",
-  "added_plant_oils" = "#FF6E3A",
-  "sugar_sweetened_beverages" = "#1b1b1b"
-)
-
-# Ordonner les groupes alimentaires
-order_food_groups <- c(
-  "red_meat", "processed_meat", "white_meat", "fish", "eggs", "dairy",
-  "fruits", "vegetables", "legumes", "nuts", "whole_grains", "reffined_grains",
-  "added_plant_oils", "sugar_sweetened_beverages"
-)
-
-# Etiquettes des scénarios
-labels_scenario <- c(
-    "meat3" = "Omnivore-1",
-    "meat2" = "Omnivore-2",
-    "meat1" = "Flexitarian",
-    "pesce" = "Pescetarian",
-    "vege" = "Vegetarian",
-    "vegan" = "Vegan",
-    "meat3_optim" = "Omnivore-1 optimized",
-    "meat2_optim" = "Omnivore-2 optimized",
-    "meat1_optim" = "Flexitarian optimized",
-    "pesce_optim" = "Pescetarian optimized",
-    "vege_optim" = "Vegetarian optimized",
-    "vegan_optim" = "Vegan optimized",
-    "actuel" = "Current diet",
-    "actuel_calage" = "Current diet (calibrated)",
-    "sc0" = "Tendancial",
-    "sc1" = "Scenario 1",
-    "sc2" = "Scenario 2",
-    "sc3" = "Scenario 3",
-    "sc4" = "Scenario 4",
-    "sc5" = "SNBC"
-)
-
-# Etiquettes des groupes alimentaires
-labels_food_groups <- c(
-  "red_meat" = "Red meat",
-  "processed_meat" = "Processed meat",
-  "white_meat" = "White meat",
-  "dairy" = "Dairy",
-  "fish" = "Fish",
-  "eggs" = "Eggs",
-  "fruits" = "Fruits",
-  "nuts" = "Nuts",
-  "vegetables" = "Vegetables",
-  "legumes" = "Legumes",
-  "whole_grains" = "Whole grains",
-  "reffined_grains" = "Refined grains",
-  "added_plant_oils" = "Added plant oils",
-  "sugar_sweetened_beverages" = "SSB"
-)
+source(here("R_code", "0_parameters.R"))
 
 ################################################################################################################################
-#                                             5. Préparation des données                                                       #
+#                                             4. Data preparation                                                              #
 ################################################################################################################################
 
-# Renommer la variable RR
+# Rename RR column
 rr_table <- rr_table %>%
   rename("rr" = "rr_interpolated")
 
 ################################################################################################################################
-#                                             6. Modification d'effet des RR                                                   #
+#                                             5. Modification of RR effect (m)                                                 #
 ################################################################################################################################
 
-# Application du modification d'effet des RR (m)
 rr_table <- rr_table %>%
   mutate(rr_a = case_when(
     rr < 1 ~ rr + (1 - rr) * (1 - m),
@@ -169,33 +47,32 @@ rr_table <- rr_table %>%
   rename("rr" = "rr_a")
 
 ################################################################################################################################
-#                                             7. Attribution des RR à chaque régime                                            #
+#                                             6. Attribution of RR to each food group                                           #
 ################################################################################################################################
 
-# Quantités arrondies à l'unité pour matcher avec le tableau des RR
+# Rounding intakes to match the RR table
 diets_evo <- diets_evo %>%
   mutate(quantity = round(quantity)) %>%
   left_join(rr_table, by = c("food_group", "quantity"), relationship = "many-to-many")
 
-
-# Calculer la valeur centrales et les IC95 pour chaque année
+# Calculation of the mean and 95% CI for each year
 simulations_summary <- diets_evo %>%
   group_by(food_group, scenario, year, quantity) %>%
   summarise(
-    mean_rr = mean(rr, na.rm = TRUE), # Moyenne des simulations
-    lower_ci = quantile(rr, 0.025, na.rm = TRUE), # Limite inférieure de l'IC à 95%
-    upper_ci = quantile(rr, 0.975, na.rm = TRUE) # Limite supérieure de l'IC à 95%
+    mean_rr = mean(rr, na.rm = TRUE), # Mean of simulated RR
+    lower_ci = quantile(rr, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
+    upper_ci = quantile(rr, 0.975, na.rm = TRUE) # Upper limit of the 95% CI
   )
 
 ################################################################################################################################
-#                                             8. TTFE                                                                          #
+#                                             7. TTFE                                                                          #
 ################################################################################################################################
 
-# Durée du TTFE
+# TTFE duration
 ttfe <- tibble(0:ttfe_time) %>%
   rename("time" = "0:ttfe_time")
 
-# Calcul du % accordé au RR sur la durée du TTFE
+# Calculation of the % allocated to the RR over the duration of the TTFE
 ttfe <- ttfe %>%
   mutate(ttfe = case_when(
     ttfe_time == 0 ~ 1,
@@ -210,11 +87,12 @@ ttfe <- ttfe %>%
   ))
 
 ################################################################################################################################
-#                                             9. Calcul des RR avec TTFE                                                       #
+#                                             8. Calculation of the RR with TTFE                                               #
 ################################################################################################################################
 
-# Calcul de la valeur des RR sur la durée du TTFE
-# Après la fin du TTFE : RR = NA
+# Calculation of RR values over the duration of the TTFE
+# After the end of the TTFE: RR = NA
+
 diets_evo <- diets_evo %>%
   rowwise() %>%
   mutate(year_n = list(seq(from = (year_i - 2 * ttfe_time), to = (year_f + 2 * ttfe_time)))) %>%
@@ -227,73 +105,34 @@ diets_evo <- diets_evo %>%
   ungroup()
 
 ################################################################################################################################
-#                                             10. Combinaison des RR de chaque aliment par année                                #
+#                                             9. Combinaison of the RR of each food group by year                              #
 ################################################################################################################################
 
-# Le RR d'un aliment une année n est la moyenne des RR de cet aliment générés avec le TTFE pour cette année
+# RR of a food group in a year is the mean of the RR of this food group generated with the TTFE for this year
 rr_evo_food_combined <- diets_evo %>%
   group_by(scenario, year_n, food_group, simulation_id) %>%
   summarize(
-    mean_rr = sum(rr_n, na.rm = TRUE) / sum(ttfe$ttfe[match(pmin(year_n - year, ttfe_time), ttfe$time)], na.rm = TRUE), # pmin compare la valeur year_n-year à ttfe_time et choisit la plus faible
+    mean_rr = sum(rr_n, na.rm = TRUE) / sum(ttfe$ttfe[match(pmin(year_n - year, ttfe_time), ttfe$time)], na.rm = TRUE), 
+    # pmin compares year_n - year with ttfe_time and chooses the minimum value
+    # to avoided considering the whole TTFE duration when year_n - year < ttfe_time
     .groups = "drop"
   )
 
-# Calculer la moyenne et les IC95 pour chaque année
+# Calculation of the mean and 95% CI for each year
 simulations_summary_rr_fg_combined <- rr_evo_food_combined %>%
   group_by(food_group, scenario, year_n) %>%
   summarise(
     combined_rr = mean(mean_rr, na.rm = TRUE),
-    lower_ci = quantile(mean_rr, 0.025, na.rm = TRUE), # Limite inférieure de l'IC à 95%
-    upper_ci = quantile(mean_rr, 0.975, na.rm = TRUE) # Limite supérieure de l'IC à 95%
+    lower_ci = quantile(mean_rr, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
+    upper_ci = quantile(mean_rr, 0.975, na.rm = TRUE) # Upper limit of the 95% CI
   )
 
 ################################################################################################################################
-#                                             11. Figures : RR des groupes alimentaires                                         #
+#                                             10. Combine RR of diets by year                                                  #
 ################################################################################################################################
 
+# RR of a complete diet is calculated as the product of the RR of each food for a year
 
-graph_rr_fg <- function (scen) {
-  ggplot(
-    simulations_summary_rr_fg_combined %>%
-      filter(scenario == scen),
-    aes(
-      x = year_n,
-      y = combined_rr,
-      color = food_group
-    )
-  ) +
-    facet_wrap(~food_group,
-      labeller = labeller(food_group = labels_food_groups)
-    ) +
-    geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = food_group), alpha = 0.5, linetype = 0) + # Intervalle de confiance
-    geom_line(linewidth = 1, na.rm = TRUE) + # Moyenne en trait plein
-    labs(
-      title = "",
-      x = "",
-      y = "RR"
-    ) +
-    scale_color_manual(values = col_food_groups) +
-    scale_fill_manual(values = col_food_groups) +
-    theme(
-      axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-      axis.text.y = element_text(size = 7),
-      strip.text = element_text(face = "bold", size = rel(0.5)),
-      legend.position = "none"
-    )
-}
-
-graph_rr_fg_sc1 <- graph_rr_fg("sc1")
-graph_rr_sc2 <- graph_rr_fg("sc2")
-graph_rr_sc3 <- graph_rr_fg("sc3")
-graph_rr_sc4 <- graph_rr_fg("sc4")
-
-################################################################################################################################
-#                                             12. Combinaison des RR de chaque régime par année                                #
-################################################################################################################################
-
-# Le RR d'un régime complet est calculé comme le produit des RR de chaque aliment pour une année
-
-# Fonction produit des RR de chaque aliment par année
 calc_combined_rr <- function(df) {
   df %>%
     group_by(scenario, year_n, simulation_id) %>%
@@ -301,21 +140,20 @@ calc_combined_rr <- function(df) {
     ungroup()
 }
 
-# Calcul des RR des régimes de chaque scénario par année
 rr_evo_diets <- calc_combined_rr(rr_evo_food_combined) %>%
   rename("year" = "year_n")
 
-# Calculer la moyenne et les IC95 pour chaque année
+# Calculation of the mean and 95% CI for each year
 simulations_summary_rr_diets <- rr_evo_diets %>%
   group_by(scenario, year) %>%
   summarise(
     mean_rr = mean(combined_rr, na.rm = TRUE),
-    lower_ci = quantile(combined_rr, 0.025, na.rm = TRUE), # Limite inférieure de l'IC à 95%
-    upper_ci = quantile(combined_rr, 0.975, na.rm = TRUE) # Limite supérieure de l'IC à 95%
+    lower_ci = quantile(combined_rr, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
+    upper_ci = quantile(combined_rr, 0.975, na.rm = TRUE) # Upper limit of the 95% CI
   )
 
 ################################################################################################################################
-#                                             13. Figures : RR des régimes                                                      #
+#                                             11. Graphs : RR of diets over time                                               #
 ################################################################################################################################
 
 graph_rr_diets <- ggplot(simulations_summary_rr_diets, aes(
@@ -344,38 +182,38 @@ graph_rr_diets <- ggplot(simulations_summary_rr_diets, aes(
 
 plot(graph_rr_diets)  
 ################################################################################################################################
-#                                             14. RR relatif au RR actuel                                                      #
+#                                             12. Relative RR of diets to baseline                                             #
 ################################################################################################################################
 
-# Calcul des RR des régimes complets relatifs aux RR du scénario actuel
+# Calculation of the relative RR of diets to baseline
 rr_evo_diets <- rr_evo_diets %>%
   group_by(year, simulation_id) %>%
-  mutate(relative_rr = combined_rr / combined_rr[scenario == "vegan"]) %>%
+  mutate(relative_rr = combined_rr / combined_rr[scenario == "meat3"]) %>% # Change the baseline if needed !
   ungroup()
 
-# Tant que l'implémentation des régimes n'a pas commencé, le RR relatif est égal à 1
+# While the implementation of the diets has not started, the relative RR is equal to 1
 rr_evo_diets <- rr_evo_diets %>%
   mutate(relative_rr = case_when(
     year == year_i - 2 * ttfe_time ~ 1,
     TRUE ~ relative_rr
   ))
 
-# Calculer la moyenne et les IC95 pour chaque année
+# Calculation of the mean and 95% CI for each year
 simulations_summary_rr_diets_relative <- rr_evo_diets %>%
   group_by(scenario, year) %>%
   summarise(
     mean_rr = mean(relative_rr, na.rm = TRUE),
-    lower_ci = quantile(relative_rr, 0.025, na.rm = TRUE), # Limite inférieure de l'IC à 95%
-    upper_ci = quantile(relative_rr, 0.975, na.rm = TRUE) # Limite supérieure de l'IC à 95%
+    lower_ci = quantile(relative_rr, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
+    upper_ci = quantile(relative_rr, 0.975, na.rm = TRUE) # Upper limit of the 95% CI
   )
 
 ################################################################################################################################
-#                                             15. Figures : RR des régimes relatifs au baseline                                  #
+#                                             13. Graphs : Relative RR of diets to baseline                                    #
 ################################################################################################################################
 
 graph_rr_diets_rel <- ggplot(
   simulations_summary_rr_diets_relative %>%
-    filter(scenario != "vegan"),
+    filter(scenario != "meat3"),
   aes(
     x = year,
     y = mean_rr,
@@ -383,7 +221,7 @@ graph_rr_diets_rel <- ggplot(
   )
 ) +
   geom_ribbon(aes(ymin = lower_ci, ymax = upper_ci, fill = scenario), alpha = 0.5, linetype = 0) +
-  geom_line(size = 0.6, na.rm = TRUE) +
+  geom_line(linewidth = 0.6, na.rm = TRUE) +
   labs(
     title = "",
     x = "",
@@ -412,20 +250,20 @@ graph_rr_diets_rel <- ggplot(
 
 plot(graph_rr_diets_rel)
 ################################################################################################################################
-#                                             16. Exportation des données                                                      #
+#                                             14. Data exportation                                                             #
 ################################################################################################################################
 
-# RR des groupes alimentaires
-export(rr_evo_food_combined, here("results", "Observed_to_Optimized", "vegan", "Fadnes_DRF", "RR", "rr_evo_fg.csv"))
+# RR associated with each food group intake (no TTFE considered)
+export(simulations_summary, here("results", "Observed_to_Optimized", "meat3", "Fadnes_DRF", "RR", "IC95_rr_fg_intakes.xlsx"))
 
-ggsave(here("results", "Observed_to_Optimized", "meat3", "RR", "rr_evo_fg_sc1.pdf"), graph_rr_fg_sc1)
-ggsave(here("results", "Observed_to_Optimized", "meat3", "RR", "rr_evo_fg_sc2.pdf"), graph_rr_sc2)
-ggsave(here("results", "Observed_to_Optimized", "meat3", "RR", "rr_evo_fg_sc3.pdf"), graph_rr_sc3)
-ggsave(here("results", "Observed_to_Optimized", "meat3", "RR", "rr_evo_fg_sc4.pdf"), graph_rr_sc4)
+# RR associated with each food group intake (with TTFE considered)
+export(rr_evo_food_combined, here("results", "Observed_to_Optimized", "meat3", "Fadnes_DRF", "RR", "rr_evo_fg.csv"))
+export(simulations_summary_rr_fg_combined, here("results", "Observed_to_Optimized", "meat3", "Fadnes_DRF", "RR", "IC95_rr_evo_fg.xlsx"))
 
+# RR of diets (absolute and relative to baseline)
+export(rr_evo_diets, here("results", "Observed_to_Optimized", "meat3", "Fadnes_DRF", "RR", "rr_evo_diets.csv"))
+export(simulations_summary_rr_diets, here("results", "Observed_to_Optimized", "meat3", "Fadnes_DRF", "RR", "IC95_rr_evo_diets.xlsx"))
+export(simulations_summary_rr_diets_relative, here("results", "Observed_to_Optimized", "meat3", "Fadnes_DRF", "RR", "IC95_rr_evo_diets_relative.xlsx"))
 
-# RR des régimes
-export(rr_evo_diets, here("results", "Observed_to_Optimized", "vegan", "Fadnes_DRF", "RR", "rr_evo_diets.csv"))
-
-ggsave(here("results", "Observed_to_Optimized", "vegan", "Fadnes_DRF", "RR", "rr_evo_diets.pdf"), graph_rr_diets)
-ggsave(here("results", "Observed_to_Optimized", "vegan", "Fadnes_DRF", "RR", "rr_evo_diets_rel.pdf"), graph_rr_diets_rel)
+ggsave(here("results", "Observed_to_Optimized", "meat3", "Fadnes_DRF", "RR", "rr_evo_diets.pdf"), graph_rr_diets)
+ggsave(here("results", "Observed_to_Optimized", "meat3", "Fadnes_DRF", "RR", "rr_evo_diets_rel.pdf"), graph_rr_diets_rel)

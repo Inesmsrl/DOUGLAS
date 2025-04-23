@@ -1,58 +1,47 @@
 ################################################################################################################################
-#                                             1. Chargement des packages                                                       #
+#                                             1. Loading packages                                                              #
 ################################################################################################################################
 
 pacman::p_load(
-  rio,                 # Importation de fichiers
-  here,                # Localisation des fichiers dans le dossier du projet
-  dplyr,               # Manipulation des données
-  tidyr,               # Manipulation des données
-  tidyverse,           # Data management, inclus ggplot
-  patchwork            # Combinaison de graphes
+  rio,                 # file import/export
+  here,                # file path management
+  dplyr,               # data manipulation
+  tidyr,               # data manipulation
+  tidyverse,           # Data management, ggplot included
+  patchwork            # graphs combination
 )
 
 ################################################################################################################################
-#                                             2. Importation des données et paramètres                                         #
+#                                             2. Data importation                                                              #
 ################################################################################################################################
 
-# Table des risques relatifs pour chaque catégorie alimentaire, attribués à des quantités absolues (Fadnes)
-rr_table_mid <- import(here("data", "rr_table_quanti.xlsx"), sheet = "Mid")
+# RR table for each food group, assigned to absolute quantities
+rr_table_mid <- import(here("data", "rr_table_quanti_2.xlsx"), sheet = "Mid")
 
-# Table des RR, IC95 lower
-rr_table_low <- import(here("data", "rr_table_quanti.xlsx"), sheet = "Lower")
+# IC95 lower
+rr_table_low <- import(here("data", "rr_table_quanti_2.xlsx"), sheet = "Lower")
 
-# Table des RR, IC95 upper
-rr_table_up <- import(here("data", "rr_table_quanti.xlsx"), sheet = "Upper")
+# IC95 upper
+rr_table_up <- import(here("data", "rr_table_quanti_2.xlsx"), sheet = "Upper")
 
-# Couleur de chaque groupe d'aliments
-col_food_groups <- c(
-  "red_meat" = "#ff1047",
-  "processed_meat" = "#650115",
-  "white_meat" = "#FF9DC8",
-  "dairy" = "#022f66",
-  "fish" = "#4993a2",
-  "eggs" = "#ff764d",
-  "fruits" = "#00CBA7",
-  "nuts" = "#ffc744",
-  "vegetables" = "#00735C",
-  "legumes" = "#703895",
-  "whole_grains" = "#572d00",
-  "reffined_grains" = "#cbb4a1",
-  "added_plant_oils" = "#FF6E3A",
-  "sugar_sweetened_beverages" = "#1b1b1b"
-)
+################################################################################################################################
+#                                             3. Parameters                                                                    #
+################################################################################################################################
 
-# Méthode d'interpolation ("linear", "spline")
+# General parameters
+  source(here("R_code", "0_parameters.R"))
+
+# Interpolation method ("linear", "spline")
   interpolation <- "spline"
   
-# Nombre de simulations des valeurs de RR
+# Number of simulations
   n <- 1000
   
 ################################################################################################################################
-#                                             3. Préparation des données                                                       #
+#                                             4. Data preparation                                                              #
 ################################################################################################################################
 
-# Pivoter les dataframes des RR en format long
+# Pivot data frames to long format
   rr_table_low <- rr_table_low %>% 
     pivot_longer(cols = "0":"800",
                  names_to = "quantity",
@@ -74,27 +63,28 @@ col_food_groups <- c(
     mutate(quantity = as.numeric(quantity),
            rr =as.numeric(rr))
 
-# Un tableau unique
+# One unique table 
   rr_table <- rr_table_mid %>% 
-    left_join(rr_table_low, by = c("food_group", "quantity")) %>% 
-    left_join(rr_table_up, by = c("food_group", "quantity")) %>%     
+    left_join(rr_table_low, by = c("food_group", "quantity")) %>%
+    left_join(rr_table_up, by = c("food_group", "quantity")) %>%
     rename("rr_mid" = "rr.x",
            "rr_low" = "rr.y",
            "rr_up"="rr") %>%
     mutate(rr_low = ifelse(is.na(rr_low), rr_mid, rr_low),
-           rr_up = ifelse(is.na(rr_up), rr_mid, rr_up)) %>% 
+           rr_up = ifelse(is.na(rr_up), rr_mid, rr_up)) %>%
     drop_na(rr_low, rr_mid, rr_up)
 
 ################################################################################################################################
-#                                             4. Fonction de génération de distributions normales                              #
+#                                             5. Generation of RR normal distributions                                         #
 ################################################################################################################################
-  
-# Fixer une graine pour garantir la reproductibilité des simulations
+
+# set a seed for reproducibility
   set.seed(123)
   
+# Function to generate RR normal distributions
   generate_RR_distrib = function(food_group, RR, low, sup, N = n){
-    #RR, low and sup are the RR and 95%CI of a specific risk ration
-    #N is the number of random values from the distrib
+    # RR, low and sup are the RR and 95%CI of a specific RR
+    # N is the number of random values from the distrib
     
     lRR = log(RR)
     l_low = log(low)
@@ -107,24 +97,15 @@ col_food_groups <- c(
     # just need to truncat values
     distr_RR[distr_RR<0]=0
     
-    #if (food_group %in% c("red_meat", "processed_meat", "sugar_sweetened_beverages"))
-    #distr_RR[distr_RR<1]=1
-    #if (food_group %in% c("fruits", "vegetables", "legumes", "whole_grains", "nuts"))
-    #distr_RR[distr_RR>1]=1
-    
     return(distr_RR)
   }
-
-################################################################################################################################
-#                                             5. Génération des distributions normales pour chaque RR                          #
-################################################################################################################################
   
   rr_table <- rr_table %>% 
     rowwise() %>% 
     mutate(rr_distrib = list(generate_RR_distrib(food_group, rr_mid, rr_low, rr_up)))
   
 ################################################################################################################################
-#                                             6. Tri des listes de RR par odre croissant                                       #
+#                                             6. Sort the RR distributions in ascending order                                  
 ################################################################################################################################
   
   rr_table <- rr_table %>% 
@@ -132,18 +113,17 @@ col_food_groups <- c(
     mutate(rr_distrib = list(sort(unlist(rr_distrib)))) %>%
     ungroup()
 
-  
 ################################################################################################################################
 #                                             7. Interpolation                                                                 #
 ################################################################################################################################
   
-# Transformer les simulations en format long
+# Transform the rr_table to long format
   rr_table_long <- rr_table %>% 
-    unnest_wider(rr_distrib, names_sep = "_") %>%  # Séparer les simulations en colonnes distinctes
+    unnest_wider(rr_distrib, names_sep = "_") %>%  # separate the rr_distrib column into multiple columns
     pivot_longer(
-      cols = starts_with("rr_distrib_"),  # Sélectionner toutes les colonnes de simulations
-      names_to = "simulation_id",  # Nom de la colonne contenant les identifiants de simulation
-      values_to = "simulated_rr"  # Nom de la colonne contenant les valeurs simulées
+      cols = starts_with("rr_distrib_"), 
+      names_to = "simulation_id",  # column name for the simulation ID
+      values_to = "simulated_rr"  # column name for the simulated RR values
     )
 
 # Interpolation 
@@ -154,8 +134,8 @@ col_food_groups <- c(
     mutate(rr_interpolated = case_when(
       interpolation == "linear" ~ if_else(is.na(simulated_rr), approx(quantity, simulated_rr, xout = quantity, method = "linear", rule = 1)$y, simulated_rr),
       interpolation == "spline" ~ if_else(is.na(simulated_rr), spline(quantity, simulated_rr, xout = quantity)$y, simulated_rr)
-    )) %>% 
-    # $y, rr, récupérer les valeurs interpolées en y de la fonction approx et les attribuer à rr
+    )) %>%
+    # $y, rr, take the interpolated values in y from the approx function and assign them to rr
     mutate(rr_interpolated = if_else(quantity > max(quantity[!is.na(simulated_rr)]), NA_real_, rr_interpolated)) %>%
     ungroup() %>% 
     select("simulation_id", "food_group", "quantity", "rr_interpolated")
@@ -166,17 +146,8 @@ col_food_groups <- c(
     ungroup()
   
 ################################################################################################################################
-#                                             8. Représentations graphique                                                     #
+#                                             8. Graphical representation of the RR distributions                              #
 ################################################################################################################################
-
-# Nouvel ensemble de DRF 
-rr_table_interpolated_1 <- import(here("data_clean", "CORRECTION", "rr_table_interpolated_sim.csv"))
-
-rr_table_interpolated_1 <- rr_table_interpolated_1 %>% 
-  filter(food_group %in% c("red_meat", "fish", "dairy", "vegetables", "fruits", "legumes", "processed_meat"))
-
-rr_table_interpolated <- rr_table_interpolated %>%
-  bind_rows(rr_table_interpolated_1)
 
 # Dairy
   graph_dr_sim_dairy <- ggplot(rr_table_interpolated %>% 
@@ -192,7 +163,7 @@ rr_table_interpolated <- rr_table_interpolated %>%
          x = "Intake (g/d/pers)",
          y = "RR")+
     theme(legend.position = "none")
-  
+
 # Eggs
   graph_dr_sim_eggs <- ggplot(rr_table_interpolated %>% 
                                  filter(food_group == "eggs",
@@ -387,8 +358,7 @@ rr_table_interpolated <- rr_table_interpolated %>%
     theme(legend.position = "none")
   
   
-# Toutes les DRF sur une figure
-  
+# All DRF in one plot
  list_dr <- list(graph_dr_sim_dairy, graph_dr_sim_eggs, graph_dr_sim_fish, graph_dr_sim_fruits, graph_dr_sim_legumes,
                  graph_dr_sim_nuts, graph_dr_sim_processed_meat, graph_dr_sim_red_meat, graph_dr_sim_refined_grains,
                  graph_dr_sim_ssb, graph_dr_sim_vegetables, graph_dr_sim_white_meat, graph_dr_sim_whole_grains)
@@ -406,13 +376,13 @@ rr_table_interpolated <- rr_table_interpolated %>%
  print(combined_plot) 
   
 ################################################################################################################################
-#                                             8. Exportation des données                                                       #
+#                                             8. Data exportation                                                              #
 ################################################################################################################################
   
-# Table des relations dose-réponse simulées
+# Table of DRF simulated
   export(rr_table_interpolated, here("data_clean", "CORRECTION", "rr_table_interpolated_sim.csv"))
   
-# Représentations graphiques
+# Graphs
   ggsave(here("results", "DRF", "CORRECTION", "drf_dairy.pdf"), plot = graph_dr_sim_dairy)
   ggsave(here("results", "DRF", "CORRECTION", "drf_eggs.pdf"), plot = graph_dr_sim_eggs)
   ggsave(here("results", "DRF", "CORRECTION", "drf_fish.pdf"), plot = graph_dr_sim_fish)
@@ -427,25 +397,4 @@ rr_table_interpolated <- rr_table_interpolated %>%
   ggsave(here("results", "DRF", "CORRECTION", "drf_white_meat.pdf"), plot = graph_dr_sim_white_meat)  
   ggsave(here("results", "DRF", "CORRECTION", "drf_whole_grains.pdf"), plot = graph_dr_sim_whole_grains)  
   
-  ggsave(here("results", "DRF", "CORRECTION", "drf_all.pdf"), plot = combined_plot) 
-  
-
-# Nouvelles DRF
-export(rr_table_interpolated, here("data_clean", "rr_table_interpolated_sim_2.csv"))
-
-ggsave(here("results", "DRF", "NEW_DRF", "drf_white_meat_2.pdf"), plot = graph_dr_sim_white_meat)
-ggsave(here("results", "DRF", "NEW_DRF", "drf_nuts_2.pdf"), plot = graph_dr_sim_nuts)
-ggsave(here("results", "DRF", "NEW_DRF", "drf_whole_grains_2.pdf"), plot = graph_dr_sim_whole_grains)
-ggsave(here("results", "DRF", "NEW_DRF", "drf_refined_grains_2.pdf"), plot = graph_dr_sim_refined_grains)
-ggsave(here("results", "DRF", "NEW_DRF", "drf_ssb_2.pdf"), plot = graph_dr_sim_ssb)
-ggsave(here("results", "DRF", "NEW_DRF", "drf_eggs_2.pdf"), plot = graph_dr_sim_eggs)
-ggsave(here("results", "DRF", "NEW_DRF", "drf_dairy_2.pdf"), plot = graph_dr_sim_dairy)
-ggsave(here("results", "DRF", "NEW_DRF", "drf_fish_2.pdf"), plot = graph_dr_sim_fish)
-ggsave(here("results", "DRF", "NEW_DRF", "drf_vegetables_2.pdf"), plot = graph_dr_sim_vegetables)
-ggsave(here("results", "DRF", "NEW_DRF", "drf_legumes_2.pdf"), plot = graph_dr_sim_legumes)
-ggsave(here("results", "DRF", "NEW_DRF", "drf_fruits_2.pdf"), plot = graph_dr_sim_fruits)
-ggsave(here("results", "DRF", "NEW_DRF", "drf_red_meat_2.pdf"), plot = graph_dr_sim_red_meat)
-ggsave(here("results", "DRF", "NEW_DRF", "drf_processed_meat_2.pdf"), plot = graph_dr_sim_processed_meat)
-
-ggsave(here("results", "DRF", "NEW_DRF", "drf_all_2.pdf"), plot = combined_plot)
-
+  ggsave(here("results", "DRF", "CORRECTION", "drf_all.pdf"), plot = combined_plot)

@@ -1,56 +1,39 @@
 ################################################################################################################################
-#                                             1. Chargement des packages                                                       #
+#                                             1. Loading packages                                                              #
 ################################################################################################################################
 
 pacman::p_load(
-    rio, # Importation de fichiers
-    here, # Localisation des fichiers dans le dossier du projet
-    dplyr, # Manipulation des données
-    tidyr # Manipulation des données
+    rio, # File import/export
+    here, # File path management
+    dplyr, # Data manipulation
+    tidyr # Data manipulation
 )
 
 ################################################################################################################################
-#                                             2. Importation des données                                                       #
+#                                             2. Data improtation                                                              #
 ################################################################################################################################
 
-# Taux de mortalité (INSEE)
+# Mortality rates (INSEE)
 MR <- import(here("data_clean", "MR_table.xlsx"))
 
-# GBD 2019
-MR_GBD_CHINA_W <- import(here("results", "FADNES_2022_repro", "MR", "GBD_2019_CHINA_W_complete.xlsx"))
-MR_GBD_CHINA_M <- import(here("results", "FADNES_2022_repro", "MR", "GBD_2019_CHINA_M_complete.xlsx"))
-MR_GBD_USA_W <- import(here("results", "FADNES_2022_repro", "MR", "GBD_2019_USA_W_complete.xlsx"))
-MR_GBD_USA_M <- import(here("results", "FADNES_2022_repro", "MR", "GBD_2019_USA_M_complete.xlsx"))
-MR_GBD_EU_W <- import(here("results", "FADNES_2022_repro", "MR", "GBD_2019_EU_W_complete.xlsx"))
-MR_GBD_EU_M <- import(here("results", "FADNES_2022_repro", "MR", "GBD_2019_EU_M_complete.xlsx"))
-
-# Effectifs de population par age et par année (INSEE)
+# Projected population size by age and year (INSEE)
 population <- import(here("data_clean", "population_clean.xlsx"))
 
-# RR des régimes
+# RR of diets
 rr_evo_diets <- import(here("results", "Observed_to_Optimized", "vegan", "Fadnes_DRF", "RR", "rr_evo_diets.csv"))
 
 ################################################################################################################################
-#                                             3. Initialisation des paramètres                                                 #
+#                                             3. Parameters                                                                    #
 ################################################################################################################################
 
-# Bornes temporelles des changements de régime alimentaire (années)
-year_i <- 2025 # Année initiale
-year_f <- 2050 # Année finale
-
-# Borne inférieure de l'âge de la population du modèle (années)
-age_limit <- 18
-
-#  Time to full effect
-# durée (années)
-ttfe_time <- 10
+source(here("R_code", "0_parameters.R"))
 
 ################################################################################################################################
-#                                             4. Préparation des données                                                       #
+#                                             4. Data preparation                                                              #
 ################################################################################################################################
 
-# Sélectionner les MR entre les bornes temporelles du modèle et au dessus de la limite d'age
-# Pivoter le dataframe en format long
+# Select the MR between the model time limits and above the age limit
+# Pivot the dataframe in long format
 MR_select <- MR %>%
   select(age, !!sym(as.character(year_i - 20)):!!sym(as.character(year_f + 2 * ttfe_time))) %>%
   filter(age >= age_limit) %>%
@@ -61,8 +44,8 @@ MR_select <- MR %>%
   ) %>%
   mutate(year = as.numeric(year))
 
-# Sélectionner les effectifs de population entre les bornes temporelles du modèle et au dessus de la limite d'age
-# Pivoter le dataframe en format long
+# Select the population size between the model time limits and above the age limit
+# Pivot the dataframe in long format
 population_select <- population %>%
   select(age, !!sym(as.character(year_i - 20)):!!sym(as.character(year_f + 2 * ttfe_time))) %>%
   filter(age >= age_limit) %>%
@@ -75,17 +58,10 @@ population_select <- population %>%
   arrange(age)
 
 ################################################################################################################################
-#                                             5. Ajustement des taux de mortalité                                             #
+#                                             5. MR adjustment                                                                 #
 ################################################################################################################################
 
-# MRa = MRO*RR(scenario)/RR(actuel), où MRO est le taux de mortalité projeté par l'INSEE
-
-# Ajustement des taux de mortalité
-MR_adjusted <- MR_select %>%
-  inner_join(rr_evo_diets, by = "year", relationship = "many-to-many") %>%
-  group_by(age, year, simulation_id) %>%
-  mutate(adjusted_mr = MR * relative_rr) %>%
-  ungroup()
+# MRa = MRO*RR(scenario)/RR(actuel), where MR0 is the projected MR (INSEE)
 
 MR_adjust <- function(MR, rr_evo_diets) {
   # Ajustement des taux de mortalité
@@ -98,21 +74,7 @@ MR_adjust <- function(MR, rr_evo_diets) {
   return(MR_adjusted)
 }
 
-MR_adj_CHINA_W <- MR_adjust(MR_GBD_CHINA_W, rr_evo_diets)
-MR_adj_CHINA_M <- MR_adjust(MR_GBD_CHINA_M, rr_evo_diets)
-MR_adj_USA_W <- MR_adjust(MR_GBD_USA_W, rr_evo_diets)
-MR_adj_USA_M <- MR_adjust(MR_GBD_USA_M, rr_evo_diets)
-MR_adj_EU_W <- MR_adjust(MR_GBD_EU_W, rr_evo_diets)
-MR_adj_EU_M <- MR_adjust(MR_GBD_EU_M, rr_evo_diets)
-
-# Calculer la moyenne et les IC95 pour chaque année
-simulations_summary_mr_adjusted <- MR_adjusted %>%
-  group_by(age, scenario, year) %>%
-  summarise(
-    mean_mr = mean(adjusted_mr, na.rm = TRUE),
-    lower_ci = quantile(adjusted_mr, 0.025, na.rm = TRUE), # Limite inférieure de l'IC à 95%
-    upper_ci = quantile(adjusted_mr, 0.975, na.rm = TRUE) # Limite supérieure de l'IC à 95%
-  )
+MR_adjusted <- MR_adjust(MR_select, rr_evo_diets)
 
 MR_adjust_summary <- function(MR_adjusted) {
   # Calculer la moyenne et les IC95 pour chaque année
@@ -127,15 +89,10 @@ MR_adjust_summary <- function(MR_adjusted) {
   return(simulations_summary_mr_adjusted)
 }
 
-simulations_summary_mr_adjusted_CHINA_W <- MR_adjust_summary(MR_adj_CHINA_W)
-simulations_summary_mr_adjusted_CHINA_M <- MR_adjust_summary(MR_adj_CHINA_M)
-simulations_summary_mr_adjusted_USA_W <- MR_adjust_summary(MR_adj_USA_W)
-simulations_summary_mr_adjusted_USA_M <- MR_adjust_summary(MR_adj_USA_M)
-simulations_summary_mr_adjusted_EU_W <- MR_adjust_summary(MR_adj_EU_W)
-simulations_summary_mr_adjusted_EU_M <- MR_adjust_summary(MR_adj_EU_M)
+simulations_summary_mr_adjusted <- MR_adjust_summary(MR_adjusted)
 
 ################################################################################################################################
-#                                             6. Association aux données de population                                         #
+#                                             6. Association of the adjusted MR with the population data                       #
 ################################################################################################################################
 
 pop_data <- MR_adjusted %>%
@@ -149,28 +106,12 @@ pop_data <- MR_adjusted %>%
   arrange(simulation_id, year, age, scenario)
 
 ################################################################################################################################
-#                                             11. Exportation des données                                                      #
+#                                             7. Data exportation                                                              #
 ################################################################################################################################
 
-# Taux de mortalité ajustés
+# Adjusted mortality rates
 export(MR_adjusted, here("results", "Observed_to_Optimized", "vegan", "Fadnes_DRF", "MR", "MR_adjusted.csv"))
-
-export(MR_adj_CHINA_W, here("results", "FADNES_2022_repro", "CORRECTION", "MR", "MR_adjusted_CHINA_W.csv"))
-export(MR_adj_CHINA_M, here("results", "FADNES_2022_repro", "CORRECTION", "MR", "MR_adjusted_CHINA_M.csv"))
-export(MR_adj_USA_W, here("results", "FADNES_2022_repro", "CORRECTION", "MR", "MR_adjusted_USA_W.csv"))
-export(MR_adj_USA_M, here("results", "FADNES_2022_repro", "CORRECTION", "MR", "MR_adjusted_USA_M.csv"))
-export(MR_adj_EU_W, here("results", "FADNES_2022_repro", "CORRECTION", "MR", "MR_adjusted_EU_W.csv"))
-export(MR_adj_EU_M, here("results", "FADNES_2022_repro", "CORRECTION", "MR", "MR_adjusted_EU_M.csv"))
-
-# Résumé des simulations ajustées
 export(simulations_summary_mr_adjusted, here("results", "Observed_to_Optimized", "vegan", "Fadnes_DRF", "MR", "simulations_summary_mr_adjusted.csv"))
 
-export(simulations_summary_mr_adjusted_CHINA_W, here("results", "FADNES_2022_repro", "CORRECTION", "MR", "simulations_summary_mr_adjusted_CHINA_W.csv"))
-export(simulations_summary_mr_adjusted_CHINA_M, here("results", "FADNES_2022_repro", "CORRECTION", "MR", "simulations_summary_mr_adjusted_CHINA_M.csv"))
-export(simulations_summary_mr_adjusted_USA_W, here("results", "FADNES_2022_repro", "CORRECTION", "MR", "simulations_summary_mr_adjusted_USA_W.csv"))
-export(simulations_summary_mr_adjusted_USA_M, here("results", "FADNES_2022_repro", "CORRECTION", "MR", "simulations_summary_mr_adjusted_USA_M.csv"))
-export(simulations_summary_mr_adjusted_EU_W, here("results", "FADNES_2022_repro", "CORRECTION", "MR", "simulations_summary_mr_adjusted_EU_W.csv"))
-export(simulations_summary_mr_adjusted_EU_M, here("results", "FADNES_2022_repro", "CORRECTION", "MR", "simulations_summary_mr_adjusted_EU_M.csv"))
-
-# Tableau de données de population et MR ajustés
+# Table with population data and adjusted mortality rates
 export(pop_data, here("results", "Observed_to_Optimized", "vegan", "Fadnes_DRF", "MR", "pop_data.csv"))

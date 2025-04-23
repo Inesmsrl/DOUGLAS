@@ -1,139 +1,53 @@
 ################################################################################################################################
-#                                             1. Chargement des packages                                                       #
+#                                             1. Loading packages                                                              #
 ################################################################################################################################
 
 pacman::p_load(
-    rio, # Importation de fichiers
-    here, # Localisation des fichiers dans le dossier du projet
-    dplyr, # Manipulation des données
-    tidyr, # Manipulation des données
-    tidyverse, # Data management, inclus ggplot
-    flextable # Tableaux
+    rio, # file import/export
+    here, # file path management
+    dplyr, # data manipulation
+    tidyr, # data manipulation
+    tidyverse, # Data management, ggplot included
+    flextable # Tables 
 )
 
 ################################################################################################################################
-#                                             2. Importation des données                                                       #
+#                                             2. Data importation                                                              #
 ################################################################################################################################
 
-# Expositions : régimes SISAE en 2050
+# Expositions : SISAE diets in 2050
 diets <- import(here("data", "DOUGLAS_diets.xlsx"))
 
 ################################################################################################################################
-#                                             3. Initialisation des paramètres                                                 #
+#                                             3. Parameters                                                                    #
 ################################################################################################################################
 
-# Bornes temporelles des changements de régime alimentaire (années)
-year_i <- 2025 # Année initiale
-year_f <- 2050 # Année finale
-
-# Dynamique d'implémentation des régimes (immediate, linear, cosine, sigmoidal)
-implementation <- "cosine"
-
-# paramètre de la courbe d'interpolation cosinus
-p <- 1
-
-# paramètre de la courbe sigmoïdale
-lambda <- 8
-
-# Durée du time to full effect (années)
-ttfe_time <- 10
+source(here("R_code", "0_parameters.R"))
 
 ################################################################################################################################
-#                                             4. Charte graphique                                                              #
+#                                             4. Functions for diets evolution                                                 #
 ################################################################################################################################
 
-# Couleur de chaque groupe d'aliments
-col_food_groups <- c(
-  "red_meat" = "#ff1047",
-  "processed_meat" = "#650115",
-  "white_meat" = "#FF9DC8",
-  "dairy" = "#022f66",
-  "fish" = "#4993a2",
-  "eggs" = "#ff764d",
-  "fruits" = "#00CBA7",
-  "nuts" = "#ffc744",
-  "vegetables" = "#00735C",
-  "legumes" = "#703895",
-  "whole_grains" = "#572d00",
-  "reffined_grains" = "#cbb4a1",
-  "added_plant_oils" = "#FF6E3A",
-  "sugar_sweetened_beverages" = "#1b1b1b"
-)
-
-# Ordonner les groupes alimentaires
-order_food_groups <- c(
-  "red_meat", "processed_meat", "white_meat", "fish", "eggs", "dairy",
-  "fruits", "vegetables", "legumes", "nuts", "whole_grains", "reffined_grains",
-  "added_plant_oils", "sugar_sweetened_beverages"
-)
-
-# Etiquettes des scénarios
-
-labels_scenario <- c(
-    "meat3" = "Omnivore-1",
-    "meat2" = "Omnivore-2",
-    "meat1" = "Flexitarian",
-    "pesce" = "Pescetarian",
-    "vege" = "Vegetarian",
-    "vegan" = "Vegan",
-    "meat3_optim" = "Omnivore-1 optimized",
-    "meat2_optim" = "Omnivore-2 optimized",
-    "meat1_optim" = "Flexitarian optimized",
-    "pesce_optim" = "Pescetarian optimized",
-    "vege_optim" = "Vegetarian optimized",
-    "vegan_optim" = "Vegan optimized",
-    "actuel" = "Current diet",
-    "actuel_calage" = "Current diet (calibrated)",
-    "sc0" = "Tendancial",
-    "sc1" = "Scenario 1",
-    "sc2" = "Scenario 2",
-    "sc3" = "Scenario 3",
-    "sc4" = "Scenario 4",
-    "sc5" = "SNBC"
-)
-
-# Etiquettes des groupes alimentaires
-labels_food_groups <- c(
-  "red_meat" = "Red meat",
-  "processed_meat" = "Processed meat",
-  "white_meat" = "White meat",
-  "dairy" = "Dairy",
-  "fish" = "Fish",
-  "eggs" = "Eggs",
-  "fruits" = "Fruits",
-  "nuts" = "Nuts",
-  "vegetables" = "Vegetables",
-  "legumes" = "Legumes",
-  "whole_grains" = "Whole grains",
-  "reffined_grains" = "Refined grains",
-  "added_plant_oils" = "Added plant oils",
-  "sugar_sweetened_beverages" = "SSB"
-)
-
-################################################################################################################################
-#                                             4. Fonctions d'implémentation des régimes                                        #
-################################################################################################################################
-
-# Implémentation linéaire
+# Linear implementation
 calc_food_q_lin <- function(q_i, q_f, year_n, year_i, year_f) {
     (q_f - q_i) / (year_f - year_i) * (year_n - year_f) + q_f
 }
 
-# Implémentation par interpolation cosinus
+# Cosine interpolation implementation
 calc_food_q_cos <- function(q_i, q_f, year_n, year_i, year_f, p) {
     q_i + (q_f - q_i) * (1 - cos(pi * ((year_n - year_i) / (year_f - year_i))^p)) / 2
 }
 
-# Implémentation sigmoïdale
+# sigmoidal implementation
 calc_food_q_sig <- function(q_i, q_f, year_n, year_i, year_f, lambda) {
     (q_i + q_f) / 2 + (q_f - q_i) * (1 / (1 + exp(-lambda * ((year_n - year_i) / (year_f - year_i) - 1 / 2))) - 1 / 2) * (-1 / (2 * (1 / (1 + exp(lambda / 2)) - 1 / 2)))
 }
 
 ################################################################################################################################
-#                                             5. Evolution des régimes                                                         #
+#                                             5. Diets evolution in scenarios                                                  #
 ################################################################################################################################
 
-# Calcul des quantités de chaque aliment consommées chaque année
+# Calculation of intakes of each food group for each year
 diets_evo <- diets %>%
     select("food_group", "actuel", "sc1", "sc2", "sc3", "sc4") %>%
     filter(food_group %in% c(
@@ -164,10 +78,10 @@ diets_evo <- diets %>%
     select("food_group", "scenario", "year_n", "quantity") %>%
     rename("year" = "year_n")
 
-# Ordonnner les groupes alimentaires
+# Ordering food groups
 diets_evo$food_group <- factor(diets_evo$food_group, levels = order_food_groups)
 
-# Visualisation graphique des consommations sur toute la période
+# Graphical representation of the evolution of food consumption on the entire period of time
 graph_diets_evo <- ggplot(
   data = diets_evo %>%
     filter(scenario != "actuel"),
@@ -208,11 +122,11 @@ graph_diets_evo <- ggplot(
     title.hjust = 0.5
   ))
 
-plot(graph_diets_evo)
+# Graphical representation of the evolution of food consumption on the period of dietary change
 diets_evo_shift <- diets_evo %>%
   filter(year %in% c(year_i:year_f))
 
-# Visualisation graphique des consommations sur la période de changement de régime
+
 graph_diets_evo_shift <- ggplot(data = diets_evo_shift, aes(
   x = year,
   y = quantity,
@@ -250,7 +164,106 @@ graph_diets_evo_shift <- ggplot(data = diets_evo_shift, aes(
   ))
 
 ################################################################################################################################
-#                                             Régimes observés vers optimisés                                                  #
+#                                             5. Intake variations compared to the baseline diet (%)                           #
+################################################################################################################################
+
+# Calculation of the variations in consumption of each food compared to the current diet (%)
+diets_var <- diets_evo %>%
+    group_by(food_group, year) %>%
+    mutate(var = (quantity - quantity[scenario == "actuel"]) / quantity[scenario == "actuel"] * 100)
+
+# Graphical representation of the variations in food consumption on the entire period of time
+graph_diets_var <- ggplot(
+  diets_var %>%
+    filter(scenario != "actuel"),
+  aes(
+    x = year,
+    y = var,
+    color = food_group
+  )
+) +
+  facet_wrap(~scenario,
+    labeller = labeller(scenario = labels_scenario)
+  ) +
+  geom_line(linewidth = 0.8, na.rm = TRUE) +
+  labs(
+    title = "",
+    x = "",
+    y = "Variations of food intake (%)",
+    color = "Food group"
+  ) +
+  scale_color_manual(
+    values = col_food_groups,
+    labels = labels_food_groups
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
+    axis.text.y = element_text(size = 7),
+    strip.text = element_text(face = "bold", size = rel(1)),
+    legend.position = "bottom"
+  ) +
+  guides(color = guide_legend(
+    nrow = 3,
+    title.position = "top",
+    title.hjust = 0.5
+  ))
+
+# Table of variations in food consumption
+diets_var$food_group <- factor(diets_var$food_group, levels = order_food_groups)
+
+table_diets_var <- diets_var %>%
+  filter(
+    year %in% c(2025, 2035, 2050)
+  ) %>%
+  mutate(quantity = round(quantity, 1), var = round(var, 1)) %>%
+  pivot_wider(
+    names_from = c("scenario", "year"),
+    values_from = c("quantity", "var")
+  ) %>%
+  select(
+    "food_group",
+    "quantity_actuel_2025",
+    "quantity_sc1_2050", "var_sc1_2035",, "var_sc1_2050",
+    "quantity_sc2_2050", "var_sc2_2035", "var_sc2_2050",
+    "quantity_sc3_2050", "var_sc3_2035", "var_sc3_2050",
+    "quantity_sc4_2050", "var_sc4_2035", "var_sc4_2050"
+  ) %>%
+  mutate(food_group = labels_food_groups[food_group]) %>% # Rename food groups
+  qflextable() %>% # Create the table with qflextable
+  add_header_row(
+    top = TRUE, # Add a top header row
+    values = c("Food group", "Baseline", "S1", "", "", "S2", "", "", "S3", "", "", "S4", "", "")
+  ) %>%
+  set_header_labels( # Rename the columns of the 2nd header row
+    "food_group" = "",
+    "quantity_actuel_2025" = "Intake(g/d/pers)",
+    "quantity_sc1_2050" = "Intake in 2050 (g/d/pers)",
+    "var_sc1_2035" = "Intake variation vs baseline in 2035 (%)",
+    "var_sc1_2050" = "Intake variation vs baseline in 2050 (%)",
+    "quantity_sc2_2050" = "Intake in 2050 (g/d/pers)",
+    "var_sc2_2035" = "Intake variation vs baseline in 2035 (%)",
+    "var_sc2_2050" = "Intake variation vs baseline in 2050 (%)",
+    "quantity_sc3_2050" = "Intake in 2050 (g/d/pers)",
+    "var_sc3_2035" = "Intake variation vs baseline in 2035 (%)",
+    "var_sc3_2050" = "Intake variation vs baseline in 2050 (%)",
+    "quantity_sc4_2050" = "Intake in 2050 (g/d/pers)",
+    "var_sc4_2035" = "Intake variation vs baseline in 2035 (%)",
+    "var_sc4_2050" = "Intake variation vs baseline in 2050 (%)"
+  ) %>%
+  vline(part = "all", j = 2) %>% # Vertical line after the 2nd column
+  vline(part = "all", j = 5) %>%
+  vline(part = "all", j = 8) %>% 
+  vline(part = "all", j = 11) %>%
+  merge_at(i = 1, j = 3:5, part = "header") %>% # Merge cells 3 to 5 in the 1st header row
+  merge_at(i = 1, j = 6:8, part = "header") %>%
+  merge_at(i = 1, j = 9:11, part = "header") %>%
+  merge_at(i = 1, j = 12:14, part = "header") %>%
+  align(align = "center", j = c(2:14), part = "all") %>% # Center the text in all columns except Food group
+  bold(i = 1, part = "header") %>% # Bold the first row of the header
+  bg(part = "all", bg = "white") # Set the background color of the table to white
+
+################################################################################################################################
+#                                             6. Observed to optimized diets                                                   #
 ################################################################################################################################
 
 function_diets_evo <- function(observed, optimized) {
@@ -368,50 +381,17 @@ diets_var_pesce <- function_diets_var("pesce", "pesce_optim")
 diets_var_vege <- function_diets_var("vege", "vege_optim")
 diets_var_vegan <- function_diets_var("vegan", "vegan_optim")
 
-table_diets_var <- diets_var %>%
-  filter(
-    year %in% c(2025, 2050),
-    scenario %in% c("actuel", "sc1")
-  ) %>%
-  mutate(quantity = round(quantity, 1), var = round(var, 1)) %>%
-  pivot_wider(
-    names_from = c("scenario", "year"),
-    values_from = c("quantity", "var")
-  ) %>%  
-  select(
-    "food_group",
-    "quantity_actuel_2025",
-    "quantity_sc1_2050", "var_sc1_2050"
-  ) %>%  
-  mutate(food_group = labels_food_groups[food_group]) %>% # Remplacer les noms des groupes alimentaires par les labels)
-  qflextable() %>% # Création du tableau et ajustement automatique de la largeur des colonnes
-  add_header_row(
-    top = TRUE, # Ajout d'une ligne d'en-tête
-    values = c("Food group", "Observed", "Optimized", "")
-  ) %>%
-  set_header_labels( # Renommer des colonnes de la 2e ligne d'en-tête
-    "food_group" = "",
-    "quantity_actuel_2025" = "Intake(g/d/pers)",
-    "quantity_sc1_2050" = "Intake in 2050 (g/d/pers)",
-    "var_sc1_2050" = "Intake variation vs observed in 2050 (%)"
-  ) %>%
-  vline(part = "all", j = 2) %>% # Ligne verticale après la colonne 2
-  merge_at(i = 1, j = 3:4, part = "header") %>% # Fusion des cellules de la 1ère ligne d'en-tête
-  align(align = "center", j = c(2:4), part = "all") %>% # Centrer le contenu des cellules sauf Food group
-  bold(i = 1, part = "header") %>% # Mettre en gras la 1ère ligne d'en-tête
-  bg(part = "all", bg = "white") # Fond blanc pour toutes les cellules
-
 table_diets_var <- function(observed, optimized) {
   
   diets_var <- function_diets_var(observed, optimized)
-  opt <- optimized[1]  # Prendre un seul nom de scénario pour l'affichage
+  opt <- optimized[1]  # Extract one name of diet
   
   # Construction des noms de colonnes dynamiques
   col_obs_q <- paste0("quantity_", observed, "_2025")
   col_opt_q <- paste0("quantity_", opt, "_2050")
   col_opt_v <- paste0("var_", opt, "_2050")
   
-  # Construction du tableau
+  # Building the table
   table <- diets_var %>%
     filter(
       year %in% c(2025, 2050),
@@ -428,17 +408,14 @@ table_diets_var <- function(observed, optimized) {
     ) %>%
     mutate(food_group = labels_food_groups[food_group])
   
-  # Vérification des noms de colonnes du tableau pour éviter les erreurs
-  # print(colnames(table))  # Décommente si tu veux vérifier les noms de colonnes
   
-  
-  # Créer le tableau avec qflextable et ajouter l'en-tête
+  # Creating the table with qflextable
   table_ft <- table %>%
     qflextable() %>%
     add_header_row(
       top = TRUE,
-      values = c("Food group", "Observed", "Optimized", ""),  # 4 valeurs pour l'en-tête
-      colwidths = c(1, 1, 1, 1)  # Total = 4 colonnes (adapter si nécessaire)
+      values = c("Food group", "Observed", "Optimized", ""),  # 4 values for header row
+      colwidths = c(1, 1, 1, 1) 
     ) %>%
     vline(part = "all", j = 2) %>%
     merge_at(i = 1, j = 3:4, part = "header") %>%
@@ -456,129 +433,24 @@ table_var_pesce <- table_diets_var("pesce", "pesce_optim")
 table_var_vege <- table_diets_var("vege", "vege_optim")
 table_var_vegan <- table_diets_var("vegan", "vegan_optim")
 
-
 ################################################################################################################################
-#                                             5. Variations des consommations par rapport au baseline                          #
-################################################################################################################################
-
-# Calcul des variations de consommation de chaque aliment par rapport au régime actuel (%)
-diets_var <- diets_evo %>%
-    group_by(food_group, year) %>%
-    mutate(var = (quantity - quantity[scenario == "actuel"]) / quantity[scenario == "actuel"] * 100)
-
-# Visualisation graphique des variations de consommation sur toute la période
-graph_diets_var <- ggplot(
-  diets_var %>%
-    filter(scenario != "actuel"),
-  aes(
-    x = year,
-    y = var,
-    color = food_group
-  )
-) +
-  facet_wrap(~scenario,
-    labeller = labeller(scenario = labels_scenario)
-  ) +
-  geom_line(linewidth = 0.8, na.rm = TRUE) +
-  labs(
-    title = "",
-    x = "",
-    y = "Variations of food intake (%)",
-    color = "Food group"
-  ) +
-  scale_color_manual(
-    values = col_food_groups,
-    labels = labels_food_groups
-  ) +
-  theme(
-    axis.text.x = element_text(angle = 60, hjust = 1, size = 7),
-    axis.text.y = element_text(size = 7),
-    strip.text = element_text(face = "bold", size = rel(1)),
-    legend.position = "bottom"
-  ) +
-  guides(color = guide_legend(
-    nrow = 3,
-    title.position = "top",
-    title.hjust = 0.5
-  ))
-
-
-# Tableau des variations de consommation
-
-diets_var$food_group <- factor(diets_var$food_group, levels = order_food_groups)
-
-table_diets_var <- diets_var %>%
-  filter(
-    year %in% c(2025, 2035, 2050)
-  ) %>%
-  mutate(quantity = round(quantity, 1), var = round(var, 1)) %>%
-  pivot_wider(
-    names_from = c("scenario", "year"),
-    values_from = c("quantity", "var")
-  ) %>%
-  select(
-    "food_group",
-    "quantity_actuel_2025",
-    "quantity_sc1_2050", "var_sc1_2035",, "var_sc1_2050",
-    "quantity_sc2_2050", "var_sc2_2035", "var_sc2_2050",
-    "quantity_sc3_2050", "var_sc3_2035", "var_sc3_2050",
-    "quantity_sc4_2050", "var_sc4_2035", "var_sc4_2050"
-  ) %>%
-  mutate(food_group = labels_food_groups[food_group]) %>% # Remplacer les noms des groupes alimentaires par les labels)
-  qflextable() %>% # Création du tableau et ajustement automatique de la largeur des colonnes
-  add_header_row(
-    top = TRUE, # Ajout d'une ligne d'en-tête
-    values = c("Food group", "Baseline", "S1", "", "", "S2", "", "", "S3", "", "", "S4", "", "")
-  ) %>%
-  set_header_labels( # Renommer des colonnes de la 2e ligne d'en-tête
-    "food_group" = "",
-    "quantity_actuel_2025" = "Intake(g/d/pers)",
-    "quantity_sc1_2050" = "Intake in 2050 (g/d/pers)",
-    "var_sc1_2035" = "Intake variation vs baseline in 2035 (%)",
-    "var_sc1_2050" = "Intake variation vs baseline in 2050 (%)",
-    "quantity_sc2_2050" = "Intake in 2050 (g/d/pers)",
-    "var_sc2_2035" = "Intake variation vs baseline in 2035 (%)",
-    "var_sc2_2050" = "Intake variation vs baseline in 2050 (%)",
-    "quantity_sc3_2050" = "Intake in 2050 (g/d/pers)",
-    "var_sc3_2035" = "Intake variation vs baseline in 2035 (%)",
-    "var_sc3_2050" = "Intake variation vs baseline in 2050 (%)",
-    "quantity_sc4_2050" = "Intake in 2050 (g/d/pers)",
-    "var_sc4_2035" = "Intake variation vs baseline in 2035 (%)",
-    "var_sc4_2050" = "Intake variation vs baseline in 2050 (%)"
-  ) %>%
-  vline(part = "all", j = 2) %>% # Ligne verticale après la colonne 2
-  vline(part = "all", j = 5) %>% # Ligne verticale après la colonne 6
-  vline(part = "all", j = 8) %>% # Ligne verticale après la colonne 9
-  vline(part = "all", j = 11) %>% # Ligne verticale après la colonne 13
-  merge_at(i = 1, j = 3:5, part = "header") %>% # Fusion des cellules de la 1ère ligne d'en-tête
-  merge_at(i = 1, j = 6:8, part = "header") %>%
-  merge_at(i = 1, j = 9:11, part = "header") %>%
-  merge_at(i = 1, j = 12:14, part = "header") %>%
-  align(align = "center", j = c(2:14), part = "all") %>% # Centrer le contenu des cellules sauf Food group
-  bold(i = 1, part = "header") %>% # Mettre en gras la 1ère ligne d'en-tête
-  bg(part = "all", bg = "white") # Fond blanc pour toutes les cellules
-
-################################################################################################################################
-#                                             6. Exportation des données                                                      #
+#                                             7. Data exportation                                                              #
 ################################################################################################################################
 
-# Implémentation des régimes
-# Quantités (g/j/pers)
-    export(diets_evo, here("results", "TEST", "diets", "diets_evo.csv"))
-    ggsave(here("results", "TEST", "diets", "diets_evo.pdf"), graph_diets_evo)
-    ggsave(here("results", "TEST", "diets", "diets_evo_shift.pdf"), graph_diets_evo_shift)
+## Diets implementation
+  # Intakes (g/j/pers)
+      export(diets_evo, here("results", "TEST", "diets", "diets_evo.csv"))
+      ggsave(here("results", "TEST", "diets", "diets_evo.pdf"), graph_diets_evo)
+      ggsave(here("results", "TEST", "diets", "diets_evo_shift.pdf"), graph_diets_evo_shift)
 
-# Variations (%)
-    export(diets_var, here("results", "TEST", "diets", "diets_var.csv"))
-    ggsave(here("results", "TEST", "diets", "diets_var.pdf"), graph_diets_var)
+  # Variations (%)
+      export(diets_var, here("results", "TEST", "diets", "diets_var.csv"))
+      ggsave(here("results", "TEST", "diets", "diets_var.pdf"), graph_diets_var)
 
-# Tableau des variations
-    save_as_image(table_diets_var, here("results", "TEST", "diets", "table_diets_var.png"))
+      save_as_image(table_diets_var, here("results", "TEST", "diets", "table_diets_var.png"))
 
-
-# Régimes observés vers optimisés
-
-  # Quantités (g/j/pers)
+## Observed to optimized diets
+  # Intakes (g/j/pers)
     export(diets_evo_meat3, here("results", "Observed_to_Optimized", "meat3", "diets", "diets_evo_meat3.csv"))
     ggsave(here("results", "Observed_to_Optimized", "meat3", "diets", "diets_evo_meat3.pdf"), graph_diets_evo_meat3)
 

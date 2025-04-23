@@ -1,70 +1,70 @@
 ################################################################################################################################
-#                                             1. Chargement des packages                                                       #
+#                                             1. Loading packages                                                              #
 ################################################################################################################################
 
 pacman::p_load(
-  rio,                 # Importation de fichiers
-  here,                # Localisation des fichiers dans le dossier du projet
-  dplyr,               # Manipulation des données
-  tidyr                # Manipulation des données
+  rio,                 # file import/export
+  here,                # file path management in R projects
+  dplyr,               # data manipulation
+  tidyr                # data manipulation
 )
 
 ################################################################################################################################
-#                                             2. Importation des données                                                       #
+#                                             2. Data importation                                                              #
 ################################################################################################################################
 
-# Effectifs de population (hommes et femmes) par âge de 1962 à 2021 et projetées jusqu'en 2120
+# Population size (male and female together) by age from 1962 to 2021 and projected until 2120
 population <- import(here("data", "INSEE_Population.xlsx"))
 
-# Décès par âge de 1962 à 2021 et projetées jusqu'en 2120
+# Deaths by age from 1962 to 2021 and projected until 2120
 deaths <- import(here("data", "INSEE_Deaths.xlsx"))
 
 ################################################################################################################################
-#                                             3. Nettoyage des données                                                         #
+#                                             3. Data cleaning                                                                 #
 ################################################################################################################################
 
-# Rendre les données homogènes (noms de variables, catégories d'âge,...) et utilisables pour l'EQIS
+# Homogenize the data (variable names, age categories,...) and make them usable for HIA
 
-# Effectifs de population (H et F) par âge et par année
+# Population size (male and female together) by age and year
   population <- population %>% 
       rename("age" = "Âge au 1er janvier",
                  "2019" = "2019 (p)",
                  "2020" = "2020(p)",
-                 "2021" = "2021(p)") %>%    # Renommer des variable
-      select(-c("2121")) %>%                # Supprimer la colonne 2121 non présente dans "deaths"
-      filter(row_number() %in% 1:106) %>%   # Supprimer la ligne Total
+                 "2021" = "2021(p)") %>%    # Rename variables
+      select(-c("2121")) %>%                # Delete the column "2121" not inclcluded in deaths file
+      filter(row_number() %in% 1:106) %>%   # Delete the line "Total"
       mutate(age = recode(age,
-                          "105+" = "105")) %>% # Transformer la valeur 105+ en 105 pour pouvoir numériser la variable age
-      mutate(age = as.numeric(age))         # Transformer la colonne age en numérique
+                          "105+" = "105")) %>% # Transform the value 105+ into 105 to be able to numerize the age variable
+      mutate(age = as.numeric(age))         # Numerize the age variable
   
 
-# Nombre de décès par âge et par année
+# Deaths by age and year
   deaths <- deaths %>% 
       rename("age" = "Âge atteint dans l'année",
                  "2020" = "2020 p)"
-                 ) %>%                      # Renommer des variables
-      select(-c("...161")) %>%              # Supprimer la colonne "...161"
-      filter(row_number() %in% 1:106) %>%   # Supprimer la ligne Total
+                 ) %>%                      # Rename variables
+      select(-c("...161")) %>%              # Delete the column "...161"
+      filter(row_number() %in% 1:106) %>%   # Delete the line "Total"
       mutate(age = recode(age,
-                          "105+" = "105")) %>% # Transformer la valeur 105+ en 105 pour pouvoir numériser la variable age
-      mutate(age = as.numeric(age))            # Transformer la colonne age en numérique
+                          "105+" = "105")) %>% # Transform the value 105+ into 105 to be able to numerize the age variable
+      mutate(age = as.numeric(age))            # Numerize the age variable
 
 ################################################################################################################################
-#                                             4. Vérifications                                                                 #
+#                                             4. Checks                                                                        #
 ################################################################################################################################
   
-# Les vérifications doivent renvoyer TRUE
+# Checks must send back TRUE
   
-  all(names(population == names(deaths)))   # Mêmes variables dans les jeux de données
-  all(population$age == deaths$age)         # Mêmes catégories d'âge dans les jeux de données
+  all(names(population == names(deaths)))   # Same variable names in the two datasets
+  all(population$age == deaths$age)         # Same age categories in the two datasets
   
   
 ################################################################################################################################
-#                                             5. Exportation des données                                                       #
+#                                             5. Data exportation                                                              #
 ################################################################################################################################
 
-# Projections des effectifs de population par âge et par année
+# Population size projection by age and year
   export(population,here("data_clean","population_clean.xlsx"))
 
-# Projection des décès par âge et par année
+# Deaths projection by age and year
   export(deaths,here("data_clean","deaths_clean.xlsx"))

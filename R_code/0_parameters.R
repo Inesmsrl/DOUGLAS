@@ -2,6 +2,10 @@
 #                                             1. Parameters                                                                    #
 ################################################################################################################################
 
+## POPULATION
+
+    age_limit <- 18 # years old
+
 ## TIME PERIOD
 
     # Time bounds for changes in diet (years)

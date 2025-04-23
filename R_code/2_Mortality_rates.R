@@ -1,27 +1,25 @@
 ################################################################################################################################
-#                                             1. Chargement des packages                                                       #
+#                                             1. Loading packages                                                              #
 ################################################################################################################################
 
 pacman::p_load(
-  rio,                 # Importation de fichiers
-  here,                # Localisation des fichiers dans le dossier du projet
-  dplyr,               # Manipulation des données
-  tidyverse
+  rio,                 # file import/export
+  here,                # file path management
+  dplyr                # data manipulation
 )
 
-
 ################################################################################################################################
-#                                             2. Importation des données                                                       #
+#                                             2. Data importation                                                              #
 ################################################################################################################################
 
-# Effectifs de population (hommes et femmes) par âge de 1962 à 2021 et projetées jusqu'en 2120
+# Population size
 population <- import(here("data_clean", "population_clean.xlsx"))
 
-# Décès par âge de 1962 à 2021 et projetées jusqu'en 2120
+# Deaths
 deaths <- import(here("data_clean", "deaths_clean.xlsx"))
 
 ################################################################################################################################
-#                                             3. Calcul des taux de mortalité                                                  #
+#                                             3. Mortality rates calculation                                                   #
 ################################################################################################################################
                       
 mortality_rates <- population %>%
@@ -30,8 +28,8 @@ mortality_rates <- population %>%
                 ))
                 
 ################################################################################################################################
-#                                             5. Exportation des données                                                       #
+#                                             5. data exportation                                                              #
 ################################################################################################################################
 
-# Projections des taux de mortalité par âge et par année 
+# Mortality rates projection by age and year 
 export(mortality_rates, here("data_clean", "MR_table.xlsx"))
