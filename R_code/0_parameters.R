@@ -171,3 +171,64 @@ labels_food_groups_delta <- c(
   "reffined_grains" = expression(Delta ~ "Refined grains"),
   "sugar_sweetened_beverages" = expression(Delta ~ "SSB")
 )
+
+order_diets <- c(
+    "actuel",
+    "actuel_calage",
+    "meat3",
+    "meat3_optim",
+    "meat2",
+    "meat2_optim",
+    "meat1",
+    "meat1_optim",
+    "pesce",
+    "pesce_optim",
+    "vege",
+    "vege_optim",
+    "vegan",
+    "vegan_optim",
+    "sc0",
+    "sc1",
+    "sc2",
+    "sc3",
+    "sc4",
+    "sc5"
+)
+
+label_diets <- c(
+    "meat3" = "Omnivore-1",
+    "meat2" = "Omnivore-2",
+    "meat1" = "Flexitarian",
+    "pesce" = "Pescetarian",
+    "vege" = "Vegetarian",
+    "vegan" = "Vegan",
+    "meat3_optim" = "Omnivore-1 optimized",
+    "meat2_optim" = "Omnivore-2 optimized",
+    "meat1_optim" = "Flexitarian optimized",
+    "pesce_optim" = "Pescetarian optimized",
+    "vege_optim" = "Vegetarian optimized",
+    "vegan_optim" = "Vegan optimized",
+    "actuel" = "Current diet",
+    "actuel_calage" = "Current diet (calibrated)",
+    "sc0" = "Tendancial",
+    "sc1" = "Scenario 1",
+    "sc2" = "Scenario 2",
+    "sc3" = "Scenario 3",
+    "sc4" = "Scenario 4",
+    "sc5" = "SNBC"
+)
+
+col_diets <- c(
+    "meat3" = "#cd0030",
+    "meat2" = "#d95668",
+    "meat1" = "#fcb901",
+    "pesce" = "#027474",
+    "vege" = "#007643",
+    "vegan" = "#54a300",
+    "meat3_optim" = "#98606d",
+    "meat2_optim" = "#f4a1ac",
+    "meat1_optim" = "#f1d68c",
+    "pesce_optim" = "#5a8787",
+    "vege_optim" = "#568470",
+    "vegan_optim" = "#a3c084"
+)
