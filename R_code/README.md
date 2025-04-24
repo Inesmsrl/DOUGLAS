@@ -1,8 +1,10 @@
 # R code files
 
-0. Parameters : Set the parameters (population, time period, diets implementation, time to full effect, RR, costs of a life year) and graphical guidelines to be used in the following code files
+Parameters : Set the parameters (population, time period, diets implementation, time to full effect, RR, costs of a life year) and graphical guidelines to be used in the following code files
 
-0. Diets_description : Graphical representations of the distribution of constitutive diets (observed in the NutriNet cohort and optimized) in the different scenarios and of the food intakes in each constitutive diet and each scenario.
+Diets_description : Graphical representations of the distribution of constitutive diets (observed in the NutriNet cohort and optimized) in the different scenarios and of the food intakes in each constitutive diet and each scenario.
+
+Health Impact Assessment : 
 
 1. Population: Formatting INSEE population data so that the population and mortality data files have the same variables and age categories.
 
