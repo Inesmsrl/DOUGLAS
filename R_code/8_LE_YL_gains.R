@@ -1,14 +1,14 @@
 ################################################################################################################################
-#                                             1. Chargement des packages                                                       #
+#                                             1. Loading packages                                                              #
 ################################################################################################################################
 
 pacman::p_load(
-  rio,                 # Importation de fichiers
-  here,                # Localisation des fichiers dans le dossier du projet
-  dplyr,               # Manipulation des données
-  tidyr,
-  tidyverse,
-  patchwork            # Combinaison de graphes
+  rio,                 # File import/export
+  here,                # File path management
+  dplyr,               # Data manipulation
+  tidyr,               # Data manipulation
+  tidyverse,           # Data management, ggplot included
+  patchwork            # Graphs combination
 )
 
 ################################################################################################################################
@@ -17,29 +17,14 @@ pacman::p_load(
 
 deaths_data <- import(here("Python_code", "data_python.csv"))
 
-deaths_data <- import(here("results", "FADNES_2022_repro", "CORRECTION", "MR", "MR_adjusted_China_W.csv"))
+################################################################################################################################
+#                                             3. Parameters                                                                    #
+################################################################################################################################
+
+source(here("R_code", "0_parameters.R"))
 
 ################################################################################################################################
-#                                             3. Charte graphique                                                              #
-################################################################################################################################
-col_scenario <- c(
-  "actuel" = "azure4",
-  "sc0" = "palevioletred3",
-  "sc1" = "#699cc2",
-  "sc2" = "#974175",
-  "sc3" = "#50cd9f",
-  "sc4" = "#cb6c2d",
-  "sc5" = "royalblue4"
-)
-
-labels_scenario <- c("actuel" = "Current diet",
-                     "sc1" = "Scenario 1",
-                     "sc2" = "Scenario 2",
-                     "sc3" = "Scenario 3",
-                     "sc4" = "Scenario 4")
-
-################################################################################################################################
-#                                             3. Espérance de vie conditionnelle                                               #
+#                                             4. Conditional life expectancy calculation                                       #
 ################################################################################################################################
 
 deaths_data <- deaths_data %>%  
@@ -50,57 +35,57 @@ calc_conditional_LE <- function(df) {
     arrange(year, age) %>%
     group_by(year, simulation_id, scenario) %>%
     mutate(
-      qx = adjusted_mr,                           # Taux de mortalité par âge (déjà dans les données)
-      px = 1 - qx,                                # Probabilité de survie entre l'âge x et x+1
-      lx = cumprod(lag(px, default = 1)),         # Probabilité de survie jusqu'à l'âge x
-      dx = lx * qx,                               # Nombre de décès attendu à chaque âge
-      Tx = rev(cumsum(rev(lx)))                   # Somme cumulée des survivants au delà d'un age x = nombre total d'années vécues au delà de l'âge x
+      qx = adjusted_mr,                           # MR by age (already in the dataset)
+      px = 1 - qx,                                # Survival probability between age x and x+1
+      lx = cumprod(lag(px, default = 1)),         # Survival probability to age x
+      dx = lx * qx,                               # Number of deaths expected at age x
+      Tx = rev(cumsum(rev(lx)))                   # Cumulated sum of survivors beyond age x = total number of years lived beyond age x
     ) %>%
     mutate(
-      ex = Tx / lx                                # Espérance de vie conditionnelle à chaque âge = répartition des années vécues au delà de l'âge x par le nombre de survivants à cet âge
+      ex = Tx / lx                                # Conditional life expectancy at age x = distribution of years lived beyond age x by the number of survivors at that age
     ) 
 }
 
 deaths_data <- calc_conditional_LE(deaths_data)
 
+# Calculate the age at death at each age by scenario and the years of life gained (YLG)
 deaths_data <- deaths_data %>% 
   group_by(age, year, scenario, simulation_id) %>% 
   mutate(le = age + ex,
          ylg = avoided_deaths * (le - age)) %>% 
   select(simulation_id, age, year, scenario, deaths, avoided_deaths, le, ylg)
 
-deaths_data <- deaths_data %>% 
-  group_by(age, year, scenario, simulation_id) %>% 
-  mutate(le = age + ex) %>% 
-  select(simulation_id, age, year, scenario, le)
-
 ################################################################################################################################
-#                                             4. Espérance de vie gagnée                                                       #
+#                                             5. Gain in Life Expectancy calculation                                           #
 ################################################################################################################################
 
+# Calculate the life expectancy gained (LEG) by scenario and year
 le <- deaths_data %>% 
   group_by(simulation_id, year, scenario) %>% 
-  summarise(le_year = mean(le)) %>% 
-  mutate(leg = (le_year - le_year[scenario == "actuel"])*12)
+  summarise(le_year = mean(le)) %>% # Mean of age at death of each age
+  mutate(leg = (le_year - le_year[scenario == "actuel"])*12) # Life expectancy gained in months
 
+# Delete the 5% most extreme values
 le <- le %>% 
   group_by(scenario, year) %>% 
   filter(between(leg, quantile(leg, 0.025), quantile(leg, 0.975)))
 
+# Calculate the mean and 95% CI of life expectancy gained by scenario and year
 summary_le <- le %>% 
   group_by(scenario, year) %>% 
   summarise(
     mean_le = mean(leg, na.rm = TRUE),
-    lower_ci = quantile(leg, 0.025, na.rm = TRUE),
-    upper_ci = quantile(leg, 0.975, na.rm = TRUE)
+    lower_ci = quantile(leg, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
+    upper_ci = quantile(leg, 0.975, na.rm = TRUE)  # Upper limit of the 95% CI
   )
 
 ################################################################################################################################
-#                                             5. Figures : Espérance de vie gagnée                                             #
+#                                             6. Graphs : LEG                                                                  #
 ################################################################################################################################
 
+# Whole time period
 graph_le <- ggplot(summary_le %>% 
-                      filter(scenario != "actuel"),
+                      filter(scenario != "actuel"), #Change the baseline scenario if needed
                     aes(x = year,
                         y = mean_le,
                         group = scenario,
@@ -123,8 +108,9 @@ graph_le <- ggplot(summary_le %>%
   guides(color = guide_legend(title = NULL),
          fill = guide_legend(title = NULL))
 
+# At specific dates
 graph_le_dates <- ggplot(summary_le %>% 
-                            filter(year %in% c(2040, 2050, 2060),
+                            filter(year %in% c(2040, 2050, 2060), # Change the dates if needed
                                    scenario != "actuel"),
                           aes(x = scenario,
                               y = mean_le,
@@ -150,31 +136,35 @@ graph_le_dates <- ggplot(summary_le %>%
   guides(fill = guide_legend(title = NULL))
  
 ################################################################################################################################
-#                                             6. Années de vie préservées                                                      #
+#                                             7. Years of life gained calculation                                              #
 ################################################################################################################################
 
+# Calculate the years of life gained (YLG) by scenario and year
 yll <- deaths_data %>% 
   group_by(simulation_id, scenario, year) %>% 
-  summarise(yll = sum(ylg))
+  summarise(yll = sum(ylg)) # Sum of YLG at each age
 
+# Delete the 5% most extreme values
 yll <- yll %>% 
   group_by(scenario, year) %>% 
   filter(between(yll, quantile(yll, 0.025), quantile(yll, 0.975)))
 
+# Mean and 95% CI of YLG by scenario and year
 summary_yll <- yll %>% 
   group_by(scenario, year) %>% 
   summarise(
     mean_yll = mean(yll, na.rm = TRUE),
-    lower_ci = quantile(yll, 0.025, na.rm = TRUE),
-    upper_ci = quantile(yll, 0.975, na.rm = TRUE)
+    lower_ci = quantile(yll, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
+    upper_ci = quantile(yll, 0.975, na.rm = TRUE) # Upper limit of the 95% CI
   )
 
 ################################################################################################################################
-#                                             7. Figures : Années de vie préservées                                                      #
+#                                             8. Graphs : YLG                                                                  #
 ################################################################################################################################
 
+# Whole time period
 graph_yll <- ggplot(summary_yll %>% 
-                                        filter(scenario != "actuel"),
+                                        filter(scenario != "actuel"), #Change the baseline scenario if needed
                                       aes(x = year,
                                           y = mean_yll,
                                           group = scenario,
@@ -197,8 +187,9 @@ graph_yll <- ggplot(summary_yll %>%
   guides(color = guide_legend(title = NULL),
          fill = guide_legend(title = NULL))
 
+# At specific dates
 graph_yll_dates <- ggplot(summary_yll %>% 
-         filter(year %in% c(2040, 2050, 2060),
+         filter(year %in% c(2040, 2050, 2060), # Change the dates if needed
                 scenario != "actuel"),
        aes(x = scenario,
            y = mean_yll,
@@ -224,12 +215,16 @@ graph_yll_dates <- ggplot(summary_yll %>%
   guides(fill = guide_legend(title = NULL))
 
 ################################################################################################################################
-#                                             6. Figure : Bénéfices en 2040, 2050, 2060                                          #
+#                                             9. Graph : Health benefits at specific dates                                     #
 ################################################################################################################################
 
 # Faire tourner les codes avoir les graphes des décès reportés et des coûts évités
+# Run the appropriate code to get the prevented deaths and avoided costs graphs
+
+# List of the graphs you want to combine in one single figure
 list_graph <- list(graph_tot_av_deaths_dates, graph_yll_dates, graph_le_dates, graph_yll_costs_dates)
 
+# Theme for the common graph
 common_theme <- theme(
   axis.title = element_text(size = 7, face = "bold"),
   strip.text = element_text(size = 6),
@@ -237,24 +232,29 @@ common_theme <- theme(
   legend.position = "none"
 )
 
+# Apply the common theme to each graph
 list_graph <- lapply(list_graph, function(p) p + common_theme)
 
+# Combine the graphs into one single figure
 common_graph <- reduce(list_graph, `+`) + plot_layout(ncol = 2)
 
 print(common_graph)
 
 ################################################################################################################################
-#                                             7. Années de vie préservées âge et année spécifique                              #
+#                                             10. YLG for a specific age and year                                              #
 ################################################################################################################################
 
+# Select the data for a specific age and year
 pop_sp <- deaths_data %>% 
   filter(year == 2029,
          age == 80) 
 
+# Delete the 5% most extreme values
 yll_sp <- pop_sp %>% 
   group_by(scenario) %>% 
   filter(between(ylg, quantile(ylg, 0.025), quantile(ylg, 0.975)))
 
+# Mean and 95% CI of YLG
 summary_yll_sp <- yll_sp %>% 
   group_by(scenario, year) %>% 
   summarise(
@@ -263,7 +263,7 @@ summary_yll_sp <- yll_sp %>%
     upper_ci = quantile(ylg, 0.975, na.rm = TRUE)
   )
 
-
+# Graph
 graph_yll_sp <- ggplot(summary_yll_sp %>% 
                             filter(scenario != "actuel"),
                           aes(x = scenario,
@@ -288,18 +288,21 @@ graph_yll_sp <- ggplot(summary_yll_sp %>%
   guides(fill = guide_legend(title = NULL))
 
 ################################################################################################################################
-#                                             8. Espérance de vie gagnée âge et année spécifique                               #
+#                                             11. LEG for a specific age and year                                              #
 ################################################################################################################################
 
+# Select the data for a specific age and year
 le_sp <- pop_sp %>% 
   group_by(simulation_id, scenario) %>% 
   summarise(le_year = mean(le)) %>% 
   mutate(leg = (le_year - le_year[scenario == "actuel"]))
 
+# Delete the 5% most extreme values
 le_sp <- le_sp %>% 
   group_by(scenario) %>% 
   filter(between(leg, quantile(leg, 0.025), quantile(leg, 0.975)))
 
+# Mean and 95% CI of LEG
 summary_le_sp <- le_sp %>% 
   group_by(scenario) %>% 
   summarise(
@@ -308,6 +311,7 @@ summary_le_sp <- le_sp %>%
     upper_ci = quantile(leg, 0.975, na.rm = TRUE)
   )
 
+# Graph
 graph_le_sp <- ggplot(summary_le_sp %>% 
                            filter(scenario != "actuel"),
                          aes(x = scenario,
@@ -333,7 +337,7 @@ graph_le_sp <- ggplot(summary_le_sp %>%
 
 plot(graph_le_sp)
 ################################################################################################################################
-#                                             9. Exportation des données                                                       #
+#                                             12. Data exportation                                                             #
 ################################################################################################################################
 
 # LE
@@ -347,13 +351,13 @@ ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "yll_repor
 ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "yll_reported_dates.pdf"), plot = graph_yll_dates)
 
 
-# YLL pour un âge et une année spécifique 
+# YLL for a specific age and year 
 export(summary_yll_sp, here("results", "IC95_yll_sp.xlsx"))
 ggsave(here("results", "yll_sp.pdf"), plot = graph_yll_sp)
 
-# LE pour un âge et une année spécifique
+# LE for a specific age and year
 export(summary_le_sp, here("results", "FADNES_2022_repro", "CORRECTION", "HIA", "LE_CHINA_W_80.xlsx"))
 ggsave(here("results", "FADNES_2022_repro", "CORRECTION", "HIA", "LE_EU_M_20.pdf"), plot = graph_le_sp)
 
-# Décès évités, YLL, LE, Couts en 2040, 2050, 2060
+# One figure with graphs of prevented deaths, YLL, LE and avoided costs
 ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "HIA_dates.pdf"), plot = common_graph)

@@ -51,6 +51,17 @@
     # 1 - 1.5 = increase in effect, model optimistic
     m <- 0.75
 
+## COST OF A LIFE YEAR (€)
+
+#2040
+cost_2040 <- 188000
+
+#2050
+cost_2050 <- 210000
+
+#2060
+cost_2060 <- 238000
+
 ################################################################################################################################
 #                                             2. Graphic chart                                                              #
 ################################################################################################################################
@@ -142,4 +153,21 @@ labels_food_groups <- c(
   "reffined_grains" = "Refined grains",
   "added_plant_oils" = "Added plant oils",
   "sugar_sweetened_beverages" = "SSB"
+)
+
+# labels for the food groups with a delta symbol
+labels_food_groups_delta <- c(
+  "red_meat" = expression(Delta ~ "Red meat"),
+  "processed_meat" = expression(Delta ~ "Processed meat"),
+  "white_meat" = expression(Delta ~ "White meat"),
+  "dairy" = expression(Delta ~ "Dairy"),
+  "fish" = expression(Delta ~ "Fish"),
+  "eggs" = expression(Delta ~ "Eggs"),
+  "fruits" = expression(Delta ~ "Fruits"),
+  "nuts" = expression(Delta ~ "Nuts"),
+  "vegetables" = expression(Delta ~ "Vegetables"),
+  "legumes" = expression(Delta ~ "Legumes"),
+  "whole_grains" = expression(Delta ~ "Whole grains"),
+  "reffined_grains" = expression(Delta ~ "Refined grains"),
+  "sugar_sweetened_beverages" = expression(Delta ~ "SSB")
 )

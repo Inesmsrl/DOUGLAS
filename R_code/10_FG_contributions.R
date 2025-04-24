@@ -1,127 +1,67 @@
 ################################################################################################################################
-#                                             1. Chargement des packages                                                       #
+#                                             1. Loading packages                                                              #
 ################################################################################################################################
 
 pacman::p_load(
-    rio, # Importation de fichiers
-    here, # Localisation des fichiers dans le dossier du projet
-    dplyr, # Manipulation des données
-    tidyr, # Manipulation des données
-    tidyverse, # Data management, inclus ggplot
-    flextable, # Création de tableaux
-    scales, # Transformations en pourcentages notamment
-    forestploter
+    rio, # File import/export
+    here, # File path management
+    dplyr, # Data manipulation
+    tidyr, # Data manipulation
+    tidyverse, # Data management, ggplot included
+    flextable, # Creation of tables
+    scales, # Formatting of numbers, notably for percentages
+    forestploter # Forest plot creation
 )
 
 ################################################################################################################################
-#                                             2. Importation des données                                                       #
+#                                             2. Data importation                                                              #
 ################################################################################################################################
 
-# RR de chaque aliment
-rr_evo_food_combined <- import(here("results", "5_actuel_meat2", "RR", "rr_evo_fg.csv"))
+# RR of each food group for each year and scenarioe, considering the time to full effect
+rr_evo_food_combined <- import(here("results", "1_Main_analysis_newDRF", "RR", "rr_evo_fg.csv"))
 
-# Variations des consommations alimentaires
-diets_var <- import(here("results", "5_actuel_meat2", "diets", "diets_var.csv"))
+# Variations of food intakes
+diets_var <- import(here("results", "diets", "diets_rr_var.csv"))
 
-# Décès totaux par scénario
-simulations_summary_total_deaths <- import(here("results", "5_actuel_meat2", "HIA", "IC95_tot_deaths.xlsx"))
-
-################################################################################################################################
-#                                             3. Initialisation des paramètres                                                 #
-################################################################################################################################
-
-# Bornes temporelles des changements de régime alimentaire (années)
-year_i <- 2025 # Année initiale
-year_f <- 2050 # Année finale
-
-#  Time to full effect
-# durée (années)
-ttfe_time <- 10
+# Total deaths for each year and scenario
+simulations_summary_total_deaths <- import(here("results", "1_Main_analysis_newDRF", "HIA", "IC95_tot_deaths.xlsx"))
 
 ################################################################################################################################
-#                                             4. Charte graphique                                                              #
+#                                             3. Parameters                                                                    #
 ################################################################################################################################
 
-# Ordonner les groupes alimentaires
-order_food_groups <- c(
-  "red_meat", "processed_meat", "white_meat", "fish", "eggs", "dairy",
-  "fruits", "vegetables", "legumes", "nuts", "whole_grains", "reffined_grains",
-  "sugar_sweetened_beverages"
-)
+source(here("R_code", "0_parameters.R"))
 
-# Etiquettes des groupes d'aliments
-labels_food_groups_delta <- c(
-  "red_meat" = expression(Delta ~ "Red meat"),
-  "processed_meat" = expression(Delta ~ "Processed meat"),
-  "white_meat" = expression(Delta ~ "White meat"),
-  "dairy" = expression(Delta ~ "Dairy"),
-  "fish" = expression(Delta ~ "Fish"),
-  "eggs" = expression(Delta ~ "Eggs"),
-  "fruits" = expression(Delta ~ "Fruits"),
-  "nuts" = expression(Delta ~ "Nuts"),
-  "vegetables" = expression(Delta ~ "Vegetables"),
-  "legumes" = expression(Delta ~ "Legumes"),
-  "whole_grains" = expression(Delta ~ "Whole grains"),
-  "reffined_grains" = expression(Delta ~ "Refined grains"),
-  "sugar_sweetened_beverages" = expression(Delta ~ "SSB")
-)
-
-labels_food_groups <- c(
-  "red_meat" = "Red meat",
-  "processed_meat" = "Processed meat",
-  "white_meat" = "White meat",
-  "dairy" = "Dairy",
-  "fish" = "Fish",
-  "eggs" = "Eggs",
-  "fruits" = "Fruits",
-  "nuts" = "Nuts",
-  "vegetables" = "Vegetables",
-  "legumes" = "Legumes",
-  "whole_grains" = "Whole grains",
-  "reffined_grains" = "Refined grains",
-  "added_plant_oils" = "Added plant oils",
-  "sugar_sweetened_beverages" = "SSB"
-)
-
-# Etiquettes des scénarios
-labels_scenario <- c(
-  "actuel" = "Current diet",
-  "sc1" = "Scenario 1",
-  "sc2" = "Scenario 2",
-  "sc3" = "Scenario 3",
-  "sc4" = "Scenario 4"
-)
 ################################################################################################################################
-#                                             5. RR des aliments relatifs au baseline                                         #
+#                                             4 . RR of food group relative to baseline                                        #
 ################################################################################################################################
 
-# RR de chaque aliment/année relatif au RR du scénario baseline
 rr_fg_relative <- rr_evo_food_combined %>%
   group_by(year_n, food_group, simulation_id) %>%
-  mutate(rr_fg_relative = mean_rr / mean_rr[scenario == "actuel"]) %>%
+  mutate(rr_fg_relative = mean_rr / mean_rr[scenario == "actuel"]) %>% # Change the baseline if necessary
   ungroup()
 
-# Tant que l'implémentation des régimes n'a pas commencé, le RR relatif est égal à 1
+# While the implementation of diets has not started, the relative RR is equal to 1
 rr_fg_relative <- rr_fg_relative %>%
   mutate(rr_fg_relative = case_when(
     year_n == year_i - 2 * ttfe_time ~ 1,
     TRUE ~ rr_fg_relative
   ))
 
-# Calculer la moyenne et les IC95 pour chaque année
+# Mean and 95% confidence interval of the relative RR for each food group and scenario
 simulations_summary_rr_fg_relative <- rr_fg_relative %>%
   group_by(scenario, year_n, food_group) %>%
   summarise(
     mean_rr_fg = mean(rr_fg_relative, na.rm = TRUE),
-    lower_ci = quantile(rr_fg_relative, 0.025, na.rm = TRUE), # Limite inférieure de l'IC à 95%
-    upper_ci = quantile(rr_fg_relative, 0.975, na.rm = TRUE) # Limite supérieure de l'IC à 95%
+    lower_ci = quantile(rr_fg_relative, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
+    upper_ci = quantile(rr_fg_relative, 0.975, na.rm = TRUE) # Upper limit of the 95% CI
   )
 
 ################################################################################################################################
-#                                             6. Contributions des aliments au résultat                                        #
+#                                             5. Contribution to the result of foood group intakes                             #
 ################################################################################################################################
 
-# Calcul de la contribution au résultat de la variation de consommation de chaque aliment par rapport au baseline
+# Calculation of the contribution to the result of the variation in consumption of each food group compared to the baseline
 contrib <- simulations_summary_rr_fg_relative %>%
   mutate(
     delta = -(1 - mean_rr_fg) * 100,
@@ -132,10 +72,10 @@ contrib <- simulations_summary_rr_fg_relative %>%
   rename("year" = "year_n")
 
 ################################################################################################################################
-#                                             7. Forest plots                                                                  #
+#                                             6. Forest plots                                                                  #
 ################################################################################################################################
 
-# Forestplot
+# Forestplot function
 forest_plot_contrib <- function(scen) {
   contrib_scen <- contrib %>%
     filter(
@@ -185,10 +125,13 @@ forest_sc3 <- forest_plot_contrib("sc3")
 forest_sc4 <- forest_plot_contrib("sc4")
 
 ################################################################################################################################
-#                                             8. Heat maps                                                                     #
+#                                             7. Heat maps                                                                     #
 ################################################################################################################################
+
+# Order of the food groups
 diets_var$food_group <- factor(diets_var$food_group, levels = order_food_groups)
 
+# Heat map of the variation in food intake to the baseline
 hm_var <- ggplot(data = diets_var %>%
                filter(scenario != "actuel",
                       year == 2050),
@@ -220,8 +163,10 @@ hm_var <- ggplot(data = diets_var %>%
 
 plot(hm_var)
 
+# Order of the food groups
 contrib$food_group <- factor(contrib$food_group, levels = order_food_groups)
 
+# Heat map of the change in mortality due to the variation in food intake to the baseline
 hm_contrib <- ggplot(data = contrib %>%
                filter(scenario != "actuel",
                       year == 2050),
@@ -246,10 +191,12 @@ hm_contrib <- ggplot(data = contrib %>%
 plot(hm_contrib)
 
 ################################################################################################################################
-#                                             8. Tableau                                                                       #
+#                                             8. Tables                                                                        #
 ################################################################################################################################
 
-# Tableau des variations et contributions des aliments aux résultats pour l'année 2050
+## PLEASE RUN AGAIN PART 5 SO THAT THE ORDER OF FOOD GROUPS IS RESET ##
+
+# Table of the variations and contributions of food intakes to the results for the year 2050
 summary_contrib <- contrib %>%
   inner_join(simulations_summary_total_deaths, by = c("scenario", "year")) %>%
   inner_join(diets_var, by = c("scenario", "year", "food_group")) %>%  
@@ -267,7 +214,6 @@ summary_contrib <- contrib %>%
     food_group = labels_food_groups[food_group],
     food_group = factor(food_group, levels = labels_food_groups[order_food_groups]))
 
-# Contributions pour l'année 2050
 
 contrib_2050 <- summary_contrib %>%
   filter(
@@ -323,11 +269,12 @@ contrib_2050 <- summary_contrib %>%
   bg(., i = ~ food_group %in% c("Whole grains"), j = c("food_group", "delta_sc3", "delta_sc4"), part = "body", bg = "#b95151") %>%
   bg(., i = ~ food_group %in% c("Fruits", "Nuts", "Fish", "Eggs"), j = c("food_group", "delta_sc3", "delta_sc4"), part = "body", bg =  "#f38585")
 
+plot(contrib_2050)
 ################################################################################################################################
-#                                             11. Exportation des données                                                      #
+#                                             9. Data exportation                                                              #
 ################################################################################################################################
 
-# Données
+# Change in mortality due to the variation in food intake to the baseline
 export(contrib, here("results", "5_actuel_meat2", "contributions", "FG_contributions.xlsx"))
 
 # Forest plots
@@ -336,10 +283,9 @@ ggsave(here("results", "2_WG_S3_S4", "contributions", "forest_sc2.pdf"), forest_
 ggsave(here("results", "2_WG_S3_S4", "contributions", "forest_sc3.pdf"), forest_sc3)
 ggsave(here("results", "2_WG_S3_S4", "contributions", "forest_sc4.pdf"), forest_sc4)
 
-# Tableau contributions 2050
+# Table of the variations and contributions of food intakes to the results for the year 2050
 save_as_image(contrib_2050, here("results", "5_actuel_meat2", "contributions", "contributions_2050.png"))
 
-# Heat maps
+# Heat maps of variation in food intake and change in mortality in 2050
 ggsave(here("results", "5_actuel_meat2", "contributions", "hm_contrib.pdf"), hm_contrib)
 ggsave(here("results", "5_actuel_meat2", "contributions", "hm_var.pdf"), hm_var)
- 

@@ -1,51 +1,32 @@
 ################################################################################################################################
-#                                             1. Chargement des packages                                                       #
+#                                             1. Loading packages                                                              #
 ################################################################################################################################
 
 pacman::p_load(
-  rio,                 # Importation de fichiers
-  here,                # Localisation des fichiers dans le dossier du projet
-  dplyr,               # Manipulation des données
-  tidyr,
-  tidyverse
+  rio,                 # File import/export
+  here,                # File path management
+  dplyr,               # Data manipulation
+  tidyr,               # Data manipulation  
+  tidyverse            # Data management, ggplot included
 )
 
 ################################################################################################################################
-#                                             2. Importation des données                                                       #
+#                                             2. Data importation                                                              #
 ################################################################################################################################
 
 yll <- import(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "IC95_yll.xlsx"))
 
-cost_2040 <- 188000
-
-cost_2050 <- 210000
-
-cost_2060 <- 238000
-
 ################################################################################################################################
-#                                             3. Charte graphique                                                              #
+#                                             3. Parameters                                                                    #
 ################################################################################################################################
 
-col_scenario <- c(
-  "actuel" = "azure4",
-  "sc0" = "palevioletred3",
-  "sc1" = "#699cc2",
-  "sc2" = "#974175",
-  "sc3" = "#50cd9f",
-  "sc4" = "#cb6c2d",
-  "sc5" = "royalblue4"
-)
-
-labels_scenario <- c("actuel" = "Current diet",
-                     "sc1" = "Scenario 1",
-                     "sc2" = "Scenario 2",
-                     "sc3" = "Scenario 3",
-                     "sc4" = "Scenario 4")
+source(here("R_code", "0_parameters.R"))
 
 ################################################################################################################################
-#                                             3. Coûs énconomisés                                                              #
+#                                             4. Saved costs                                                                   #
 ################################################################################################################################
 
+# The costs saved are calculated as the mean YLG in a scenario multiplied by the cost of a life year
 costs <- yll %>% 
   group_by(scenario) %>% 
   mutate(costs = case_when(
@@ -67,6 +48,7 @@ costs <- yll %>%
 costs <- costs %>% 
   filter(year %in% c(2040, 2050, 2060))
   
+# Graph
 graph_yll_costs_dates <- ggplot(costs %>% 
                                   filter(scenario != "actuel"),
                             aes(x = scenario,
@@ -91,11 +73,11 @@ graph_yll_costs_dates <- ggplot(costs %>%
          x = "",
          y = "Costs saved (billion)")+
     guides(fill = guide_legend(title = NULL))
-  
+
+plot(graph_yll_costs_dates)  
 ################################################################################################################################
-#                                             4. Exportation des données                                                       #
+#                                             5. Data exportation                                                              #
 ################################################################################################################################
 
 export(costs, here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "IC95_costs_avoided.xlsx"))
-ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "costs_avoided_dates.pdf"), plot = graph_yll_costs_dates)  
-
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "costs_avoided_dates.pdf"), plot = graph_yll_costs_dates)
