@@ -15,10 +15,10 @@ pacman::p_load(
 ################################################################################################################################
 
 # RR by intake (g/day), simulated dose-response relationships
-rr_table <- import(here("data_clean", "CORRECTION", "rr_table_interpolated_sim.csv"))
+rr_table <- import(here("data_clean", "rr_table_interpolated_sim_2.csv"))
 
 # Expositions : diets evolution through time
-diets_evo <- import(here("results", "Observed_to_Optimized", "meat3", "diets", "diets_evo_meat3.csv"))
+diets_evo <- import(here("results", "6_actuel_Fadnes2024", "diets", "diets_evo.csv"))
 
 ################################################################################################################################
 #                                             3. Parameters                                                                    #
@@ -188,7 +188,7 @@ plot(graph_rr_diets)
 # Calculation of the relative RR of diets to baseline
 rr_evo_diets <- rr_evo_diets %>%
   group_by(year, simulation_id) %>%
-  mutate(relative_rr = combined_rr / combined_rr[scenario == "meat3"]) %>% # Change the baseline if needed !
+  mutate(relative_rr = combined_rr / combined_rr[scenario == "actuel"]) %>% # Change the baseline if needed !
   ungroup()
 
 # While the implementation of the diets has not started, the relative RR is equal to 1
@@ -213,7 +213,7 @@ simulations_summary_rr_diets_relative <- rr_evo_diets %>%
 
 graph_rr_diets_rel <- ggplot(
   simulations_summary_rr_diets_relative %>%
-    filter(scenario != "meat3"),
+    filter(scenario != "actuel"),
   aes(
     x = year,
     y = mean_rr,
@@ -254,16 +254,16 @@ plot(graph_rr_diets_rel)
 ################################################################################################################################
 
 # RR associated with each food group intake (no TTFE considered)
-export(simulations_summary, here("results", "Observed_to_Optimized", "meat3", "Fadnes_DRF", "RR", "IC95_rr_fg_intakes.xlsx"))
+export(simulations_summary, here("results", "6_actuel_Fadnes2024", "RR", "IC95_rr_fg_intakes.xlsx"))
 
 # RR associated with each food group intake (with TTFE considered)
-export(rr_evo_food_combined, here("results", "Observed_to_Optimized", "meat3", "Fadnes_DRF", "RR", "rr_evo_fg.csv"))
-export(simulations_summary_rr_fg_combined, here("results", "Observed_to_Optimized", "meat3", "Fadnes_DRF", "RR", "IC95_rr_evo_fg.xlsx"))
+export(rr_evo_food_combined, here("results", "6_actuel_Fadnes2024", "RR", "rr_evo_fg.csv"))
+export(simulations_summary_rr_fg_combined, here("results", "6_actuel_Fadnes2024", "RR", "IC95_rr_evo_fg.xlsx"))
 
 # RR of diets (absolute and relative to baseline)
-export(rr_evo_diets, here("results", "Observed_to_Optimized", "meat3", "Fadnes_DRF", "RR", "rr_evo_diets.csv"))
-export(simulations_summary_rr_diets, here("results", "Observed_to_Optimized", "meat3", "Fadnes_DRF", "RR", "IC95_rr_evo_diets.xlsx"))
-export(simulations_summary_rr_diets_relative, here("results", "Observed_to_Optimized", "meat3", "Fadnes_DRF", "RR", "IC95_rr_evo_diets_relative.xlsx"))
+export(rr_evo_diets, here("results", "6_actuel_Fadnes2024", "RR", "rr_evo_diets.csv"))
+export(simulations_summary_rr_diets, here("results", "6_actuel_Fadnes2024", "RR", "IC95_rr_evo_diets.xlsx"))
+export(simulations_summary_rr_diets_relative, here("results", "6_actuel_Fadnes2024", "RR", "IC95_rr_evo_diets_relative.xlsx"))
 
-ggsave(here("results", "Observed_to_Optimized", "meat3", "Fadnes_DRF", "RR", "rr_evo_diets.pdf"), graph_rr_diets)
-ggsave(here("results", "Observed_to_Optimized", "meat3", "Fadnes_DRF", "RR", "rr_evo_diets_rel.pdf"), graph_rr_diets_rel)
+ggsave(here("results", "6_actuel_Fadnes2024", "RR", "rr_evo_diets.pdf"), graph_rr_diets)
+ggsave(here("results", "6_actuel_Fadnes2024", "RR", "rr_evo_diets_rel.pdf"), graph_rr_diets_rel)

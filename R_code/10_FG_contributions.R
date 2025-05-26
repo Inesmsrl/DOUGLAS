@@ -18,7 +18,7 @@ pacman::p_load(
 ################################################################################################################################
 
 # RR of each food group for each year and scenarioe, considering the time to full effect
-rr_evo_food_combined <- import(here("results", "1_Main_analysis_newDRF", "RR", "rr_evo_fg.csv"))
+rr_evo_food_combined <- import(here("results", "6_actuel_Fadnes2024", "RR", "rr_evo_fg.csv"))
 
 # Variations of food intakes
 diets_var <- import(here("results", "diets", "diets_rr_var.csv"))

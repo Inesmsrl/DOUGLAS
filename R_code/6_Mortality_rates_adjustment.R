@@ -20,7 +20,7 @@ MR <- import(here("data_clean", "MR_table.xlsx"))
 population <- import(here("data_clean", "population_clean.xlsx"))
 
 # RR of diets
-rr_evo_diets <- import(here("results", "Observed_to_Optimized", "vegan", "Fadnes_DRF", "RR", "rr_evo_diets.csv"))
+rr_evo_diets <- import(here("results", "6_actuel_Fadnes2024", "RR", "rr_evo_diets.csv"))
 
 ################################################################################################################################
 #                                             3. Parameters                                                                    #
@@ -110,8 +110,8 @@ pop_data <- MR_adjusted %>%
 ################################################################################################################################
 
 # Adjusted mortality rates
-export(MR_adjusted, here("results", "Observed_to_Optimized", "vegan", "Fadnes_DRF", "MR", "MR_adjusted.csv"))
-export(simulations_summary_mr_adjusted, here("results", "Observed_to_Optimized", "vegan", "Fadnes_DRF", "MR", "simulations_summary_mr_adjusted.csv"))
+export(MR_adjusted, here("results", "6_actuel_Fadnes2024", "MR", "MR_adjusted.csv"))
+export(simulations_summary_mr_adjusted, here("results", "6_actuel_Fadnes2024", "MR", "simulations_summary_mr_adjusted.csv"))
 
 # Table with population data and adjusted mortality rates
-export(pop_data, here("results", "Observed_to_Optimized", "vegan", "Fadnes_DRF", "MR", "pop_data.csv"))
+export(pop_data, here("results", "6_actuel_Fadnes2024", "MR", "pop_data.csv"))

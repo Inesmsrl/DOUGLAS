@@ -16,7 +16,7 @@ pacman::p_load(
 ################################################################################################################################
 
 # Expositions : SISAE diets in 2050
-diets <- import(here("data", "DOUGLAS_diets.xlsx"))
+diets <- import(here("data", "DOUGLAS_diets_Fadnes_2024_baseline.xlsx"))
 
 ################################################################################################################################
 #                                             3. Parameters                                                                    #
@@ -127,14 +127,16 @@ diets_evo_shift <- diets_evo %>%
   filter(year %in% c(year_i:year_f))
 
 
-graph_diets_evo_shift <- ggplot(data = diets_evo_shift, aes(
+graph_diets_evo_shift <- ggplot(data = diets_evo_shift %>%
+  filter(scenario != "actuel"),
+  aes(
   x = year,
   y = quantity,
   fill = food_group
 )) +
   geom_area(colour = "black", linewidth = 0.2, alpha = 0.6) +
   facet_wrap(~scenario,
-    ncol = 3,
+    ncol = 2,
     labeller = labeller(scenario = labels_scenario)
   ) +
   theme(
@@ -162,6 +164,8 @@ graph_diets_evo_shift <- ggplot(data = diets_evo_shift, aes(
     title.position = "top",
     title.hjust = 0.5
   ))
+
+plot(graph_diets_evo_shift)
 
 ################################################################################################################################
 #                                             5. Intake variations compared to the baseline diet (%)                           #
@@ -439,15 +443,15 @@ table_var_vegan <- table_diets_var("vegan", "vegan_optim")
 
 ## Diets implementation
   # Intakes (g/j/pers)
-      export(diets_evo, here("results", "TEST", "diets", "diets_evo.csv"))
-      ggsave(here("results", "TEST", "diets", "diets_evo.pdf"), graph_diets_evo)
-      ggsave(here("results", "TEST", "diets", "diets_evo_shift.pdf"), graph_diets_evo_shift)
+      export(diets_evo, here("results", "6_actuel_Fadnes2024", "diets", "diets_evo.csv"))
+      ggsave(here("results", "6_actuel_Fadnes2024", "diets", "diets_evo.pdf"), graph_diets_evo)
+      ggsave(here("results", "6_actuel_Fadnes2024", "diets", "diets_evo_shift.pdf"), graph_diets_evo_shift)
 
   # Variations (%)
-      export(diets_var, here("results", "TEST", "diets", "diets_var.csv"))
-      ggsave(here("results", "TEST", "diets", "diets_var.pdf"), graph_diets_var)
+      export(diets_var, here("results", "6_actuel_Fadnes2024", "diets", "diets_var.csv"))
+      ggsave(here("results", "6_actuel_Fadnes2024", "diets", "diets_var.pdf"), graph_diets_var)
 
-      save_as_image(table_diets_var, here("results", "TEST", "diets", "table_diets_var.png"))
+      save_as_image(table_diets_var, here("results", "6_actuel_Fadnes2024", "diets", "table_diets_var.png"))
 
 ## Observed to optimized diets
   # Intakes (g/j/pers)

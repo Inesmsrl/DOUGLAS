@@ -189,19 +189,19 @@ graph_tot_av_deaths_dates <- ggplot(
 ################################################################################################################################
 
 # Deaths by age
-export(simulations_summary_deaths, here("results", "5_actuel_meat2", "HIA", "IC95_deaths.xlsx"))
+export(simulations_summary_deaths, here("results", "6_actuel_Fadnes2024", "HIA", "IC95_deaths.xlsx"))
 
 # Prevented deaths by age
-export(av_deaths, here("results", "5_actuel_meat2", "HIA", "av_deaths.csv"))
-export(simulations_summary_av_deaths, here("results", "5_actuel_meat2", "HIA", "IC95_av_deaths.xlsx"))
+export(av_deaths, here("results", "6_actuel_Fadnes2024", "HIA", "av_deaths.csv"))
+export(simulations_summary_av_deaths, here("results", "6_actuel_Fadnes2024", "HIA", "IC95_av_deaths.xlsx"))
 
 # Total deaths by year
-export(tot_deaths, here("results", "5_actuel_meat2", "HIA", "tot_deaths.csv"))
-export(simulations_summary_tot_deaths, here("results", "5_actuel_meat2", "HIA", "IC95_tot_deaths.xlsx"))
+export(tot_deaths, here("results", "6_actuel_Fadnes2024", "HIA", "tot_deaths.csv"))
+export(simulations_summary_tot_deaths, here("results", "6_actuel_Fadnes2024", "HIA", "IC95_tot_deaths.xlsx"))
 
 # Total prevented deaths by year
-export(tot_av_deaths, here("results", "5_actuel_meat2", "HIA", "tot_deaths_prev.csv"))
-export(simulations_summary_tot_av_deaths, here("results", "5_actuel_meat2", "HIA", "IC95_tot_deaths_prev.csv"))
+export(tot_av_deaths, here("results", "6_actuel_Fadnes2024", "HIA", "tot_deaths_prev.csv"))
+export(simulations_summary_tot_av_deaths, here("results", "6_actuel_Fadnes2024", "HIA", "IC95_tot_deaths_prev.csv"))
 
-ggsave(here("results", "5_actuel_meat2", "HIA", "tot_deaths_prev.pdf"), graph_tot_av_deaths)
-ggsave(here("results", "5_actuel_meat2", "HIA", "tot_deaths_prev_dates.pdf"), graph_tot_av_deaths_dates)
+ggsave(here("results", "6_actuel_Fadnes2024", "HIA", "tot_deaths_prev.pdf"), graph_tot_av_deaths)
+ggsave(here("results", "6_actuel_Fadnes2024", "HIA", "tot_deaths_prev_dates.pdf"), graph_tot_av_deaths_dates)
