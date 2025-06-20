@@ -15,12 +15,13 @@ pacman::p_load(
 
 # Mortality rates (INSEE)
 MR <- import(here("data_clean", "MR_table.xlsx"))
+MR <- import(here("Fadnes_data", "data_clean", "GBD_2019_FR_MR_f_complete.xlsx"))
 
 # Projected population size by age and year (INSEE)
 population <- import(here("data_clean", "population_clean.xlsx"))
 
 # RR of diets
-rr_evo_diets <- import(here("results", "6_actuel_Fadnes2024", "RR", "rr_evo_diets.csv"))
+rr_evo_diets <- import(here("Fadnes_data", "results", "RR", "rr_evo_diets.csv"))
 
 ################################################################################################################################
 #                                             3. Parameters                                                                    #
@@ -35,14 +36,17 @@ source(here("R_code", "0_parameters.R"))
 # Select the MR between the model time limits and above the age limit
 # Pivot the dataframe in long format
 MR_select <- MR %>%
-  select(age, !!sym(as.character(year_i - 20)):!!sym(as.character(year_f + 2 * ttfe_time))) %>%
+  select(age, !!sym(as.character(year_i - 2 * ttfe_time)):!!sym(as.character(year_f + 2 * ttfe_time))) %>%
   filter(age >= age_limit) %>%
   pivot_longer(
-    cols = !!sym(as.character(year_i - 20)):!!sym(as.character(year_f + 2 * ttfe_time)),
+    cols = !!sym(as.character(year_i - 2 * ttfe_time)):!!sym(as.character(year_f + 2 * ttfe_time)),
     names_to = "year",
     values_to = "MR"
   ) %>%
   mutate(year = as.numeric(year))
+
+  MR_select <- MR %>%
+  filter(year >= year_i - 2 * ttfe_time & year <= year_f + 2 * ttfe_time)
 
 # Select the population size between the model time limits and above the age limit
 # Pivot the dataframe in long format
@@ -75,6 +79,12 @@ MR_adjust <- function(MR, rr_evo_diets) {
 }
 
 MR_adjusted <- MR_adjust(MR_select, rr_evo_diets)
+
+MR_adjusted <- MR %>%
+    inner_join(rr_evo_diets, by = "year", relationship = "many-to-many") %>%
+    group_by(age, year, simulation_id) %>%
+    mutate(adjusted_mr = mr * relative_rr) %>%
+    ungroup()
 
 MR_adjust_summary <- function(MR_adjusted) {
   # Calculer la moyenne et les IC95 pour chaque année
@@ -110,8 +120,8 @@ pop_data <- MR_adjusted %>%
 ################################################################################################################################
 
 # Adjusted mortality rates
-export(MR_adjusted, here("results", "6_actuel_Fadnes2024", "MR", "MR_adjusted.csv"))
-export(simulations_summary_mr_adjusted, here("results", "6_actuel_Fadnes2024", "MR", "simulations_summary_mr_adjusted.csv"))
+export(MR_adjusted, here("Fadnes_data", "results", "MR", "MR_adjusted.csv"))
+export(simulations_summary_mr_adjusted, here("Fadnes_data", "results", "MR", "simulations_summary_mr_adjusted.csv"))
 
 # Table with population data and adjusted mortality rates
 export(pop_data, here("results", "6_actuel_Fadnes2024", "MR", "pop_data.csv"))

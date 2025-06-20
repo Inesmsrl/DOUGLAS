@@ -16,7 +16,7 @@ pacman::p_load(
 ################################################################################################################################
 
 # Expositions : SISAE diets in 2050
-diets <- import(here("data", "DOUGLAS_diets_Fadnes_2024_baseline.xlsx"))
+diets <- import(here("Fadnes_data", "data_clean", "diet.xlsx"))
 
 ################################################################################################################################
 #                                             3. Parameters                                                                    #
@@ -443,15 +443,15 @@ table_var_vegan <- table_diets_var("vegan", "vegan_optim")
 
 ## Diets implementation
   # Intakes (g/j/pers)
-      export(diets_evo, here("results", "6_actuel_Fadnes2024", "diets", "diets_evo.csv"))
-      ggsave(here("results", "6_actuel_Fadnes2024", "diets", "diets_evo.pdf"), graph_diets_evo)
-      ggsave(here("results", "6_actuel_Fadnes2024", "diets", "diets_evo_shift.pdf"), graph_diets_evo_shift)
+      export(diets_evo, here("Fadnes_data", "results", "diets", "diets_evo.csv"))
+      ggsave(here("Fadnes_data", "results", "diets", "diets_evo.pdf"), graph_diets_evo)
+      ggsave(here("Fadnes_data", "results", "diets", "diets_evo_shift.pdf"), graph_diets_evo_shift)
 
   # Variations (%)
-      export(diets_var, here("results", "6_actuel_Fadnes2024", "diets", "diets_var.csv"))
-      ggsave(here("results", "6_actuel_Fadnes2024", "diets", "diets_var.pdf"), graph_diets_var)
+      export(diets_var, here("Fadnes_data", "results", "diets", "diets_var.csv"))
+      ggsave(here("Fadnes_data", "results", "diets", "diets_var.pdf"), graph_diets_var)
 
-      save_as_image(table_diets_var, here("results", "6_actuel_Fadnes2024", "diets", "table_diets_var.png"))
+      save_as_image(table_diets_var, here("Fadnes_data", "results", "diets", "table_diets_var.png"))
 
 ## Observed to optimized diets
   # Intakes (g/j/pers)

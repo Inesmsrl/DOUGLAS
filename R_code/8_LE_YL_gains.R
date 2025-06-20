@@ -17,6 +17,10 @@ pacman::p_load(
 
 deaths_data <- import(here("Python_code", "data_python.csv"))
 
+deaths_data <- import(here("Fadnes_data", "results", "MR", "MR_adjusted.csv"))
+
+summary_yll <- import(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "IC95_yll.xlsx"))
+summary_le <- import(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "IC95_LE_gained.xlsx"))
 ################################################################################################################################
 #                                             3. Parameters                                                                    #
 ################################################################################################################################
@@ -55,6 +59,10 @@ deaths_data <- deaths_data %>%
          ylg = avoided_deaths * (le - age)) %>% 
   select(simulation_id, age, year, scenario, deaths, avoided_deaths, le, ylg)
 
+deaths_data <- deaths_data %>% 
+  group_by(age, year, scenario, simulation_id) %>% 
+  mutate(le = age + ex) %>% 
+  select(simulation_id, age, year, scenario, le)
 ################################################################################################################################
 #                                             5. Gain in Life Expectancy calculation                                           #
 ################################################################################################################################
@@ -222,7 +230,7 @@ graph_yll_dates <- ggplot(summary_yll %>%
 # Run the appropriate code to get the prevented deaths and avoided costs graphs
 
 # List of the graphs you want to combine in one single figure
-list_graph <- list(graph_tot_av_deaths_dates, graph_yll_dates, graph_le_dates, graph_yll_costs_dates)
+list_graph <- list(graph_tot_av_deaths_dates, graph_yll_dates, graph_le_dates)
 
 # Theme for the common graph
 common_theme <- theme(
@@ -236,7 +244,7 @@ common_theme <- theme(
 list_graph <- lapply(list_graph, function(p) p + common_theme)
 
 # Combine the graphs into one single figure
-common_graph <- reduce(list_graph, `+`) + plot_layout(ncol = 2)
+common_graph <- reduce(list_graph, `+`) + plot_layout(ncol = 3)
 
 print(common_graph)
 
@@ -246,8 +254,8 @@ print(common_graph)
 
 # Select the data for a specific age and year
 pop_sp <- deaths_data %>% 
-  filter(year == 2029,
-         age == 80) 
+  filter(year == 2035,
+         age == 20) 
 
 # Delete the 5% most extreme values
 yll_sp <- pop_sp %>% 
@@ -360,4 +368,4 @@ export(summary_le_sp, here("results", "FADNES_2022_repro", "CORRECTION", "HIA", 
 ggsave(here("results", "FADNES_2022_repro", "CORRECTION", "HIA", "LE_EU_M_20.pdf"), plot = graph_le_sp)
 
 # One figure with graphs of prevented deaths, YLL, LE and avoided costs
-ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "HIA_dates.pdf"), plot = common_graph)
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "HIA_dates_2.pdf"), plot = common_graph)

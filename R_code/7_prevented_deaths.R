@@ -17,6 +17,8 @@ pacman::p_load(
 # Deaths and prevented deaths by year
 deaths_data <- import(here("Python_code", "data_python.csv"))
 
+simulations_summary_tot_av_deaths <- import(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "IC95_tot_deaths_prev.csv"))
+
 ################################################################################################################################
 #                                             3. Parameters                                                                    #
 ################################################################################################################################
@@ -99,6 +101,7 @@ simulations_summary_tot_av_deaths <- tot_av_deaths %>%
 ################################################################################################################################
 #                                             9. Figures : Total prevented deaths                                              #
 ################################################################################################################################
+simulations_summary_tot_av_deaths <- import(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "IC95_tot_deaths_prev.csv"))
 
 # During the all period of time
 graph_tot_av_deaths <- ggplot(
@@ -183,7 +186,26 @@ graph_tot_av_deaths_dates <- ggplot(
   ) +
   guides(fill = guide_legend(title = NULL))
 
+plot(graph_tot_av_deaths_dates)
 
+# One unique graph with RR evolution and prvented deaths
+list_graph <- list(graph_rr_diets_rel, graph_tot_av_deaths)
+
+# Theme for the common graph
+common_theme <- theme(
+  axis.title = element_text(size = 7, face = "bold"),
+  strip.text = element_text(size = 6),
+  axis.text.y = element_text(size = 6),
+  legend.position = "none"
+)
+
+# Apply the common theme to each graph
+list_graph <- lapply(list_graph, function(p) p + common_theme)
+
+# Combine the graphs into one single figure
+common_graph <- reduce(list_graph, `+`) + plot_layout(ncol = 1, nrow = 2)
+
+print(common_graph)
 ################################################################################################################################
 #                                             10. Data exportation                                                             #
 ################################################################################################################################
@@ -205,3 +227,5 @@ export(simulations_summary_tot_av_deaths, here("results", "6_actuel_Fadnes2024",
 
 ggsave(here("results", "6_actuel_Fadnes2024", "HIA", "tot_deaths_prev.pdf"), graph_tot_av_deaths)
 ggsave(here("results", "6_actuel_Fadnes2024", "HIA", "tot_deaths_prev_dates.pdf"), graph_tot_av_deaths_dates)
+
+ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "RR_and_deaths.pdf"), plot = common_graph)

@@ -15,7 +15,7 @@
 ## DIETS IMPLEMENTATION
 
     # Implementation dynamics of diets (immediate, linear, cosine, sigmoidal)
-    implementation <- "cosine"
+    implementation <- "immediate"
 
     # Cosine interpolation curve parameter
     p <- 1
@@ -26,14 +26,14 @@
 ## TIME TO FULL EFFECT
 
     # time to full effect duration (years)
-    ttfe_time <- 10
+    ttfe_time <- 20
 
     # stationary state duration (years)
     # Before the diet shift : ttfe_time
     # After the diet shift : 2 x ttfe_time
 
     # TTFE dynamics (immediate, linear, cosine, sigmoidal, log)
-    ttfe_dynamics <- "linear"
+    ttfe_dynamics <- "sigmoidal"
 
     # cosine interpolation curve parameter
     p_ttfe <- 1
