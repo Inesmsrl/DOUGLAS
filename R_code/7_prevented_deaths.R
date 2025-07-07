@@ -30,7 +30,8 @@ source(here("R_code", "0_parameters.R"))
 # Delete the 5% most extreme values
 deaths_data <- deaths_data %>%
   group_by(scenario, year, age) %>%
-  filter(between(deaths, quantile(deaths, 0.025), quantile(deaths, 0.975)))
+  filter(between(deaths, quantile(deaths, 0.025), quantile(deaths, 0.975))) %>% 
+  ungroup()
 
 ################################################################################################################################
 #                                             5. Deaths by age                                                                 #
@@ -43,7 +44,8 @@ simulations_summary_deaths <- deaths_data %>%
     mean_deaths = mean(deaths, na.rm = TRUE),
     lower_ci = quantile(deaths, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
     upper_ci = quantile(deaths, 0.975, na.rm = TRUE) # Upper limit of the 95% CI
-  )
+  ) %>% 
+  ungroup()
 
 ################################################################################################################################
 #                                             6. Prevented deaths to baseline by age                                           #
@@ -68,7 +70,8 @@ simulations_summary_av_deaths <- av_deaths %>%
 
 tot_deaths <- deaths_data %>%
   group_by(scenario, year, simulation_id) %>%
-  summarise(total_deaths = sum(deaths, na.rm = TRUE))
+  summarise(total_deaths = sum(deaths, na.rm = TRUE)) %>% 
+  ungroup()
 
 # Calculation of the mean and 95% CI
 simulations_summary_tot_deaths <- tot_deaths %>%
@@ -77,7 +80,8 @@ simulations_summary_tot_deaths <- tot_deaths %>%
     mean_tot_deaths = mean(total_deaths, na.rm = TRUE),
     lower_ci = quantile(total_deaths, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
     upper_ci = quantile(total_deaths, 0.975, na.rm = TRUE) # Upper limit of the 95% CI
-  )
+  ) %>% 
+  ungroup()
 
 ################################################################################################################################
 #                                             8. Total prevented deaths / year / scenario                                      #
@@ -85,7 +89,8 @@ simulations_summary_tot_deaths <- tot_deaths %>%
 
 tot_av_deaths <- deaths_data %>%
   group_by(scenario, year, simulation_id) %>%
-  summarise(total_av_deaths = sum(avoided_deaths, na.rm = TRUE))
+  summarise(total_av_deaths = sum(avoided_deaths, na.rm = TRUE)) %>% 
+  ungroup()
 
 # Mean and 95% CI of total prevented deaths
 simulations_summary_tot_av_deaths <- tot_av_deaths %>%
@@ -94,7 +99,8 @@ simulations_summary_tot_av_deaths <- tot_av_deaths %>%
     mean_rr = mean(total_av_deaths, na.rm = TRUE),
     lower_ci = quantile(total_av_deaths, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
     upper_ci = quantile(total_av_deaths, 0.975, na.rm = TRUE) # Upper limit of the 95% CI
-  )
+  ) %>% 
+  ungroup()
 
 ################################################################################################################################
 #                                             9. Figures : Total prevented deaths                                              #

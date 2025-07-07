@@ -174,7 +174,8 @@ plot(graph_diets_evo_shift)
 # Calculation of the variations in consumption of each food compared to the current diet (%)
 diets_var <- diets_evo %>%
     group_by(food_group, year) %>%
-    mutate(var = (quantity - quantity[scenario == "actuel"]) / quantity[scenario == "actuel"] * 100)
+    mutate(var = (quantity - quantity[scenario == "actuel"]) / quantity[scenario == "actuel"] * 100) %>% 
+    ungroup()
 
 # Graphical representation of the variations in food consumption on the entire period of time
 graph_diets_var <- ggplot(
@@ -373,7 +374,8 @@ function_diets_var <- function(observed, optimized) {
   
   diets_var <- function_diets_evo(observed, optimized) %>%
     group_by(food_group, year) %>%
-    mutate(var = (quantity - quantity[scenario == observed]) / quantity[scenario == observed] * 100)
+    mutate(var = (quantity - quantity[scenario == observed]) / quantity[scenario == observed] * 100) %>% 
+    ungroup()
 
   return(diets_var)
 }

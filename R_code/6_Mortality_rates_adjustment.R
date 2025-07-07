@@ -85,7 +85,8 @@ MR_adjust_summary <- function(MR_adjusted) {
       mean_mr = mean(adjusted_mr, na.rm = TRUE),
       lower_ci = quantile(adjusted_mr, 0.025, na.rm = TRUE), # Limite inférieure de l'IC à 95%
       upper_ci = quantile(adjusted_mr, 0.975, na.rm = TRUE) # Limite supérieure de l'IC à 95%
-    )
+    ) %>% 
+    ungroup()
   
   return(simulations_summary_mr_adjusted)
 }

@@ -43,7 +43,8 @@ costs <- yll %>%
     year == 2040 ~ upper_ci * cost_2040 / 1000000000,
     year == 2050 ~ upper_ci * cost_2050 / 1000000000,
     year == 2060 ~ upper_ci * cost_2060 / 1000000000
-  ))
+  )) %>% 
+  ungroup()
 
 costs <- costs %>% 
   filter(year %in% c(2040, 2050, 2060))

@@ -62,7 +62,8 @@ simulations_summary <- diets_evo %>%
     mean_rr = mean(rr, na.rm = TRUE), # Mean of simulated RR
     lower_ci = quantile(rr, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
     upper_ci = quantile(rr, 0.975, na.rm = TRUE) # Upper limit of the 95% CI
-  )
+  ) %>% 
+  ungroup()
 
 ################################################################################################################################
 #                                             7. TTFE                                                                          #
@@ -116,7 +117,8 @@ rr_evo_food_combined <- diets_evo %>%
     # pmin compares year_n - year with ttfe_time and chooses the minimum value
     # to avoided considering the whole TTFE duration when year_n - year < ttfe_time
     .groups = "drop"
-  )
+  ) %>% 
+  ungroup()
 
 # Calculation of the mean and 95% CI for each year
 simulations_summary_rr_fg_combined <- rr_evo_food_combined %>%
@@ -125,7 +127,8 @@ simulations_summary_rr_fg_combined <- rr_evo_food_combined %>%
     combined_rr = mean(mean_rr, na.rm = TRUE),
     lower_ci = quantile(mean_rr, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
     upper_ci = quantile(mean_rr, 0.975, na.rm = TRUE) # Upper limit of the 95% CI
-  )
+  ) %>% 
+  ungroup()
 
 ################################################################################################################################
 #                                             10. Combine RR of diets by year                                                  #
@@ -150,7 +153,8 @@ simulations_summary_rr_diets <- rr_evo_diets %>%
     mean_rr = mean(combined_rr, na.rm = TRUE),
     lower_ci = quantile(combined_rr, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
     upper_ci = quantile(combined_rr, 0.975, na.rm = TRUE) # Upper limit of the 95% CI
-  )
+  ) %>% 
+  ungroup()
 
 ################################################################################################################################
 #                                             11. Graphs : RR of diets over time                                               #
@@ -204,7 +208,8 @@ simulations_summary_rr_diets_relative <- rr_evo_diets %>%
     mean_rr = mean(relative_rr, na.rm = TRUE),
     lower_ci = quantile(relative_rr, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
     upper_ci = quantile(relative_rr, 0.975, na.rm = TRUE) # Upper limit of the 95% CI
-  )
+  ) %>% 
+  ungroup()
 
 ################################################################################################################################
 #                                             13. Graphs : Relative RR of diets to baseline                                    #

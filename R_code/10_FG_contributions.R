@@ -55,7 +55,8 @@ simulations_summary_rr_fg_relative <- rr_fg_relative %>%
     mean_rr_fg = mean(rr_fg_relative, na.rm = TRUE),
     lower_ci = quantile(rr_fg_relative, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
     upper_ci = quantile(rr_fg_relative, 0.975, na.rm = TRUE) # Upper limit of the 95% CI
-  )
+  ) %>% 
+  ungroup()
 
 ################################################################################################################################
 #                                             5. Contribution to the result of foood group intakes                             #

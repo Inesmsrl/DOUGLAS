@@ -43,7 +43,8 @@ calc_conditional_LE <- function(df) {
     ) %>%
     mutate(
       ex = Tx / lx                                # Conditional life expectancy at age x = distribution of years lived beyond age x by the number of survivors at that age
-    ) 
+    ) %>% 
+    ungroup()
 }
 
 deaths_data <- calc_conditional_LE(deaths_data)
@@ -53,7 +54,8 @@ deaths_data <- deaths_data %>%
   group_by(age, year, scenario, simulation_id) %>% 
   mutate(le = age + ex,
          ylg = avoided_deaths * (le - age)) %>% 
-  select(simulation_id, age, year, scenario, deaths, avoided_deaths, le, ylg)
+  select(simulation_id, age, year, scenario, deaths, avoided_deaths, le, ylg) %>% 
+  ungroup()
 
 ################################################################################################################################
 #                                             5. Gain in Life Expectancy calculation                                           #
@@ -63,12 +65,14 @@ deaths_data <- deaths_data %>%
 le <- deaths_data %>% 
   group_by(simulation_id, year, scenario) %>% 
   summarise(le_year = mean(le)) %>% # Mean of age at death of each age
-  mutate(leg = (le_year - le_year[scenario == "actuel"])*12) # Life expectancy gained in months
+  mutate(leg = (le_year - le_year[scenario == "actuel"])*12) %>% # Life expectancy gained in months
+  ungroup()
 
 # Delete the 5% most extreme values
 le <- le %>% 
   group_by(scenario, year) %>% 
-  filter(between(leg, quantile(leg, 0.025), quantile(leg, 0.975)))
+  filter(between(leg, quantile(leg, 0.025), quantile(leg, 0.975))) %>% 
+  ungroup()
 
 # Calculate the mean and 95% CI of life expectancy gained by scenario and year
 summary_le <- le %>% 
@@ -77,7 +81,8 @@ summary_le <- le %>%
     mean_le = mean(leg, na.rm = TRUE),
     lower_ci = quantile(leg, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
     upper_ci = quantile(leg, 0.975, na.rm = TRUE)  # Upper limit of the 95% CI
-  )
+  ) %>% 
+  ungroup()
 
 ################################################################################################################################
 #                                             6. Graphs : LEG                                                                  #
@@ -142,12 +147,14 @@ graph_le_dates <- ggplot(summary_le %>%
 # Calculate the years of life gained (YLG) by scenario and year
 yll <- deaths_data %>% 
   group_by(simulation_id, scenario, year) %>% 
-  summarise(yll = sum(ylg)) # Sum of YLG at each age
+  summarise(yll = sum(ylg)) %>%  # Sum of YLG at each age
+  ungroup()
 
 # Delete the 5% most extreme values
 yll <- yll %>% 
   group_by(scenario, year) %>% 
-  filter(between(yll, quantile(yll, 0.025), quantile(yll, 0.975)))
+  filter(between(yll, quantile(yll, 0.025), quantile(yll, 0.975))) %>% 
+  ungroup()
 
 # Mean and 95% CI of YLG by scenario and year
 summary_yll <- yll %>% 
@@ -156,7 +163,8 @@ summary_yll <- yll %>%
     mean_yll = mean(yll, na.rm = TRUE),
     lower_ci = quantile(yll, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
     upper_ci = quantile(yll, 0.975, na.rm = TRUE) # Upper limit of the 95% CI
-  )
+  ) %>% 
+  ungroup()
 
 ################################################################################################################################
 #                                             8. Graphs : YLG                                                                  #
@@ -252,7 +260,8 @@ pop_sp <- deaths_data %>%
 # Delete the 5% most extreme values
 yll_sp <- pop_sp %>% 
   group_by(scenario) %>% 
-  filter(between(ylg, quantile(ylg, 0.025), quantile(ylg, 0.975)))
+  filter(between(ylg, quantile(ylg, 0.025), quantile(ylg, 0.975))) %>% 
+  ungroup()
 
 # Mean and 95% CI of YLG
 summary_yll_sp <- yll_sp %>% 
@@ -261,7 +270,8 @@ summary_yll_sp <- yll_sp %>%
     mean_yll = mean(ylg, na.rm = TRUE),
     lower_ci = quantile(ylg, 0.025, na.rm = TRUE),
     upper_ci = quantile(ylg, 0.975, na.rm = TRUE)
-  )
+  ) %>% 
+  ungroup()
 
 # Graph
 graph_yll_sp <- ggplot(summary_yll_sp %>% 
@@ -295,12 +305,14 @@ graph_yll_sp <- ggplot(summary_yll_sp %>%
 le_sp <- pop_sp %>% 
   group_by(simulation_id, scenario) %>% 
   summarise(le_year = mean(le)) %>% 
-  mutate(leg = (le_year - le_year[scenario == "actuel"]))
+  mutate(leg = (le_year - le_year[scenario == "actuel"])) %>% 
+  ungroup()
 
 # Delete the 5% most extreme values
 le_sp <- le_sp %>% 
   group_by(scenario) %>% 
-  filter(between(leg, quantile(leg, 0.025), quantile(leg, 0.975)))
+  filter(between(leg, quantile(leg, 0.025), quantile(leg, 0.975))) %>% 
+  ungroup()
 
 # Mean and 95% CI of LEG
 summary_le_sp <- le_sp %>% 
@@ -309,7 +321,8 @@ summary_le_sp <- le_sp %>%
     mean_le = mean(leg, na.rm = TRUE),
     lower_ci = quantile(leg, 0.025, na.rm = TRUE),
     upper_ci = quantile(leg, 0.975, na.rm = TRUE)
-  )
+  ) %>% 
+  ungroup()
 
 # Graph
 graph_le_sp <- ggplot(summary_le_sp %>% 
