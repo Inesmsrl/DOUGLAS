@@ -14,14 +14,13 @@ pacman::p_load(
 ################################################################################################################################
 
 # Mortality rates (INSEE)
-MR <- import(here("data_clean", "MR_table.xlsx"))
-MR <- import(here("Fadnes_data", "data_clean", "GBD_2019_FR_MR_f_complete.xlsx"))
+MR <- import(here("data_clean", "MR_M_table.xlsx"))
 
 # Projected population size by age and year (INSEE)
-population <- import(here("data_clean", "population_clean.xlsx"))
+population <- import(here("data_clean", "population_M_clean.xlsx"))
 
 # RR of diets
-rr_evo_diets <- import(here("Fadnes_data", "results", "RR", "rr_evo_diets.csv"))
+rr_evo_diets <- import(here("results", "1_Main_Analysis_NewDRF", "RR", "rr_evo_diets.csv"))
 
 ################################################################################################################################
 #                                             3. Parameters                                                                    #
@@ -45,8 +44,6 @@ MR_select <- MR %>%
   ) %>%
   mutate(year = as.numeric(year))
 
-  MR_select <- MR %>%
-  filter(year >= year_i - 2 * ttfe_time & year <= year_f + 2 * ttfe_time)
 
 # Select the population size between the model time limits and above the age limit
 # Pivot the dataframe in long format
@@ -79,12 +76,6 @@ MR_adjust <- function(MR, rr_evo_diets) {
 }
 
 MR_adjusted <- MR_adjust(MR_select, rr_evo_diets)
-
-MR_adjusted <- MR %>%
-    inner_join(rr_evo_diets, by = "year", relationship = "many-to-many") %>%
-    group_by(age, year, simulation_id) %>%
-    mutate(adjusted_mr = mr * relative_rr) %>%
-    ungroup()
 
 MR_adjust_summary <- function(MR_adjusted) {
   # Calculer la moyenne et les IC95 pour chaque année
@@ -120,8 +111,8 @@ pop_data <- MR_adjusted %>%
 ################################################################################################################################
 
 # Adjusted mortality rates
-export(MR_adjusted, here("Fadnes_data", "results", "MR", "MR_adjusted.csv"))
-export(simulations_summary_mr_adjusted, here("Fadnes_data", "results", "MR", "simulations_summary_mr_adjusted.csv"))
+export(MR_adjusted, here("results", "1_Main_Analysis_NewDRF", "Male", "MR", "MR_adjusted.csv"))
+export(simulations_summary_mr_adjusted, here("results", "1_Main_Analysis_NewDRF", "Male", "MR", "simulations_summary_mr_adjusted.csv"))
 
 # Table with population data and adjusted mortality rates
-export(pop_data, here("results", "6_actuel_Fadnes2024", "MR", "pop_data.csv"))
+export(pop_data, here("results", "1_Main_Analysis_NewDRF", "Male", "MR", "pop_data.csv"))

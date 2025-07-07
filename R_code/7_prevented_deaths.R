@@ -11,13 +11,11 @@ pacman::p_load(
 )
 
 ################################################################################################################################
-#                                             2. Importation des données                                                       #
+#                                             2. Data importation                                                              #
 ################################################################################################################################
 
 # Deaths and prevented deaths by year
 deaths_data <- import(here("Python_code", "data_python.csv"))
-
-simulations_summary_tot_av_deaths <- import(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "IC95_tot_deaths_prev.csv"))
 
 ################################################################################################################################
 #                                             3. Parameters                                                                    #
@@ -101,7 +99,6 @@ simulations_summary_tot_av_deaths <- tot_av_deaths %>%
 ################################################################################################################################
 #                                             9. Figures : Total prevented deaths                                              #
 ################################################################################################################################
-simulations_summary_tot_av_deaths <- import(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "IC95_tot_deaths_prev.csv"))
 
 # During the all period of time
 graph_tot_av_deaths <- ggplot(
@@ -211,21 +208,21 @@ print(common_graph)
 ################################################################################################################################
 
 # Deaths by age
-export(simulations_summary_deaths, here("results", "6_actuel_Fadnes2024", "HIA", "IC95_deaths.xlsx"))
+export(simulations_summary_deaths, here("results", "1_Main_Analysis_NewDRF", "Male", "HIA", "IC95_deaths.xlsx"))
 
 # Prevented deaths by age
-export(av_deaths, here("results", "6_actuel_Fadnes2024", "HIA", "av_deaths.csv"))
-export(simulations_summary_av_deaths, here("results", "6_actuel_Fadnes2024", "HIA", "IC95_av_deaths.xlsx"))
+export(av_deaths, here("results", "1_Main_Analysis_NewDRF", "Male", "HIA", "av_deaths.csv"))
+export(simulations_summary_av_deaths, here("results", "1_Main_Analysis_NewDRF", "Male", "HIA", "IC95_av_deaths.xlsx"))
 
 # Total deaths by year
-export(tot_deaths, here("results", "6_actuel_Fadnes2024", "HIA", "tot_deaths.csv"))
-export(simulations_summary_tot_deaths, here("results", "6_actuel_Fadnes2024", "HIA", "IC95_tot_deaths.xlsx"))
+export(tot_deaths, here("results", "1_Main_Analysis_NewDRF", "Male", "HIA", "tot_deaths.csv"))
+export(simulations_summary_tot_deaths, here("results", "1_Main_Analysis_NewDRF", "Male", "HIA", "IC95_tot_deaths.xlsx"))
 
 # Total prevented deaths by year
-export(tot_av_deaths, here("results", "6_actuel_Fadnes2024", "HIA", "tot_deaths_prev.csv"))
-export(simulations_summary_tot_av_deaths, here("results", "6_actuel_Fadnes2024", "HIA", "IC95_tot_deaths_prev.csv"))
+export(tot_av_deaths, here("results", "1_Main_Analysis_NewDRF", "Male", "HIA", "tot_deaths_prev.csv"))
+export(simulations_summary_tot_av_deaths, here("results", "1_Main_Analysis_NewDRF", "Male", "HIA", "IC95_tot_deaths_prev.csv"))
 
-ggsave(here("results", "6_actuel_Fadnes2024", "HIA", "tot_deaths_prev.pdf"), graph_tot_av_deaths)
-ggsave(here("results", "6_actuel_Fadnes2024", "HIA", "tot_deaths_prev_dates.pdf"), graph_tot_av_deaths_dates)
+ggsave(here("results", "1_Main_Analysis_NewDRF", "male", "HIA", "tot_deaths_prev.pdf"), graph_tot_av_deaths)
+ggsave(here("results", "1_Main_Analysis_NewDRF", "male", "HIA", "tot_deaths_prev_dates.pdf"), graph_tot_av_deaths_dates)
 
 ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "RR_and_deaths.pdf"), plot = common_graph)

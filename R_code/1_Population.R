@@ -14,10 +14,10 @@ pacman::p_load(
 ################################################################################################################################
 
 # Population size (male and female together) by age from 1962 to 2021 and projected until 2120
-population <- import(here("data", "INSEE_Population.xlsx"))
+population <- import(here("data", "INSEE_population_M.xlsx"))
 
 # Deaths by age from 1962 to 2021 and projected until 2120
-deaths <- import(here("data", "INSEE_Deaths.xlsx"))
+deaths <- import(here("data", "INSEE_Deaths_M.xlsx"))
 
 ################################################################################################################################
 #                                             3. Data cleaning                                                                 #
@@ -27,23 +27,24 @@ deaths <- import(here("data", "INSEE_Deaths.xlsx"))
 
 # Population size (male and female together) by age and year
   population <- population %>% 
-      rename("age" = "Âge au 1er janvier",
-                 "2019" = "2019 (p)",
-                 "2020" = "2020(p)",
-                 "2021" = "2021(p)") %>%    # Rename variables
+      rename("age" = "Âge au 1er janvier"
+                 #"2019" = "2019 (p)",
+                 #"2020" = "2020(p)",
+                 #"2021" = "2021(p)"
+                 ) %>%    # Rename variables
       select(-c("2121")) %>%                # Delete the column "2121" not inclcluded in deaths file
       filter(row_number() %in% 1:106) %>%   # Delete the line "Total"
       mutate(age = recode(age,
                           "105+" = "105")) %>% # Transform the value 105+ into 105 to be able to numerize the age variable
       mutate(age = as.numeric(age))         # Numerize the age variable
-  
+   
 
 # Deaths by age and year
   deaths <- deaths %>% 
       rename("age" = "Âge atteint dans l'année",
-                 "2020" = "2020 p)"
+                 "2020" = "2020 (p)"  # 2020 p) in the whole pop projections and 2020 (p) in the W and M separated
                  ) %>%                      # Rename variables
-      select(-c("...161")) %>%              # Delete the column "...161"
+      #select(-c("...161")) %>%              # Delete the column "...161"
       filter(row_number() %in% 1:106) %>%   # Delete the line "Total"
       mutate(age = recode(age,
                           "105+" = "105")) %>% # Transform the value 105+ into 105 to be able to numerize the age variable
@@ -64,7 +65,7 @@ deaths <- import(here("data", "INSEE_Deaths.xlsx"))
 ################################################################################################################################
 
 # Population size projection by age and year
-  export(population,here("data_clean","population_clean.xlsx"))
+  export(population,here("data_clean","population_M_clean.xlsx"))
 
 # Deaths projection by age and year
-  export(deaths,here("data_clean","deaths_clean.xlsx"))
+  export(deaths,here("data_clean","deaths_M_clean.xlsx"))

@@ -13,10 +13,10 @@ pacman::p_load(
 ################################################################################################################################
 
 # Population size
-population <- import(here("data_clean", "population_clean.xlsx"))
+population <- import(here("data_clean", "population_M_clean.xlsx"))
 
 # Deaths
-deaths <- import(here("data_clean", "deaths_clean.xlsx"))
+deaths <- import(here("data_clean", "deaths_M_clean.xlsx"))
 
 ################################################################################################################################
 #                                             3. Mortality rates calculation                                                   #
@@ -32,4 +32,4 @@ mortality_rates <- population %>%
 ################################################################################################################################
 
 # Mortality rates projection by age and year 
-export(mortality_rates, here("data_clean", "MR_table.xlsx"))
+export(mortality_rates, here("data_clean", "MR_M_table.xlsx"))
