@@ -353,18 +353,18 @@ plot(graph_le_sp)
 #                                             12. Data exportation                                                             #
 ################################################################################################################################
 
-export(deaths_data, here("results", "1_Main_analysis_newDRF", "Women", "HIA", "deaths_data.csv"))
+export(deaths_data, here("results", "1_Main_analysis_newDRF", "Male", "HIA", "deaths_data.csv"))
 
 # LE
-export(summary_le, here("results", "1_Main_analysis_newDRF","Women", "HIA", "IC95_LE_gained.xlsx"))
-ggsave(here("results", "1_Main_analysis_newDRF", "Women", "HIA", "LE_gained.pdf"), plot = graph_le)
-ggsave(here("results", "1_Main_analysis_newDRF", "Women", "HIA", "LE_gaines_dates.pdf"), plot = graph_le_dates)
+export(summary_le, here("results", "1_Main_analysis_newDRF","Male", "HIA", "IC95_LE_gained.xlsx"))
+ggsave(here("results", "1_Main_analysis_newDRF", "Male", "HIA", "LE_gained.pdf"), plot = graph_le)
+ggsave(here("results", "1_Main_analysis_newDRF", "Male", "HIA", "LE_gaines_dates.pdf"), plot = graph_le_dates)
 
 # YLL
-export(yll, here("results", "1_Main_analysis_newDRF", "Women", "HIA", "yll.csv"))
-export(summary_yll, here("results", "1_Main_analysis_newDRF", "Women", "HIA", "IC95_yll.xlsx"))
-ggsave(here("results", "1_Main_analysis_newDRF", "Women", "HIA", "yll_reported.pdf"), plot = graph_yll)
-ggsave(here("results", "1_Main_analysis_newDRF", "Women", "HIA", "yll_reported_dates.pdf"), plot = graph_yll_dates)
+export(yll, here("results", "1_Main_analysis_newDRF", "Male", "HIA", "yll.csv"))
+export(summary_yll, here("results", "1_Main_analysis_newDRF", "Male", "HIA", "IC95_yll.xlsx"))
+ggsave(here("results", "1_Main_analysis_newDRF", "Male", "HIA", "yll_reported.pdf"), plot = graph_yll)
+ggsave(here("results", "1_Main_analysis_newDRF", "Male", "HIA", "yll_reported_dates.pdf"), plot = graph_yll_dates)
 
 
 # YLL for a specific age and year 
