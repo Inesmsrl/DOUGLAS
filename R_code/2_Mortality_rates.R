@@ -1,3 +1,8 @@
+# 1. Loading packages
+# 2. Data importation
+# 3. Mortality rates calculation
+# 4. Data exportation
+
 ################################################################################################################################
 #                                             1. Loading packages                                                              #
 ################################################################################################################################
@@ -13,10 +18,10 @@ pacman::p_load(
 ################################################################################################################################
 
 # Population size
-population <- import(here("data_clean", "population_M_clean.xlsx"))
+population <- import(here("data_clean", "population_clean.xlsx"))
 
 # Deaths
-deaths <- import(here("data_clean", "deaths_M_clean.xlsx"))
+deaths <- import(here("data_clean", "deaths_clean.xlsx"))
 
 ################################################################################################################################
 #                                             3. Mortality rates calculation                                                   #
@@ -28,8 +33,8 @@ mortality_rates <- population %>%
                 ))
                 
 ################################################################################################################################
-#                                             5. data exportation                                                              #
+#                                             5. Data exportation                                                              #
 ################################################################################################################################
 
 # Mortality rates projection by age and year 
-export(mortality_rates, here("data_clean", "MR_M_table.xlsx"))
+export(mortality_rates, here("data_clean", "MR_table.xlsx"))

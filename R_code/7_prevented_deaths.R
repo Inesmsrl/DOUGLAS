@@ -1,3 +1,17 @@
+## RUN THE PYTHON CODE "deaths_transfer.ipynb" BEFORE THIS R CODE
+# ---------------------------------------------------------------
+
+# 1. Loading packages
+# 2. Data importation
+# 3. Parameters
+# 4. Data preparation
+# 5. Deaths by age
+# 6. Prevented deaths to baseline by age
+# 7. Total deaths / year / scenario
+# 8. Total prevented deaths / year / scenario
+# 9. Figures : Total prevented deaths
+# 10. Data exportation
+
 ################################################################################################################################
 #                                             1. Loading packages                                                              #
 ################################################################################################################################
@@ -7,7 +21,8 @@ pacman::p_load(
     here, # File path management
     dplyr, # Data manipulation
     tidyr, # Data manipulation
-    tidyverse # Data management, ggplot included
+    tidyverse, # Data management, ggplot included
+    scales # For the y-axis labels
 )
 
 ################################################################################################################################
@@ -38,7 +53,7 @@ deaths_data <- deaths_data %>%
 ################################################################################################################################
 
 # Mean and 95% CI of deaths by age
-simulations_summary_deaths <- deaths_data %>%
+ic95_deaths <- deaths_data %>%
   group_by(scenario, year, age) %>%
   summarise(
     mean_deaths = mean(deaths, na.rm = TRUE),
@@ -56,7 +71,7 @@ av_deaths <- deaths_data %>%
   summarise(prevented_deaths = sum(avoided_deaths, na.rm = TRUE))
 
 # Mean and 95% CI of prevented deaths by age
-simulations_summary_av_deaths <- av_deaths %>%
+ic95_av_deaths <- av_deaths %>%
   group_by(scenario, age, year) %>%
   summarise(
     mean_prev_deaths = mean(prevented_deaths, na.rm = TRUE),
@@ -74,7 +89,7 @@ tot_deaths <- deaths_data %>%
   ungroup()
 
 # Calculation of the mean and 95% CI
-simulations_summary_tot_deaths <- tot_deaths %>%
+ic95_tot_deaths <- tot_deaths %>%
   group_by(scenario, year) %>%
   summarise(
     mean_tot_deaths = mean(total_deaths, na.rm = TRUE),
@@ -93,7 +108,7 @@ tot_av_deaths <- deaths_data %>%
   ungroup()
 
 # Mean and 95% CI of total prevented deaths
-simulations_summary_tot_av_deaths <- tot_av_deaths %>%
+ic95_tot_av_deaths <- tot_av_deaths %>%
   group_by(scenario, year) %>%
   summarise(
     mean_rr = mean(total_av_deaths, na.rm = TRUE),
@@ -108,7 +123,7 @@ simulations_summary_tot_av_deaths <- tot_av_deaths %>%
 
 # During the all period of time
 graph_tot_av_deaths <- ggplot(
-  simulations_summary_tot_av_deaths %>%
+  ic95_tot_av_deaths %>%
     filter(scenario != "actuel"),
   aes(
     x = year,
@@ -122,8 +137,9 @@ graph_tot_av_deaths <- ggplot(
   labs(
     title = "",
     x = "",
-    y = "Number of deaths prevented"
+    y = "Prevented deaths"
   ) +
+  scale_y_continuous(labels = label_comma()) +
   scale_color_manual(
     values = col_scenario,
     labels = labels_scenario
@@ -143,9 +159,11 @@ graph_tot_av_deaths <- ggplot(
     fill = guide_legend(title = NULL)
   )
 
+plot(graph_tot_av_deaths)
+
 # At specific dates
 graph_tot_av_deaths_dates <- ggplot(
-  simulations_summary_tot_av_deaths %>%
+  ic95_tot_av_deaths %>%
     filter(
       year %in% c(2040, 2050, 2060),
       scenario != "actuel"
@@ -172,7 +190,7 @@ graph_tot_av_deaths_dates <- ggplot(
   facet_wrap(~year,
     ncol = 3
   ) +
-  scale_y_continuous(labels = scales::label_comma()) +
+  scale_y_continuous(labels = label_comma()) +
   scale_fill_manual(
     values = col_scenario,
     labels = labels_scenario
@@ -185,50 +203,30 @@ graph_tot_av_deaths_dates <- ggplot(
   labs(
     title = "",
     x = "",
-    y = "Deaths prevented"
+    y = "Prevented deaths"
   ) +
   guides(fill = guide_legend(title = NULL))
 
 plot(graph_tot_av_deaths_dates)
 
-# One unique graph with RR evolution and prvented deaths
-list_graph <- list(graph_rr_diets_rel, graph_tot_av_deaths)
-
-# Theme for the common graph
-common_theme <- theme(
-  axis.title = element_text(size = 7, face = "bold"),
-  strip.text = element_text(size = 6),
-  axis.text.y = element_text(size = 6),
-  legend.position = "none"
-)
-
-# Apply the common theme to each graph
-list_graph <- lapply(list_graph, function(p) p + common_theme)
-
-# Combine the graphs into one single figure
-common_graph <- reduce(list_graph, `+`) + plot_layout(ncol = 1, nrow = 2)
-
-print(common_graph)
 ################################################################################################################################
 #                                             10. Data exportation                                                             #
 ################################################################################################################################
 
 # Deaths by age
-export(simulations_summary_deaths, here("results", "1_Main_Analysis_NewDRF", "Male", "HIA", "IC95_deaths.xlsx"))
+export(ic95_deaths, here("results", "HIA", "IC95_deaths.xlsx"))
 
 # Prevented deaths by age
-export(av_deaths, here("results", "1_Main_Analysis_NewDRF", "Male", "HIA", "av_deaths.csv"))
-export(simulations_summary_av_deaths, here("results", "1_Main_Analysis_NewDRF", "Male", "HIA", "IC95_av_deaths.xlsx"))
+export(av_deaths, here("results", "HIA", "av_deaths.csv"))
+export(ic95_av_deaths, here("results", "HIA", "IC95_av_deaths.xlsx"))
 
 # Total deaths by year
-export(tot_deaths, here("results", "1_Main_Analysis_NewDRF", "Male", "HIA", "tot_deaths.csv"))
-export(simulations_summary_tot_deaths, here("results", "1_Main_Analysis_NewDRF", "Male", "HIA", "IC95_tot_deaths.xlsx"))
+export(tot_deaths, here("results", "HIA", "tot_deaths.csv"))
+export(ic95_tot_deaths, here("results", "HIA", "IC95_tot_deaths.xlsx"))
 
 # Total prevented deaths by year
-export(tot_av_deaths, here("results", "1_Main_Analysis_NewDRF", "Male", "HIA", "tot_deaths_prev.csv"))
-export(simulations_summary_tot_av_deaths, here("results", "1_Main_Analysis_NewDRF", "Male", "HIA", "IC95_tot_deaths_prev.csv"))
+export(tot_av_deaths, here("results", "HIA", "tot_deaths_prev.csv"))
+export(ic95_tot_av_deaths, here("results", "HIA", "IC95_tot_deaths_prev.csv"))
 
-ggsave(here("results", "1_Main_Analysis_NewDRF", "male", "HIA", "tot_deaths_prev.pdf"), graph_tot_av_deaths)
-ggsave(here("results", "1_Main_Analysis_NewDRF", "male", "HIA", "tot_deaths_prev_dates.pdf"), graph_tot_av_deaths_dates)
-
-ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "RR_and_deaths.pdf"), plot = common_graph)
+ggsave(here("results", "HIA", "tot_deaths_prev.pdf"), graph_tot_av_deaths)
+ggsave(here("results", "HIA", "tot_deaths_prev_dates.pdf"), graph_tot_av_deaths_dates)

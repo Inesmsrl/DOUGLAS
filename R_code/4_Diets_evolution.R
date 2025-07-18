@@ -1,3 +1,11 @@
+# 1. Loading packages
+# 2. Data importation
+# 3. Parameters
+# 4. Functions for diets evolution
+# 5. Diets evolution in scenarios
+# 6. Intake variations compared to the baseline diet (%)
+# 7. Data exportation
+
 ################################################################################################################################
 #                                             1. Loading packages                                                              #
 ################################################################################################################################
@@ -16,7 +24,7 @@ pacman::p_load(
 ################################################################################################################################
 
 # Expositions : SISAE diets in 2050
-diets <- import(here("Fadnes_data", "data_clean", "diet.xlsx"))
+diets <- import(here("data", "DOUGLAS_diets.xlsx"))
 
 ################################################################################################################################
 #                                             3. Parameters                                                                    #
@@ -122,6 +130,8 @@ graph_diets_evo <- ggplot(
     title.hjust = 0.5
   ))
 
+plot(graph_diets_evo)
+
 # Graphical representation of the evolution of food consumption on the period of dietary change
 diets_evo_shift <- diets_evo %>%
   filter(year %in% c(year_i:year_f))
@@ -168,7 +178,7 @@ graph_diets_evo_shift <- ggplot(data = diets_evo_shift %>%
 plot(graph_diets_evo_shift)
 
 ################################################################################################################################
-#                                             5. Intake variations compared to the baseline diet (%)                           #
+#                                             6. Intake variations compared to the baseline diet (%)                           #
 ################################################################################################################################
 
 # Calculation of the variations in consumption of each food compared to the current diet (%)
@@ -213,10 +223,17 @@ graph_diets_var <- ggplot(
     title.hjust = 0.5
   ))
 
-# Table of variations in food consumption
-diets_var$food_group <- factor(diets_var$food_group, levels = order_food_groups)
+plot(graph_diets_var)
 
-table_diets_var <- diets_var %>%
+# Table of variations in food consumption
+
+# Reorder food groups for the table
+  diets_var_2 <- diets_var %>%
+  mutate(food_group = factor(food_group,
+                             levels = order_food_groups,
+                             labels = labels_food_groups[order_food_groups]))
+
+table_diets_var <- diets_var_2 %>%
   filter(
     year %in% c(2025, 2035, 2050)
   ) %>%
@@ -233,7 +250,6 @@ table_diets_var <- diets_var %>%
     "quantity_sc3_2050", "var_sc3_2035", "var_sc3_2050",
     "quantity_sc4_2050", "var_sc4_2035", "var_sc4_2050"
   ) %>%
-  mutate(food_group = labels_food_groups[food_group]) %>% # Rename food groups
   qflextable() %>% # Create the table with qflextable
   add_header_row(
     top = TRUE, # Add a top header row
@@ -267,177 +283,7 @@ table_diets_var <- diets_var %>%
   bold(i = 1, part = "header") %>% # Bold the first row of the header
   bg(part = "all", bg = "white") # Set the background color of the table to white
 
-################################################################################################################################
-#                                             6. Observed to optimized diets                                                   #
-################################################################################################################################
-
-function_diets_evo <- function(observed, optimized) {
-  
-  diets_evo <- diets %>%
-    select("food_group", all_of(c(observed, optimized))) %>%
-    filter(food_group %in% c(
-      "red_meat", "processed_meat", "white_meat", "fish", "eggs", "dairy",
-      "fruits", "vegetables", "legumes", "nuts", "whole_grains", "reffined_grains",
-      "sugar_sweetened_beverages"
-    )) %>%
-    mutate(q_i = .[[observed]]) %>%
-    pivot_longer(
-      cols = all_of(c(observed, optimized)),
-      names_to = "scenario",
-      values_to = "q_f"
-    ) %>%
-    crossing(year_n = (year_i - 2 * ttfe_time):(year_f + 2 * ttfe_time)) %>%
-    mutate(quantity = case_when(
-      implementation == "immediate" & year_n < year_i ~ q_i,
-      implementation == "immediate" & year_n >= year_i ~ q_f,
-      implementation == "linear" & year_n < year_i ~ q_i,
-      implementation == "linear" & year_n %in% c(year_i:year_f) ~ mapply(calc_food_q_lin, q_i, q_f, year_n, year_i, year_f),
-      implementation == "linear" & year_n > year_f ~ q_f,
-      implementation == "cosine" & year_n < year_i ~ q_i,
-      implementation == "cosine" & year_n %in% c(year_i:year_f) ~ mapply(calc_food_q_cos, q_i, q_f, year_n, year_i, year_f, p),
-      implementation == "cosine" & year_n > year_f ~ q_f,
-      implementation == "sigmoidal" & year_n < year_i ~ q_i,
-      implementation == "sigmoidal" & year_n %in% c(year_i:year_f) ~ mapply(calc_food_q_sig, q_i, q_f, year_n, year_i, year_f, lambda),
-      implementation == "sigmoidal" & year_n > year_f ~ q_f
-    )) %>%
-    select("food_group", "scenario", "year_n", "quantity") %>%
-    rename("year" = "year_n")
-
-  return(diets_evo)
-}
-
-diets_evo_meat3 <- function_diets_evo("meat3", "meat3_optim")
-diets_evo_meat2 <- function_diets_evo("meat2", "meat2_optim")
-diets_evo_meat1 <- function_diets_evo("meat1", "meat1_optim")
-diets_evo_pesce <- function_diets_evo("pesce", "pesce_optim")
-diets_evo_vege <- function_diets_evo("vege", "vege_optim")
-diets_evo_vegan <- function_diets_evo("vegan", "vegan_optim")
-
-plot_diets_evo <- function(observed, optimized) {
-  
-  diets_evo <- function_diets_evo(observed, optimized)
-
-  diets_evo$food_group <- factor(diets_evo$food_group, levels = order_food_groups)
-
-  graph_diets_evo <- ggplot(
-    data = diets_evo %>%
-      filter(scenario != observed,
-             year %in% c(year_i:year_f)),
-    aes(
-      x = year,
-      y = quantity,
-      fill = food_group
-    )
-  ) +
-    geom_area(colour = "black", linewidth = 0.2, alpha = 0.6) +
-    facet_wrap(~scenario,
-      ncol = 2,
-      labeller = labeller(scenario = labels_scenario)
-    ) +
-    theme(
-      axis.text.x = element_text(angle = 60, hjust = 1, size = 9),
-      axis.text.y = element_text(size = 9),
-      strip.text = element_text(face = "bold", size = rel(0.8)),
-      legend.position = "bottom",
-      legend.text = element_text(size = 10),
-      legend.title = element_text(face = "bold", size = 12),
-      legend.key.size = unit(0.3, "cm"),
-      plot.margin = margin(0.2, 0.5, 0.2, 0.5, "cm")
-    ) +
-    scale_fill_manual(
-      values = col_food_groups,
-      labels = labels_food_groups
-    ) +
-    labs(
-      title = "",
-      x = "",
-      y = "Intakes (g/d/pers)",
-      fill = "Food type"
-    ) +
-    guides(fill = guide_legend(
-      nrow = 2,
-      title.position = "top",
-      title.hjust = 0.5
-    ))
-
-  return(graph_diets_evo)
-}
-
-graph_diets_evo_meat3 <- plot_diets_evo("meat3", "meat3_optim")
-graph_diets_evo_meat2 <- plot_diets_evo("meat2", "meat2_optim")
-graph_diets_evo_meat1 <- plot_diets_evo("meat1", "meat1_optim")
-graph_diets_evo_pesce <- plot_diets_evo("pesce", "pesce_optim")
-graph_diets_evo_vege <- plot_diets_evo("vege", "vege_optim")
-graph_diets_evo_vegan <- plot_diets_evo("vegan", "vegan_optim")
-
-function_diets_var <- function(observed, optimized) {
-  
-  diets_var <- function_diets_evo(observed, optimized) %>%
-    group_by(food_group, year) %>%
-    mutate(var = (quantity - quantity[scenario == observed]) / quantity[scenario == observed] * 100) %>% 
-    ungroup()
-
-  return(diets_var)
-}
-
-diets_var_meat3 <- function_diets_var("meat3", "meat3_optim")
-diets_var_meat2 <- function_diets_var("meat2", "meat2_optim")
-diets_var_meat1 <- function_diets_var("meat1", "meat1_optim")
-diets_var_pesce <- function_diets_var("pesce", "pesce_optim")
-diets_var_vege <- function_diets_var("vege", "vege_optim")
-diets_var_vegan <- function_diets_var("vegan", "vegan_optim")
-
-table_diets_var <- function(observed, optimized) {
-  
-  diets_var <- function_diets_var(observed, optimized)
-  opt <- optimized[1]  # Extract one name of diet
-  
-  # Construction des noms de colonnes dynamiques
-  col_obs_q <- paste0("quantity_", observed, "_2025")
-  col_opt_q <- paste0("quantity_", opt, "_2050")
-  col_opt_v <- paste0("var_", opt, "_2050")
-  
-  # Building the table
-  table <- diets_var %>%
-    filter(
-      year %in% c(2025, 2050),
-      scenario %in% c(observed, opt)
-    ) %>%
-    mutate(quantity = round(quantity, 1), var = round(var, 1)) %>%
-    pivot_wider(
-      names_from = c("scenario", "year"),
-      values_from = c("quantity", "var")
-    ) %>%
-    select(
-      "food_group",
-      all_of(c(col_obs_q, col_opt_q, col_opt_v))
-    ) %>%
-    mutate(food_group = labels_food_groups[food_group])
-  
-  
-  # Creating the table with qflextable
-  table_ft <- table %>%
-    qflextable() %>%
-    add_header_row(
-      top = TRUE,
-      values = c("Food group", "Observed", "Optimized", ""),  # 4 values for header row
-      colwidths = c(1, 1, 1, 1) 
-    ) %>%
-    vline(part = "all", j = 2) %>%
-    merge_at(i = 1, j = 3:4, part = "header") %>%
-    align(align = "center", j = 2:4, part = "all") %>%
-    bold(i = 1, part = "header") %>%
-    bg(part = "all", bg = "white")
-  
-  return(table_ft)
-}
-
-table_var_meat3 <- table_diets_var("meat3", "meat3_optim")
-table_var_meat2 <- table_diets_var("meat2", "meat2_optim")
-table_var_meat1 <- table_diets_var("meat1", "meat1_optim")
-table_var_pesce <- table_diets_var("pesce", "pesce_optim")
-table_var_vege <- table_diets_var("vege", "vege_optim")
-table_var_vegan <- table_diets_var("vegan", "vegan_optim")
+plot(table_diets_var)
 
 ################################################################################################################################
 #                                             7. Data exportation                                                              #
@@ -445,51 +291,13 @@ table_var_vegan <- table_diets_var("vegan", "vegan_optim")
 
 ## Diets implementation
   # Intakes (g/j/pers)
-      export(diets_evo, here("Fadnes_data", "results", "diets", "diets_evo.csv"))
-      ggsave(here("Fadnes_data", "results", "diets", "diets_evo.pdf"), graph_diets_evo)
-      ggsave(here("Fadnes_data", "results", "diets", "diets_evo_shift.pdf"), graph_diets_evo_shift)
+      export(diets_evo, here("results", "diets", "diets_evo.csv"))
+      ggsave(here("results", "diets", "diets_evo.pdf"), graph_diets_evo)
+      ggsave(here("results", "diets", "diets_evo_shift.pdf"), graph_diets_evo_shift)
 
   # Variations (%)
-      export(diets_var, here("Fadnes_data", "results", "diets", "diets_var.csv"))
-      ggsave(here("Fadnes_data", "results", "diets", "diets_var.pdf"), graph_diets_var)
+      export(diets_var, here("results", "diets", "diets_var.csv"))
+      ggsave(here("results", "diets", "diets_var.pdf"), graph_diets_var)
 
-      save_as_image(table_diets_var, here("Fadnes_data", "results", "diets", "table_diets_var.png"))
+      save_as_image(table_diets_var, here("results", "diets", "table_diets_var.png"))
 
-## Observed to optimized diets
-  # Intakes (g/j/pers)
-    export(diets_evo_meat3, here("results", "Observed_to_Optimized", "meat3", "diets", "diets_evo_meat3.csv"))
-    ggsave(here("results", "Observed_to_Optimized", "meat3", "diets", "diets_evo_meat3.pdf"), graph_diets_evo_meat3)
-
-    export(diets_evo_meat2, here("results", "Observed_to_Optimized", "meat2", "diets", "diets_evo_meat2.csv"))
-    ggsave(here("results", "Observed_to_Optimized", "meat2", "diets", "diets_evo_meat2.pdf"), graph_diets_evo_meat2)
-
-    export(diets_evo_meat1, here("results", "Observed_to_Optimized", "meat1", "diets", "diets_evo_meat1.csv"))
-    ggsave(here("results", "Observed_to_Optimized", "meat1", "diets", "diets_evo_meat1.pdf"), graph_diets_evo_meat1)
-
-    export(diets_evo_pesce, here("results", "Observed_to_Optimized", "pesce", "diets", "diets_evo_pesce.csv"))
-    ggsave(here("results", "Observed_to_Optimized", "pesce", "diets", "diets_evo_pesce.pdf"), graph_diets_evo_pesce)
-
-    export(diets_evo_vege, here("results", "Observed_to_Optimized", "vege", "diets", "diets_evo_vege.csv"))
-    ggsave(here("results", "Observed_to_Optimized", "vege", "diets", "diets_evo_vege.pdf"), graph_diets_evo_vege)
-
-    export(diets_evo_vegan, here("results", "Observed_to_Optimized", "vegan", "diets", "diets_evo_vegan.csv"))
-    ggsave(here("results", "Observed_to_Optimized", "vegan", "diets", "diets_evo_vegan.pdf"), graph_diets_evo_vegan)
-
-  # Variations (%)
-    export(diets_var_meat3, here("results", "Observed_to_Optimized", "meat3", "diets", "diets_var_meat3.csv"))
-    save_as_image(table_var_meat3, here("results", "Observed_to_Optimized", "meat3", "diets", "table_var_meat3.png"))
-    
-    export(diets_var_meat2, here("results", "Observed_to_Optimized", "meat2", "diets", "diets_var_meat2.csv"))
-    save_as_image(table_var_meat2, here("results", "Observed_to_Optimized", "meat2", "diets", "table_var_meat2.png"))
-
-    export(diets_var_meat1, here("results", "Observed_to_Optimized", "meat1", "diets", "diets_var_meat1.csv"))
-    save_as_image(table_var_meat1, here("results", "Observed_to_Optimized", "meat1", "diets", "table_var_meat1.png"))
-
-    export(diets_var_pesce, here("results", "Observed_to_Optimized", "pesce", "diets", "diets_var_pesce.csv"))
-    save_as_image(table_var_pesce, here("results", "Observed_to_Optimized", "pesce", "diets", "table_var_pesce.png"))
-
-    export(diets_var_vege, here("results", "Observed_to_Optimized", "vege", "diets", "diets_var_vege.csv"))
-    save_as_image(table_var_vege, here("results", "Observed_to_Optimized", "vege", "diets", "table_var_vege.png"))
-
-    export(diets_var_vegan, here("results", "Observed_to_Optimized", "vegan", "diets", "diets_var_vegan.csv"))
-    save_as_image(table_var_vegan, here("results", "Observed_to_Optimized", "vegan", "diets", "table_var_vegan.png"))

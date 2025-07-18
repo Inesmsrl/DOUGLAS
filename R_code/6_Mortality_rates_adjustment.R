@@ -1,3 +1,11 @@
+# 1. Loading packages
+# 2. Data importation
+# 3. Parameters
+# 4. Data preparation
+# 5. MR adjustment
+# 6. Association of the adjusted MR with the population data
+# 7. Data exportation
+
 ################################################################################################################################
 #                                             1. Loading packages                                                              #
 ################################################################################################################################
@@ -14,13 +22,13 @@ pacman::p_load(
 ################################################################################################################################
 
 # Mortality rates (INSEE)
-MR <- import(here("data_clean", "MR_M_table.xlsx"))
+MR <- import(here("data_clean", "MR_table.xlsx"))
 
 # Projected population size by age and year (INSEE)
-population <- import(here("data_clean", "population_M_clean.xlsx"))
+population <- import(here("data_clean", "population_clean.xlsx"))
 
-# RR of diets
-rr_evo_diets <- import(here("results", "1_Main_Analysis_NewDRF", "RR", "rr_evo_diets.csv"))
+# RR of diets over time
+rr_evo_diets <- import(here("results", "RR", "rr_evo_diets.csv"))
 
 ################################################################################################################################
 #                                             3. Parameters                                                                    #
@@ -62,46 +70,36 @@ population_select <- population %>%
 #                                             5. MR adjustment                                                                 #
 ################################################################################################################################
 
-# MRa = MRO*RR(scenario)/RR(actuel), where MR0 is the projected MR (INSEE)
+# MRa = MRO * RR(scenario) / RR(actuel), where MR0 is the projected MR (INSEE)
 
-MR_adjust <- function(MR, rr_evo_diets) {
-  # Ajustement des taux de mortalité
-  MR_adjusted <- MR %>%
+  MR_adjusted <- MR_select %>%
     inner_join(rr_evo_diets, by = "year", relationship = "many-to-many") %>%
     group_by(age, year, simulation_id) %>%
     mutate(adjusted_mr = MR * relative_rr) %>%
     ungroup()
-  
-  return(MR_adjusted)
-}
 
-MR_adjusted <- MR_adjust(MR_select, rr_evo_diets)
 
-MR_adjust_summary <- function(MR_adjusted) {
-  # Calculer la moyenne et les IC95 pour chaque année
-  simulations_summary_mr_adjusted <- MR_adjusted %>%
+# Calculation of the mean and 95% CI for each year
+  ic95_mr_adjusted <- MR_adjusted %>%
     group_by(age, scenario, year) %>%
     summarise(
       mean_mr = mean(adjusted_mr, na.rm = TRUE),
-      lower_ci = quantile(adjusted_mr, 0.025, na.rm = TRUE), # Limite inférieure de l'IC à 95%
-      upper_ci = quantile(adjusted_mr, 0.975, na.rm = TRUE) # Limite supérieure de l'IC à 95%
+      lower_ci = quantile(adjusted_mr, 0.025, na.rm = TRUE), # Lower limit of the 95% CI
+      upper_ci = quantile(adjusted_mr, 0.975, na.rm = TRUE) # Upper limit of the 95% CI
     ) %>% 
     ungroup()
   
-  return(simulations_summary_mr_adjusted)
-}
-
-simulations_summary_mr_adjusted <- MR_adjust_summary(MR_adjusted)
-
 ################################################################################################################################
 #                                             6. Association of the adjusted MR with the population data                       #
 ################################################################################################################################
 
+# This table will be used in the Python code that calculates the prevented deaths
+
 pop_data <- MR_adjusted %>%
-  left_join(population_select, by = c("age", "year"), relationship = "many-to-many") %>% # Jointure des données de population et des taux de mortalité ajustés
-  select(age, year, scenario, simulation_id, adjusted_mr, population) %>% # Sélection des variables pertinentes)
+  left_join(population_select, by = c("age", "year"), relationship = "many-to-many") %>% 
+  select(age, year, scenario, simulation_id, adjusted_mr, population) %>% 
   mutate(
-    deaths = NA_real_,  #Préparation du tableau pour le calcul des décès
+    deaths = NA_real_,  # Preparation of variables for the prevented deaths calculation
     avoided_deaths = NA_real_,
     simulation_id = as.numeric(gsub(".*_", "", simulation_id))
   ) %>% # Variable numérique pour l'ID de simulation
@@ -112,8 +110,8 @@ pop_data <- MR_adjusted %>%
 ################################################################################################################################
 
 # Adjusted mortality rates
-export(MR_adjusted, here("results", "1_Main_Analysis_NewDRF", "Male", "MR", "MR_adjusted.csv"))
-export(simulations_summary_mr_adjusted, here("results", "1_Main_Analysis_NewDRF", "Male", "MR", "simulations_summary_mr_adjusted.csv"))
+export(MR_adjusted, here("results", "MR", "MR_adjusted.csv"))
+export(ic95_mr_adjusted, here("results", "MR", "ic95_mr_adjusted.xlsx"))
 
 # Table with population data and adjusted mortality rates
-export(pop_data, here("results", "1_Main_Analysis_NewDRF", "Male", "MR", "pop_data.csv"))
+export(pop_data, here("results", "MR", "pop_data.csv"))

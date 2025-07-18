@@ -1,3 +1,9 @@
+# 1. Loading packages
+# 2. Data importation
+# 3. Parameters
+# 4. Saved costs
+# 5. Data exportation
+
 ################################################################################################################################
 #                                             1. Loading packages                                                              #
 ################################################################################################################################
@@ -7,14 +13,15 @@ pacman::p_load(
   here,                # File path management
   dplyr,               # Data manipulation
   tidyr,               # Data manipulation  
-  tidyverse            # Data management, ggplot included
+  tidyverse,           # Data management, ggplot included
+  scales              # For y axis labels
 )
 
 ################################################################################################################################
 #                                             2. Data importation                                                              #
 ################################################################################################################################
 
-yll <- import(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "IC95_yll.xlsx"))
+yll <- import(here("results", "HIA", "IC95_yll.xlsx"))
 
 ################################################################################################################################
 #                                             3. Parameters                                                                    #
@@ -64,7 +71,7 @@ graph_yll_costs_dates <- ggplot(costs %>%
                   position = position_dodge(0.9))+
     facet_wrap(~year,
                ncol = 3)+
-    scale_y_continuous(labels = scales :: label_comma())+
+    scale_y_continuous(labels = label_comma()) +
     scale_fill_manual(values = col_scenario,
                       labels = labels_scenario)+
     theme(axis.text.x = element_blank(),
@@ -80,5 +87,5 @@ plot(graph_yll_costs_dates)
 #                                             5. Data exportation                                                              #
 ################################################################################################################################
 
-export(costs, here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "IC95_costs_avoided.xlsx"))
-ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "costs_avoided_dates.pdf"), plot = graph_yll_costs_dates)
+export(costs, here("results", "HIA", "IC95_costs_saved.xlsx"))
+ggsave(here("results", "HIA", "costs_saved_dates.pdf"), plot = graph_yll_costs_dates)

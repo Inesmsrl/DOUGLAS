@@ -1,3 +1,13 @@
+# 1. Loading packages
+# 2. Data importation
+# 3. Parameters
+# 4. Data preparation
+# 5. Generation of RR normal distributions
+# 6. Sort the RR distributions in ascending order
+# 7. Interpolation
+# 8. Graphical representation of the RR distributions
+# 9. Data exportation
+
 ################################################################################################################################
 #                                             1. Loading packages                                                              #
 ################################################################################################################################
@@ -16,27 +26,15 @@ pacman::p_load(
 ################################################################################################################################
 
 # RR table for each food group, assigned to absolute quantities
-  
-  # Meta-analyses used by Fadnes et al
+
     # Central values
-    rr_table_mid <- import(here("Fadnes_data", "data_clean", "rr_table_mid.xlsx"))
-
-    # IC95 lower
-    rr_table_low <- import(here("Fadnes_data", "data_clean", "rr_table_low.xlsx"))
-
-    # IC95 upper
-    rr_table_up <- import(here("Fadnes_data", "data_clean", "rr_table_up.xlsx"))
-
-# Update of some food group risk values with new meta-analyses
-# White meat, nuts, whole grains, refined grains, SSBs and eggs
-    # Central values
-    rr_table_mid_new <- import(here("data", "rr_table_quanti_2.xlsx"), sheet = "Mid")
+    rr_table_mid <- import(here("data", "rr_table_quanti.xlsx"), sheet = "Mid")
  
     # IC95 lower
-    rr_table_low_new <- import(here("data", "rr_table_quanti_2.xlsx"), sheet = "Lower")
+    rr_table_low <- import(here("data", "rr_table_quanti.xlsx"), sheet = "Lower")
 
     # IC95 upper
-    rr_table_up_new <- import(here("data", "rr_table_quanti_2.xlsx"), sheet = "Upper") 
+    rr_table_up <- import(here("data", "rr_table_quanti.xlsx"), sheet = "Upper") 
 
 
 ################################################################################################################################
@@ -58,21 +56,21 @@ pacman::p_load(
 
 # Pivot data frames to long format
   rr_table_low <- rr_table_low %>% 
-    pivot_longer(cols = "0":"800",
+    pivot_longer(cols = "0":"1000",
                  names_to = "quantity",
                  values_to = "rr") %>% 
     mutate(quantity = as.numeric(quantity),
            rr = as.numeric(rr))
   
   rr_table_mid <- rr_table_mid %>% 
-    pivot_longer(cols = "0":"800",
+    pivot_longer(cols = "0":"1000",
                  names_to = "quantity",
                  values_to = "rr") %>% 
     mutate(quantity = as.numeric(quantity),
            rr =as.numeric(rr))
   
   rr_table_up <- rr_table_up %>% 
-    pivot_longer(cols = "0":"800",
+    pivot_longer(cols = "0":"1000",
                  names_to = "quantity",
                  values_to = "rr") %>% 
     mutate(quantity = as.numeric(quantity),
@@ -82,39 +80,6 @@ pacman::p_load(
   rr_table <- rr_table_mid %>% 
     left_join(rr_table_low, by = c("food_group", "quantity")) %>%
     left_join(rr_table_up, by = c("food_group", "quantity")) %>%
-    rename("rr_mid" = "rr.x",
-           "rr_low" = "rr.y",
-           "rr_up"="rr") %>%
-    mutate(rr_low = ifelse(is.na(rr_low), rr_mid, rr_low),
-           rr_up = ifelse(is.na(rr_up), rr_mid, rr_up)) %>%
-    drop_na(rr_low, rr_mid, rr_up)
-
-# Pivot data frames to long format
-  rr_table_low_new <- rr_table_low_new %>% 
-    pivot_longer(cols = "0":"1000",
-                 names_to = "quantity",
-                 values_to = "rr") %>% 
-    mutate(quantity = as.numeric(quantity),
-           rr =as.numeric(rr))
-  
-  rr_table_mid_new <- rr_table_mid_new %>% 
-    pivot_longer(cols = "0":"1000",
-                 names_to = "quantity",
-                 values_to = "rr") %>% 
-    mutate(quantity = as.numeric(quantity),
-           rr =as.numeric(rr))
-  
-  rr_table_up_new <- rr_table_up_new %>% 
-    pivot_longer(cols = "0":"1000",
-                 names_to = "quantity",
-                 values_to = "rr") %>% 
-    mutate(quantity = as.numeric(quantity),
-           rr =as.numeric(rr))
-
-# One unique table 
-  rr_table_new <- rr_table_mid_new %>% 
-    left_join(rr_table_low_new, by = c("food_group", "quantity")) %>%
-    left_join(rr_table_up_new, by = c("food_group", "quantity")) %>%
     rename("rr_mid" = "rr.x",
            "rr_low" = "rr.y",
            "rr_up"="rr") %>%
@@ -151,21 +116,12 @@ pacman::p_load(
   rr_table <- rr_table %>% 
     rowwise() %>% 
     mutate(rr_distrib = list(generate_RR_distrib(food_group, rr_mid, rr_low, rr_up)))
-
-rr_table_new <- rr_table_new %>% 
-    rowwise() %>% 
-    mutate(rr_distrib = list(generate_RR_distrib(food_group, rr_mid, rr_low, rr_up)))
   
 ################################################################################################################################
 #                                             6. Sort the RR distributions in ascending order                                  
 ################################################################################################################################
   
   rr_table <- rr_table %>% 
-    rowwise() %>% 
-    mutate(rr_distrib = list(sort(unlist(rr_distrib)))) %>%
-    ungroup()
-
-  rr_table_new <- rr_table_new %>% 
     rowwise() %>% 
     mutate(rr_distrib = list(sort(unlist(rr_distrib)))) %>%
     ungroup()
@@ -181,7 +137,8 @@ rr_table_new <- rr_table_new %>%
       cols = starts_with("rr_distrib_"), 
       names_to = "simulation_id",  # column name for the simulation ID
       values_to = "simulated_rr"  # column name for the simulated RR values
-    )
+    ) %>% 
+    mutate(simulation_id = as.numeric(str_remove(simulation_id, "rr_distrib_"))) # simulation ID as a numeric value
 
 # Interpolation 
   rr_table_interpolated <- rr_table_long %>%
@@ -202,41 +159,14 @@ rr_table_new <- rr_table_new %>%
     mutate(simulation_id = sample(unique(simulation_id))[match(simulation_id, unique(simulation_id))]) %>% 
     ungroup()
 
-# Transform the rr_table to long format
-  rr_table_long_new <- rr_table_new %>% 
-    unnest_wider(rr_distrib, names_sep = "_") %>%  # separate the rr_distrib column into multiple columns
-    pivot_longer(
-      cols = starts_with("rr_distrib_"), 
-      names_to = "simulation_id",  # column name for the simulation ID
-      values_to = "simulated_rr"  # column name for the simulated RR values
-    )
-
-# Interpolation 
-  rr_table_interpolated_new <- rr_table_long_new %>%
-    group_by(food_group, simulation_id) %>%
-    complete(quantity = full_seq(0:1000, 1)) %>%
-    arrange(quantity) %>%
-    mutate(rr_interpolated = case_when(
-      interpolation == "linear" ~ if_else(is.na(simulated_rr), approx(quantity, simulated_rr, xout = quantity, method = "linear", rule = 1)$y, simulated_rr),
-      interpolation == "spline" ~ if_else(is.na(simulated_rr), spline(quantity, simulated_rr, xout = quantity)$y, simulated_rr)
-    )) %>%
-    # $y, rr, take the interpolated values in y from the approx function and assign them to rr
-    mutate(rr_interpolated = if_else(quantity > max(quantity[!is.na(simulated_rr)]), NA_real_, rr_interpolated)) %>%
-    ungroup() %>% 
-    select("simulation_id", "food_group", "quantity", "rr_interpolated")
-  
-  rr_table_interpolated_new <- rr_table_interpolated_new %>% 
-    group_by(food_group) %>% 
-    mutate(simulation_id = sample(unique(simulation_id))[match(simulation_id, unique(simulation_id))]) %>% 
-    ungroup()
-
 ################################################################################################################################
 #                                             8. Graphical representation of the RR distributions                              #
 ################################################################################################################################
 
 # Dairy
   graph_dr_sim_dairy <- ggplot(rr_table_interpolated %>% 
-                                 filter(food_group == "dairy"),
+                                 filter(food_group == "dairy",
+                                        quantity %in% 0:800),
                                aes(x = quantity,
                                    y = rr_interpolated,
                                    group = simulation_id,
@@ -269,7 +199,7 @@ rr_table_new <- rr_table_new %>%
 # Fish
   graph_dr_sim_fish <- ggplot(rr_table_interpolated %>% 
                                 filter(food_group == "fish",
-                                       quantity %in% 0:250),
+                                       quantity %in% 0:600),
                               aes(x = quantity,
                                   y = rr_interpolated,
                                   group = simulation_id,
@@ -301,7 +231,7 @@ rr_table_new <- rr_table_new %>%
 # Legumes
   graph_dr_sim_legumes <- ggplot(rr_table_interpolated %>% 
                                   filter(food_group == "legumes",
-                                         quantity %in% 0:150),
+                                         quantity %in% 0:600),
                                 aes(x = quantity,
                                     y = rr_interpolated,
                                     group = simulation_id,
@@ -334,7 +264,7 @@ rr_table_new <- rr_table_new %>%
 # Processed meat
   graph_dr_sim_processed_meat <- ggplot(rr_table_interpolated %>% 
                                    filter(food_group == "processed_meat",
-                                          quantity %in% 0:200),
+                                          quantity %in% 0:600),
                                  aes(x = quantity,
                                      y = rr_interpolated,
                                      group = simulation_id,
@@ -350,7 +280,7 @@ rr_table_new <- rr_table_new %>%
 # Red meat
   graph_dr_sim_red_meat <- ggplot(rr_table_interpolated %>% 
                                           filter(food_group == "red_meat",
-                                                 quantity %in% 0:200),
+                                                 quantity %in% 0:600),
                                         aes(x = quantity,
                                             y = rr_interpolated,
                                             group = simulation_id,
@@ -367,7 +297,7 @@ rr_table_new <- rr_table_new %>%
 # Refined grains
   graph_dr_sim_refined_grains <- ggplot(rr_table_interpolated %>% 
                                           filter(food_group == "reffined_grains",
-                                                 quantity %in% 0:150),
+                                                 quantity %in% 0:400),
                                         aes(x = quantity,
                                             y = rr_interpolated,
                                             group = simulation_id,
@@ -383,7 +313,7 @@ rr_table_new <- rr_table_new %>%
 # SSB
   graph_dr_sim_ssb <- ggplot(rr_table_interpolated %>% 
                                           filter(food_group == "sugar_sweetened_beverages",
-                                                 quantity %in% 0:300),
+                                                 quantity %in% 0:1000),
                                         aes(x = quantity,
                                             y = rr_interpolated,
                                             group = simulation_id,
@@ -467,21 +397,21 @@ rr_table_new <- rr_table_new %>%
 ################################################################################################################################
   
 # Table of DRF simulated
-  export(rr_table_interpolated, here("Fadnes_data", "data_clean", "rr_table_interpolated_sim.csv"))
+  export(rr_table_interpolated, here("data_clean", "rr_table_interpolated_sim.csv"))
   
 # Graphs
-  ggsave(here("Fadnes_data", "results", "DRF", "drf_dairy.pdf"), plot = graph_dr_sim_dairy)
-  ggsave(here("Fadnes_data", "results", "DRF", "drf_eggs.pdf"), plot = graph_dr_sim_eggs)
-  ggsave(here("Fadnes_data", "results", "DRF", "drf_fish.pdf"), plot = graph_dr_sim_fish)
-  ggsave(here("Fadnes_data", "results", "DRF", "drf_fruits.pdf"), plot = graph_dr_sim_fruits)
-  ggsave(here("Fadnes_data", "results", "DRF", "drf_legumes.pdf"), plot = graph_dr_sim_legumes)
-  ggsave(here("Fadnes_data", "results", "DRF", "drf_nuts.pdf"), plot = graph_dr_sim_nuts)
-  ggsave(here("Fadnes_data", "results", "DRF", "drf_processed_meat.pdf"), plot = graph_dr_sim_processed_meat)
-  ggsave(here("Fadnes_data", "results", "DRF", "drf_red_meat.pdf"), plot = graph_dr_sim_red_meat)  
-  ggsave(here("Fadnes_data", "results", "DRF", "drf_refined_grains.pdf"), plot = graph_dr_sim_refined_grains)  
-  ggsave(here("Fadnes_data", "results", "DRF", "drf_ssb.pdf"), plot = graph_dr_sim_ssb)  
-  ggsave(here("Fadnes_data", "results", "DRF", "drf_vegetables.pdf"), plot = graph_dr_sim_vegetables)  
-  ggsave(here("Fadnes_data", "results", "DRF", "drf_white_meat.pdf"), plot = graph_dr_sim_white_meat)  
-  ggsave(here("Fadnes_data", "results", "DRF", "drf_whole_grains.pdf"), plot = graph_dr_sim_whole_grains)  
+  ggsave(here("results", "DRF", "drf_dairy.pdf"), plot = graph_dr_sim_dairy)
+  ggsave(here("results", "DRF", "drf_eggs.pdf"), plot = graph_dr_sim_eggs)
+  ggsave(here("results", "DRF", "drf_fish.pdf"), plot = graph_dr_sim_fish)
+  ggsave(here("results", "DRF", "drf_fruits.pdf"), plot = graph_dr_sim_fruits)
+  ggsave(here("results", "DRF", "drf_legumes.pdf"), plot = graph_dr_sim_legumes)
+  ggsave(here("results", "DRF", "drf_nuts.pdf"), plot = graph_dr_sim_nuts)
+  ggsave(here("results", "DRF", "drf_processed_meat.pdf"), plot = graph_dr_sim_processed_meat)
+  ggsave(here("results", "DRF", "drf_red_meat.pdf"), plot = graph_dr_sim_red_meat)  
+  ggsave(here("results", "DRF", "drf_refined_grains.pdf"), plot = graph_dr_sim_refined_grains)  
+  ggsave(here("results", "DRF", "drf_ssb.pdf"), plot = graph_dr_sim_ssb)  
+  ggsave(here("results", "DRF", "drf_vegetables.pdf"), plot = graph_dr_sim_vegetables)  
+  ggsave(here( "results", "DRF", "drf_white_meat.pdf"), plot = graph_dr_sim_white_meat)  
+  ggsave(here("results", "DRF", "drf_whole_grains.pdf"), plot = graph_dr_sim_whole_grains)  
   
-  ggsave(here("Fadnes_data", "results", "DRF", "drf_all.pdf"), plot = combined_plot)
+  ggsave(here("results", "DRF", "drf_all.pdf"), plot = combined_plot)

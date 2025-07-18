@@ -1,3 +1,15 @@
+# 1. Loading packages
+# 2. Data importation
+# 3. Parameters
+# 4. Conditional life expectancy
+# 5. Gain in Life Expectancy
+# 6. Graphs : LE gained
+# 7. Years of life gained
+# 8. Graphs : YLG
+# 9. Graph : Health benefits at specific dates
+# 10. YLG for a specific age and year
+# 11. LEG for a specific age and year
+
 ################################################################################################################################
 #                                             1. Loading packages                                                              #
 ################################################################################################################################
@@ -8,11 +20,12 @@ pacman::p_load(
   dplyr,               # Data manipulation
   tidyr,               # Data manipulation
   tidyverse,           # Data management, ggplot included
-  patchwork            # Graphs combination
+  patchwork,            # Graphs combination
+  scales              # For the y-axis labels
 )
 
 ################################################################################################################################
-#                                             2. Importation des données                                                       #
+#                                             2. Data importation                                                              #
 ################################################################################################################################
 
 deaths_data <- import(here("Python_code", "data_python.csv"))
@@ -24,7 +37,7 @@ deaths_data <- import(here("Python_code", "data_python.csv"))
 source(here("R_code", "0_parameters.R"))
 
 ################################################################################################################################
-#                                             4. Conditional life expectancy calculation                                       #
+#                                             4. Conditional life expectancy                                                   #
 ################################################################################################################################
 
 deaths_data <- deaths_data %>%  
@@ -58,24 +71,24 @@ deaths_data <- deaths_data %>%
   ungroup()
 
 ################################################################################################################################
-#                                             5. Gain in Life Expectancy calculation                                           #
+#                                             5. Gain in Life Expectancy                                                       #
 ################################################################################################################################
 
 # Calculate the life expectancy gained (LEG) by scenario and year
 le <- deaths_data %>% 
   group_by(simulation_id, year, scenario) %>% 
   summarise(le_year = mean(le)) %>% # Mean of age at death of each age
-  mutate(leg = (le_year - le_year[scenario == "actuel"])*12) %>% # Life expectancy gained in months
+  mutate(leg = (le_year - le_year[scenario == "actuel"]) * 12) %>% # Life expectancy gained in months
   ungroup()
 
 # Delete the 5% most extreme values
-le <- le %>% 
+le_cut <- le %>% 
   group_by(scenario, year) %>% 
   filter(between(leg, quantile(leg, 0.025), quantile(leg, 0.975))) %>% 
   ungroup()
 
 # Calculate the mean and 95% CI of life expectancy gained by scenario and year
-summary_le <- le %>% 
+ic95_le <- le_cut %>% 
   group_by(scenario, year) %>% 
   summarise(
     mean_le = mean(leg, na.rm = TRUE),
@@ -85,11 +98,11 @@ summary_le <- le %>%
   ungroup()
 
 ################################################################################################################################
-#                                             6. Graphs : LEG                                                                  #
+#                                             6. Graphs : LE gained                                                            #
 ################################################################################################################################
 
 # Whole time period
-graph_le <- ggplot(summary_le %>% 
+graph_le <- ggplot(ic95_le %>% 
                       filter(scenario != "actuel"), #Change the baseline scenario if needed
                     aes(x = year,
                         y = mean_le,
@@ -113,8 +126,10 @@ graph_le <- ggplot(summary_le %>%
   guides(color = guide_legend(title = NULL),
          fill = guide_legend(title = NULL))
 
+plot(graph_le)
+
 # At specific dates
-graph_le_dates <- ggplot(summary_le %>% 
+graph_le_dates <- ggplot(ic95_le %>% 
                             filter(year %in% c(2040, 2050, 2060), # Change the dates if needed
                                    scenario != "actuel"),
                           aes(x = scenario,
@@ -129,7 +144,7 @@ graph_le_dates <- ggplot(summary_le %>%
                 position = position_dodge(0.9))+
   facet_wrap(~year,
              ncol = 3)+
-  scale_y_continuous(labels = scales :: label_comma())+
+  scale_y_continuous(labels = label_comma()) +
   scale_fill_manual(values = col_scenario,
                     labels = labels_scenario)+
   theme(axis.text.x = element_blank(),
@@ -139,9 +154,11 @@ graph_le_dates <- ggplot(summary_le %>%
        x = "",
        y = "LE gained (months)")+
   guides(fill = guide_legend(title = NULL))
- 
+
+plot(graph_le_dates)
+
 ################################################################################################################################
-#                                             7. Years of life gained calculation                                              #
+#                                             7. Years of life gained                                                          #
 ################################################################################################################################
 
 # Calculate the years of life gained (YLG) by scenario and year
@@ -151,13 +168,13 @@ yll <- deaths_data %>%
   ungroup()
 
 # Delete the 5% most extreme values
-yll <- yll %>% 
+yll_cut <- yll %>% 
   group_by(scenario, year) %>% 
   filter(between(yll, quantile(yll, 0.025), quantile(yll, 0.975))) %>% 
   ungroup()
 
 # Mean and 95% CI of YLG by scenario and year
-summary_yll <- yll %>% 
+ic95_yll <- yll_cut %>% 
   group_by(scenario, year) %>% 
   summarise(
     mean_yll = mean(yll, na.rm = TRUE),
@@ -171,7 +188,7 @@ summary_yll <- yll %>%
 ################################################################################################################################
 
 # Whole time period
-graph_yll <- ggplot(summary_yll %>% 
+graph_yll <- ggplot(ic95_yll %>% 
                                         filter(scenario != "actuel"), #Change the baseline scenario if needed
                                       aes(x = year,
                                           y = mean_yll,
@@ -184,6 +201,7 @@ graph_yll <- ggplot(summary_yll %>%
     x = "",
     y = "YLL prevented"
   )+
+  scale_y_continuous(labels = label_comma()) +
   scale_color_manual(values = col_scenario,
                      labels = labels_scenario)+
   scale_fill_manual(values = col_scenario,
@@ -195,8 +213,10 @@ graph_yll <- ggplot(summary_yll %>%
   guides(color = guide_legend(title = NULL),
          fill = guide_legend(title = NULL))
 
+plot(graph_yll)
+
 # At specific dates
-graph_yll_dates <- ggplot(summary_yll %>% 
+graph_yll_dates <- ggplot(ic95_yll %>% 
          filter(year %in% c(2040, 2050, 2060), # Change the dates if needed
                 scenario != "actuel"),
        aes(x = scenario,
@@ -211,7 +231,7 @@ graph_yll_dates <- ggplot(summary_yll %>%
                 position = position_dodge(0.9))+
   facet_wrap(~year,
              ncol = 3)+
-  scale_y_continuous(labels = scales :: label_comma())+
+  scale_y_continuous(labels = label_comma()) +
   scale_fill_manual(values = col_scenario,
                      labels = labels_scenario)+
   theme(axis.text.x = element_blank(),
@@ -219,18 +239,21 @@ graph_yll_dates <- ggplot(summary_yll %>%
         legend.position = "bottom")+
   labs(title = "",
        x = "",
-       y = "YLL preserved")+
+       y = "Prevented YLL")+
   guides(fill = guide_legend(title = NULL))
+
+plot(graph_yll_dates)
 
 ################################################################################################################################
 #                                             9. Graph : Health benefits at specific dates                                     #
 ################################################################################################################################
 
-# Faire tourner les codes avoir les graphes des décès reportés et des coûts évités
-# Run the appropriate code to get the prevented deaths and avoided costs graphs
+# Run the appropriate code to get the prevented deaths and avoided costs graphs in memory
+source(here("R_code", "7_prevented_deaths.R"))
+source(here("R_code", "9_Costs_saved.R"))
 
 # List of the graphs you want to combine in one single figure
-list_graph <- list(graph_tot_av_deaths_dates, graph_yll_dates, graph_le_dates)
+list_graph <- list(graph_tot_av_deaths_dates, graph_yll_dates, graph_le_dates, graph_yll_costs_dates)
 
 # Theme for the common graph
 common_theme <- theme(
@@ -244,7 +267,7 @@ common_theme <- theme(
 list_graph <- lapply(list_graph, function(p) p + common_theme)
 
 # Combine the graphs into one single figure
-common_graph <- reduce(list_graph, `+`) + plot_layout(ncol = 3)
+common_graph <- reduce(list_graph, `+`) + plot_layout(ncol = 2)
 
 print(common_graph)
 
@@ -254,8 +277,8 @@ print(common_graph)
 
 # Select the data for a specific age and year
 pop_sp <- deaths_data %>% 
-  filter(year == 2035,
-         age == 20) 
+  filter(year == 2050,
+         age == 18) 
 
 # Delete the 5% most extreme values
 yll_sp <- pop_sp %>% 
@@ -264,7 +287,7 @@ yll_sp <- pop_sp %>%
   ungroup()
 
 # Mean and 95% CI of YLG
-summary_yll_sp <- yll_sp %>% 
+ic95_yll_sp <- yll_sp %>% 
   group_by(scenario, year) %>% 
   summarise(
     mean_yll = mean(ylg, na.rm = TRUE),
@@ -274,7 +297,7 @@ summary_yll_sp <- yll_sp %>%
   ungroup()
 
 # Graph
-graph_yll_sp <- ggplot(summary_yll_sp %>% 
+graph_yll_sp <- ggplot(ic95_yll_sp %>% 
                             filter(scenario != "actuel"),
                           aes(x = scenario,
                               y = mean_yll,
@@ -286,7 +309,7 @@ graph_yll_sp <- ggplot(summary_yll_sp %>%
                     ymax = upper_ci),
                 width = 0.2,
                 position = position_dodge(0.9))+
-  scale_y_continuous(labels = scales :: label_comma())+
+  scale_y_continuous(labels = label_comma()) +
   scale_fill_manual(values = col_scenario,
                     labels = labels_scenario)+
   theme(axis.text.x = element_blank(),
@@ -297,6 +320,7 @@ graph_yll_sp <- ggplot(summary_yll_sp %>%
        y = "YLL preserved")+
   guides(fill = guide_legend(title = NULL))
 
+plot(graph_yll_sp)
 ################################################################################################################################
 #                                             11. LEG for a specific age and year                                              #
 ################################################################################################################################
@@ -315,7 +339,7 @@ le_sp <- le_sp %>%
   ungroup()
 
 # Mean and 95% CI of LEG
-summary_le_sp <- le_sp %>% 
+ic95_le_sp <- le_sp %>% 
   group_by(scenario) %>% 
   summarise(
     mean_le = mean(leg, na.rm = TRUE),
@@ -325,7 +349,7 @@ summary_le_sp <- le_sp %>%
   ungroup()
 
 # Graph
-graph_le_sp <- ggplot(summary_le_sp %>% 
+graph_le_sp <- ggplot(ic95_le_sp %>% 
                            filter(scenario != "actuel"),
                          aes(x = scenario,
                              y = mean_le,
@@ -337,7 +361,7 @@ graph_le_sp <- ggplot(summary_le_sp %>%
                     ymax = upper_ci),
                 width = 0.2,
                 position = position_dodge(0.9))+
-  scale_y_continuous(labels = scales :: label_comma())+
+  scale_y_continuous(labels = label_comma()) +  
   scale_fill_manual(values = col_scenario,
                     labels = labels_scenario)+
   theme(axis.text.x = element_blank(),
@@ -345,7 +369,7 @@ graph_le_sp <- ggplot(summary_le_sp %>%
         legend.position = "bottom")+
   labs(title = "",
        x = "",
-       y = "LE gained (months)")+
+       y = "LE gained (years)")+
   guides(fill = guide_legend(title = NULL))
 
 plot(graph_le_sp)
@@ -353,27 +377,27 @@ plot(graph_le_sp)
 #                                             12. Data exportation                                                             #
 ################################################################################################################################
 
-export(deaths_data, here("results", "1_Main_analysis_newDRF", "Male", "HIA", "deaths_data.csv"))
+export(deaths_data, here("results", "HIA", "deaths_data.csv"))
 
 # LE
-export(summary_le, here("results", "1_Main_analysis_newDRF","Male", "HIA", "IC95_LE_gained.xlsx"))
-ggsave(here("results", "1_Main_analysis_newDRF", "Male", "HIA", "LE_gained.pdf"), plot = graph_le)
-ggsave(here("results", "1_Main_analysis_newDRF", "Male", "HIA", "LE_gaines_dates.pdf"), plot = graph_le_dates)
+export(le, here("results", "HIA", "le.csv"))
+export(ic95_le, here("results", "HIA", "IC95_LE.xlsx"))
+ggsave(here("results", "HIA", "LE_gained.pdf"), plot = graph_le)
+ggsave(here("results", "HIA", "LE_gaines_dates.pdf"), plot = graph_le_dates)
 
 # YLL
-export(yll, here("results", "1_Main_analysis_newDRF", "Male", "HIA", "yll.csv"))
-export(summary_yll, here("results", "1_Main_analysis_newDRF", "Male", "HIA", "IC95_yll.xlsx"))
-ggsave(here("results", "1_Main_analysis_newDRF", "Male", "HIA", "yll_reported.pdf"), plot = graph_yll)
-ggsave(here("results", "1_Main_analysis_newDRF", "Male", "HIA", "yll_reported_dates.pdf"), plot = graph_yll_dates)
-
+export(yll, here("results", "HIA", "yll.csv"))
+export(ic95_yll, here("results", "HIA", "IC95_yll.xlsx"))
+ggsave(here("results", "HIA", "yll_prevented.pdf"), plot = graph_yll)
+ggsave(here("results", "HIA", "yll_prevented_dates.pdf"), plot = graph_yll_dates)
 
 # YLL for a specific age and year 
-export(summary_yll_sp, here("results", "IC95_yll_sp.xlsx"))
-ggsave(here("results", "yll_sp.pdf"), plot = graph_yll_sp)
+export(ic95_yll_sp_yll_sp, here("results", "HIA", "IC95_yll_18_2050.xlsx"))
+ggsave(here("results", "yll_18_2050.pdf"), plot = graph_yll_sp)
 
 # LE for a specific age and year
-export(summary_le_sp, here("results", "FADNES_2022_repro", "CORRECTION", "HIA", "LE_CHINA_W_80.xlsx"))
-ggsave(here("results", "FADNES_2022_repro", "CORRECTION", "HIA", "LE_EU_M_20.pdf"), plot = graph_le_sp)
+export(ic95_le_sp, here("results", "HIA", "IC95_le_18_2050.xlsx"))
+ggsave(here("results", "HIA", "LE_18_2050.pdf"), plot = graph_le_sp)
 
 # One figure with graphs of prevented deaths, YLL, LE and avoided costs
-ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "HIA", "HIA_dates_2.pdf"), plot = common_graph)
+ggsave(here("results","HIA", "HIA_dates.pdf"), plot = common_graph)

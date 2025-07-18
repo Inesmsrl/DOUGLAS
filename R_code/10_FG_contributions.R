@@ -9,8 +9,7 @@ pacman::p_load(
     tidyr, # Data manipulation
     tidyverse, # Data management, ggplot included
     flextable, # Creation of tables
-    scales, # Formatting of numbers, notably for percentages
-    forestploter # Forest plot creation
+    scales # Formatting of numbers, notably for percentages
 )
 
 ################################################################################################################################
@@ -18,13 +17,13 @@ pacman::p_load(
 ################################################################################################################################
 
 # RR of each food group for each year and scenarioe, considering the time to full effect
-rr_evo_food_combined <- import(here("results", "6_actuel_Fadnes2024", "RR", "rr_evo_fg.csv"))
+rr_evo_food_combined <- import(here("results", "RR", "rr_evo_fg.csv"))
 
 # Variations of food intakes
-diets_var <- import(here("results", "diets", "diets_rr_var.csv"))
+diets_var <- import(here("results", "diets", "diets_var.csv"))
 
 # Total deaths for each year and scenario
-simulations_summary_total_deaths <- import(here("results", "1_Main_analysis_newDRF", "HIA", "IC95_tot_deaths.xlsx"))
+ic95_total_deaths <- import(here("results", "HIA", "IC95_tot_deaths.xlsx"))
 
 ################################################################################################################################
 #                                             3. Parameters                                                                    #
@@ -49,7 +48,7 @@ rr_fg_relative <- rr_fg_relative %>%
   ))
 
 # Mean and 95% confidence interval of the relative RR for each food group and scenario
-simulations_summary_rr_fg_relative <- rr_fg_relative %>%
+ic95_rr_fg_relative <- rr_fg_relative %>%
   group_by(scenario, year_n, food_group) %>%
   summarise(
     mean_rr_fg = mean(rr_fg_relative, na.rm = TRUE),
@@ -63,7 +62,7 @@ simulations_summary_rr_fg_relative <- rr_fg_relative %>%
 ################################################################################################################################
 
 # Calculation of the contribution to the result of the variation in consumption of each food group compared to the baseline
-contrib <- simulations_summary_rr_fg_relative %>%
+contrib <- ic95_rr_fg_relative %>%
   mutate(
     delta = -(1 - mean_rr_fg) * 100,
     delta_low = -(1 - lower_ci) * 100,
@@ -73,60 +72,7 @@ contrib <- simulations_summary_rr_fg_relative %>%
   rename("year" = "year_n")
 
 ################################################################################################################################
-#                                             6. Forest plots                                                                  #
-################################################################################################################################
-
-# Forestplot function
-forest_plot_contrib <- function(scen) {
-  contrib_scen <- contrib %>%
-    filter(
-      scenario == scen,
-      year == 2050
-    ) %>%
-    mutate(food_group = labels_food_groups[food_group])
-
-  diets_var_scen <- diets_var %>%
-    filter(
-      scenario == scen,
-      year == 2050
-    ) %>%
-    mutate(
-      food_group = labels_food_groups[food_group],
-      food_group = factor(food_group, levels = labels_food_groups[order_food_groups]),
-      var = round(var, 1)
-    )
-
-  forest(
-    data = setNames(
-      data.frame(diets_var_scen$food_group, diets_var_scen$var, ""),
-      c("Food Group", "Intake variation (%)", "                                              ")
-    ),
-    est = contrib_scen$delta,
-    lower = contrib_scen$delta_low,
-    upper = contrib_scen$delta_upp,
-    ci_column = 3,
-    ref_line = 0,
-    xlim = c(-8, 5),
-    xlab = "Change in mortality (%)",
-    title = paste("2050 - ", labels_scenario[scen]),
-    footnote = "SSB = Sugar-sweetened beverages",
-    theme = forest_theme(
-      core = list(fg_params = list(hjust = 0.5, x = 0.5)),
-      colhead = list(fg_params = list(hjust = 0.5, x = 0.5)),
-      #footnote_gp = gpar(cex = 0.6, fontface = "italic", col = "azure4"),
-      ci_pch = 20,
-      ci_alpha = 0.8
-    )
-  )
-}
-
-forest_sc1 <- forest_plot_contrib("sc1")
-forest_sc2 <- forest_plot_contrib("sc2")
-forest_sc3 <- forest_plot_contrib("sc3")
-forest_sc4 <- forest_plot_contrib("sc4")
-
-################################################################################################################################
-#                                             7. Heat maps                                                                     #
+#                                             6. Heat maps                                                                     #
 ################################################################################################################################
 
 # Order of the food groups
@@ -147,8 +93,8 @@ hm_var <- ggplot(data = diets_var %>%
                        midpoint = 0,
                        limits = c(min(sign(diets_var$var) * log1p(abs(diets_var$var)), na.rm = TRUE), 
                                   max(sign(diets_var$var) * log1p(abs(diets_var$var)), na.rm = TRUE)),
-                       breaks = sign(c(-50, -20, -10, 0, 10, 20, 50, 100, 200, 600)) * log1p(abs(c(-50, -20, -10, 0, 10, 20, 50, 100, 200, 600))),  # Breaks adaptés
-                       labels = c("-50%", "-20%", "-10%", "0%", "10%", "20%", "50%", "100%", "200%", "600%")) +  # Étiquettes adaptées) +
+                       breaks = sign(c(-50, -10, 0, 20, 100, 500)) * log1p(abs(c(-50, -10, 0, 20, 100, 500))),  # Breaks adaptés
+                       labels = c("- 50%", "- 10%", "0%", "20%", "100%", "500%")) +  # Étiquettes adaptées) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
   plot.title = element_text(size = rel(2), face = "bold", hjust = 0.5),
@@ -192,14 +138,14 @@ hm_contrib <- ggplot(data = contrib %>%
 plot(hm_contrib)
 
 ################################################################################################################################
-#                                             8. Tables                                                                        #
+#                                             7. Tables                                                                        #
 ################################################################################################################################
 
 ## PLEASE RUN AGAIN PART 5 SO THAT THE ORDER OF FOOD GROUPS IS RESET ##
 
 # Table of the variations and contributions of food intakes to the results for the year 2050
 summary_contrib <- contrib %>%
-  inner_join(simulations_summary_total_deaths, by = c("scenario", "year")) %>%
+  inner_join(ic95_total_deaths, by = c("scenario", "year")) %>%
   inner_join(diets_var, by = c("scenario", "year", "food_group")) %>%  
   group_by("scenario", "year", "food_group") %>%
   mutate(
@@ -212,9 +158,9 @@ summary_contrib <- contrib %>%
   mutate(
     quantity = round(quantity),
     deaths = round(deaths),
-    food_group = labels_food_groups[food_group],
-    food_group = factor(food_group, levels = labels_food_groups[order_food_groups]))
-
+    food_group = factor(food_group,
+                             levels = order_food_groups,
+                             labels = labels_food_groups[order_food_groups]))
 
 contrib_2050 <- summary_contrib %>%
   filter(
@@ -266,27 +212,21 @@ contrib_2050 <- summary_contrib %>%
   merge_at(i = 1, j = 14:17, part = "header") %>%
   align(align = "center", j = c(2:17), part = "all") %>% # Centrer le contenu des cellules sauf Food group
   bold(i = 1, part = "header") %>% # Mettre en gras la 1ère ligne d'en-tête
-  bg(part = "all", bg = "white") %>%
-  bg(., i = ~ food_group %in% c("Whole grains"), j = c("food_group", "delta_sc3", "delta_sc4"), part = "body", bg = "#b95151") %>%
-  bg(., i = ~ food_group %in% c("Fruits", "Nuts", "Fish", "Eggs"), j = c("food_group", "delta_sc3", "delta_sc4"), part = "body", bg =  "#f38585")
+  bg(part = "all", bg = "white")
+  #bg(., i = ~ food_group %in% c("Whole grains"), j = c("food_group", "delta_sc3", "delta_sc4"), part = "body", bg = "#b95151") %>%
+  #bg(., i = ~ food_group %in% c("Fruits", "Nuts", "Fish", "Eggs"), j = c("food_group", "delta_sc3", "delta_sc4"), part = "body", bg =  "#f38585")
 
 plot(contrib_2050)
 ################################################################################################################################
-#                                             9. Data exportation                                                              #
+#                                             8. Data exportation                                                              #
 ################################################################################################################################
 
 # Change in mortality due to the variation in food intake to the baseline
-export(contrib, here("results", "5_actuel_meat2", "contributions", "FG_contributions.xlsx"))
-
-# Forest plots
-ggsave(here("results", "1_Main_analysis_newDRF", "CORRECTION", "contributions", "forest_sc1.pdf"), forest_sc1)
-ggsave(here("results", "2_WG_S3_S4", "contributions", "forest_sc2.pdf"), forest_sc2)
-ggsave(here("results", "2_WG_S3_S4", "contributions", "forest_sc3.pdf"), forest_sc3)
-ggsave(here("results", "2_WG_S3_S4", "contributions", "forest_sc4.pdf"), forest_sc4)
+export(contrib, here("results", "contributions", "FG_contributions.xlsx"))
 
 # Table of the variations and contributions of food intakes to the results for the year 2050
-save_as_image(contrib_2050, here("results", "5_actuel_meat2", "contributions", "contributions_2050.png"))
+save_as_image(contrib_2050, here("results", "contributions", "contributions_2050.png"))
 
 # Heat maps of variation in food intake and change in mortality in 2050
-ggsave(here("results", "5_actuel_meat2", "contributions", "hm_contrib.pdf"), hm_contrib)
-ggsave(here("results", "5_actuel_meat2", "contributions", "hm_var.pdf"), hm_var)
+ggsave(here("results", "contributions", "hm_contrib.pdf"), hm_contrib)
+ggsave(here("results", "contributions", "hm_var.pdf"), hm_var)
