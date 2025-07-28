@@ -3,105 +3,146 @@
 ################################################################################################################################
 
 pacman::p_load(
-  rio,                 # Importation de fichiers
-  here,                # Localisation des fichiers dans le dossier du projet
-  dplyr,               # Manipulation des données
+  rio,
+  here,
+  dplyr,
   tidyr,
   tidyverse,
-  gtsummary
+  flextable,
+  scales
 )
 
 ################################################################################################################################
-#                                             2. Importation des données                                                       #
+#                                             2. Data importation                                                              #
 ################################################################################################################################
 
-sensi_data <- import(here("data", "sensitivity_analysis_2.xlsx"))
+sensi_data <- import(here("sensi_analysis", "Sensitivity_Analysis.xlsx"))
 
 ################################################################################################################################
-#                                             3. Charte graphique                                                              #
+#                                             3. Parameters                                                                    #
 ################################################################################################################################
 
-col_scenario <- c(
-  "actuel" = "azure4",
-  "sc0" = "palevioletred3",
-  "sc1" = "#699cc2",
-  "sc2" = "#974175",
-  "sc3" = "#50cd9f",
-  "sc4" = "#cb6c2d",
-  "sc5" = "royalblue4"
-)
-
-labels_scenario <- c("actuel" = "BAU",
-                     "sc1" = "Scenario 1",
-                     "sc2" = "Scenario 2",
-                     "sc3" = "Scenario 3",
-                     "sc4" = "Scenario 4")
+source(here("R_code", "0_parameters.R"))
 
 labels_analysis <- c("main" = "Main Analysis",
-                     "sensi1" = "Immediate time to full effect",
-                     "sensi2" = "Linear 20-year time to full effect",
-                     "sensi3" = "Sigmoidal 10-year time to full effect",
-                     "sensi4" = "No RR effect reduction",
-                     "sensi5" = "50% RR effect reduction",
-                     "sensi6" = "Immediate diet implementation",
-                     "sensi7" = "Linear diet implementation",
-                     "sensi8" = "Sigmoidal diet implementation")
+                     "ttfe_0" = "Immediate time to full effect",
+                     "ttfe_20" = "20-year time to full effect",
+                     "m_1" = "No reduction in RR effect",
+                     "m_05" = "50% reduction in RR effect",
+                     "diet_0" = "Immediate diet implementation",
+                     "diet_lin" = "Linear diet implementation")
 
-order_scenarios <- c("sc1", "sc2", "sc3", "sc4")
-
-sensi_data$scenario <- factor(sensi_data$scenario, levels = order_scenarios)
+order_scenarios  <- c("sc1", "sc2", "sc3", "sc4")
 
 ################################################################################################################################
-#                                             4. Représentation graphique                                                      #
+#                                             4. Data preparation                                                              #
 ################################################################################################################################
 
-graph_sensi <- ggplot(sensi_data %>% 
-         filter(scenario != "actuel"), 
-       aes(x = avoided_deaths,
-                       y = scenario,
-                       color = factor(scenario)))+
-  geom_point(position = position_dodge(width = 0.5), size = 2.5, shape = 18)+
-  geom_segment(aes(x = ic_lower,
-               xend = ic_upper,
-               y = scenario,
-               yend = scenario),
-               position = position_dodge(width = 0.5),
-               linewidth = 0.3)+
-  facet_grid(rows = vars(analysis),
-             cols = vars(year),
-             labeller = labeller(analysis = labels_analysis)
-             )+
+# Identify scondary analyses (other than main_analysis)
+other_analyses <- sensi_data %>%
+  filter(analysis != "main") %>%
+  pull(analysis) %>%
+  unique()
+
+# Duplicate the main analysis date in each facet
+main_overlay <- sensi_data %>%
+  filter(analysis == "main", scenario != "actuel") %>%
+  rename(analysis_orig = analysis) %>%
+  tidyr::crossing(analysis = other_analyses) %>%  # dupliquer pour chaque analysis
+  mutate(group = "main_overlay")
+
+# Prepare the secondary analyses data
+main_data <- sensi_data %>%
+  filter(analysis != "main", scenario != "actuel") %>%
+  mutate(group = "normal")
+
+# Merge data for plotting
+plot_data <- bind_rows(main_data, main_overlay)%>% 
+  mutate(scenario = forcats::fct_rev(scenario))
+
+################################################################################################################################
+#                                             5. Graphical representation                                                      #
+################################################################################################################################
+
+graph_sensi <- ggplot(plot_data,
+       aes(x = nprev_mean,
+           y = scenario,
+           color = factor(scenario),
+           alpha = group)) +
+  geom_point(size = 2.5, shape = 18) +
+  geom_segment(aes(x = nprev_lci,
+                   xend = nprev_uci,
+                   y = scenario,
+                   yend = scenario),
+                   linewidth = 0.3) +
+  facet_grid(rows = vars(analysis), cols = vars(year),
+             labeller = labeller(analysis = labels_analysis)) +
   scale_color_manual(values = col_scenario,
-                     labels = labels_scenario)+
+                     labels = labels_scenario) +
+  scale_alpha_manual(values = c(normal = 1, main_overlay = 0.35)) +  # Level of transparency for main overlay
   labs(title = "",
        y = NULL,
-       x = "Number of deaths prevented",
-       color = "Scenario")+
+       x = "Prevented deaths",
+       color = "Scenario") +
   theme(strip.text.y = element_text(angle = 0, hjust = 0, size = 9),
         axis.text.x = element_text(angle = 30, hjust = 1, size = 7),
         axis.text.y = element_blank(),
         axis.ticks.y = element_blank(),
         legend.position = "bottom",
-        panel.grid.minor = element_blank())+
-  scale_x_continuous(limits = c(0, max(sensi_data$ic_upper, na.rm = TRUE)),
-                     breaks = c(50000, 100000, 150000),
-                     labels = scales::label_comma())+
-  geom_vline(xintercept = 100000, linetype = "dashed", color = "black", linewidth = 0.3)+
-  guides(color = guide_legend(title = NULL))
+        panel.grid.minor = element_blank()) +
+  scale_x_continuous(limits = c(0, max(sensi_data$nprev_uci, na.rm = TRUE)),
+                     breaks = c(50000, 100000, 150000, 200000, 250000),
+                     labels = scales::label_comma()) +
+  geom_vline(xintercept = 150000, linetype = "dashed", color = "black", linewidth = 0.3) +
+  guides(color = guide_legend(title = NULL),
+         alpha = "none")  # pas de légende pour alpha
+
+plot(graph_sensi)
 
 ################################################################################################################################
 #                                             5. Tableau                                                      #
 ################################################################################################################################
 
 sensi_data_table <- sensi_data %>%
-  filter(scenario != "actuel") %>%
+  group_by(year, scenario) %>%
+  mutate(shift = percent((nprev_mean - nprev_mean[analysis == "main"]) / nprev_mean[analysis == "main"], 0.1),
+         analysis = factor(analysis,
+                           levels = c("main", "ttfe_0", "ttfe_20", "m_1", "m_05", "diet_0", "diet_lin"),
+                           labels = labels_analysis),
+         year = as.character(year)) %>%
+  ungroup() %>% 
+  filter(scenario != "actuel",
+         analysis != "Main Analysis") %>%
   select(analysis, year, scenario, shift) %>%
-  arrange(analysis, year, scenario) %>% 
-  mutate(shift = shift*100)
+  arrange(analysis, year, scenario)
 
+sensi_data_table <- sensi_data_table %>%
+  pivot_wider(names_from = scenario, values_from = shift) %>%
+  qflextable() %>% # Create the table with qflextable
+  set_header_labels(
+    "analysis" = "Analysis", 
+    "year" = "Year",
+    "sc1" = "Scenario 1",
+    "sc2" = "Scenario 2",
+    "sc3" = "Scenario 3",
+    "sc4" = "Scenario 4") %>%
+  width(j = 2, width = 1) %>% 
+  width(j=c(3,4,5, 6), width = 1.5) %>% 
+  vline(part = "all", j = 1) %>% # Vertical line after the 2nd column
+  vline(part = "all", j = 2) %>%
+  vline(part = "all", j = 3) %>% 
+  vline(part = "all", j = 4) %>%
+  vline(part = "all", j = 5) %>%
+  align(align = "center", j = c(2:6), part = "all") %>% # Center the text in all columns except Analysis
+  bold(i = 1, part = "header") %>% # Bold the first row of the header
+  bg(part = "all", bg = "white") # Set the background color of the table to white
+
+plot(sensi_data_table)
 
 ################################################################################################################################
 #                                             6. Exportation des données                                                      #
 ################################################################################################################################
 
-ggsave(here("results", "sensitivity_analysis.pdf"), graph_sensi)
+ggsave(here("sensi_analysis", "sensitivity_analysis.pdf"), graph_sensi)
+
+save_as_image(sensi_data_table, here("sensi_analysis", "sensitivity_analysis_table.png"))
