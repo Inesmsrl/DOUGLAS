@@ -68,7 +68,8 @@ ic95_deaths <- deaths_data %>%
 
 av_deaths <- deaths_data %>%
   group_by(scenario, year, age, simulation_id) %>%
-  summarise(prevented_deaths = sum(avoided_deaths, na.rm = TRUE))
+  summarise(prevented_deaths = sum(avoided_deaths, na.rm = TRUE))%>% 
+  ungroup()
 
 # Mean and 95% CI of prevented deaths by age
 ic95_av_deaths <- av_deaths %>%
@@ -226,7 +227,7 @@ export(ic95_tot_deaths, here("results", "HIA", "IC95_tot_deaths.xlsx"))
 
 # Total prevented deaths by year
 export(tot_av_deaths, here("results", "HIA", "tot_deaths_prev.csv"))
-export(ic95_tot_av_deaths, here("results", "HIA", "IC95_tot_deaths_prev.csv"))
+export(ic95_tot_av_deaths, here("results", "HIA", "IC95_tot_deaths_prev.xlsx"))
 
 ggsave(here("results", "HIA", "tot_deaths_prev.pdf"), graph_tot_av_deaths)
 ggsave(here("results", "HIA", "tot_deaths_prev_dates.pdf"), graph_tot_av_deaths_dates)

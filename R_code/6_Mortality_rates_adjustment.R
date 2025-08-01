@@ -22,7 +22,7 @@ pacman::p_load(
 ################################################################################################################################
 
 # Mortality rates (INSEE)
-MR <- import(here("data_clean", "MR_table.xlsx"))
+MR <- import(here("data_clean", "MR_table.csv"))
 
 # Projected population size by age and year (INSEE)
 population <- import(here("data_clean", "population_clean.xlsx"))
@@ -43,10 +43,10 @@ source(here("R_code", "0_parameters.R"))
 # Select the MR between the model time limits and above the age limit
 # Pivot the dataframe in long format
 MR_select <- MR %>%
-  select(age, !!sym(as.character(year_i - 2 * ttfe_time)):!!sym(as.character(year_f + 2 * ttfe_time))) %>%
+  select(age, !!sym(as.character(year_i - 20)):!!sym(as.character(year_f + 20))) %>%
   filter(age >= age_limit) %>%
   pivot_longer(
-    cols = !!sym(as.character(year_i - 2 * ttfe_time)):!!sym(as.character(year_f + 2 * ttfe_time)),
+    cols = !!sym(as.character(year_i - 20)):!!sym(as.character(year_f + 20)),
     names_to = "year",
     values_to = "MR"
   ) %>%
@@ -56,10 +56,10 @@ MR_select <- MR %>%
 # Select the population size between the model time limits and above the age limit
 # Pivot the dataframe in long format
 population_select <- population %>%
-  select(age, !!sym(as.character(year_i - 20)):!!sym(as.character(year_f + 2 * ttfe_time))) %>%
+  select(age, !!sym(as.character(year_i - 20)):!!sym(as.character(year_f + 20))) %>%
   filter(age >= age_limit) %>%
   pivot_longer(
-    cols = !!sym(as.character(year_i - 20)):!!sym(as.character(year_f + 2 * ttfe_time)),
+    cols = !!sym(as.character(year_i - 20)):!!sym(as.character(year_f + 20)),
     names_to = "year",
     values_to = "population"
   ) %>%

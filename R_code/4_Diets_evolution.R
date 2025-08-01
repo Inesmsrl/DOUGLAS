@@ -69,7 +69,7 @@ diets_evo <- diets %>%
         names_to = "scenario",
         values_to = "q_f"
     ) %>%
-    crossing(year_n = (year_i - 2 * ttfe_time):(year_f + 2 * ttfe_time)) %>%
+    crossing(year_n = (year_i - 20):(year_f + 20)) %>%
     mutate(quantity = case_when(
         implementation == "immediate" & year_n < year_i ~ q_i,
         implementation == "immediate" & year_n >= year_i ~ q_f,

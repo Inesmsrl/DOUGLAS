@@ -100,12 +100,18 @@ graph_sensi <- ggplot(plot_data,
 plot(graph_sensi)
 
 ################################################################################################################################
-#                                             5. Tableau                                                      #
+#                                             5. Tables                                                                        #
 ################################################################################################################################
 
+# % of change to the main analysis
 sensi_data_table <- sensi_data %>%
   group_by(year, scenario) %>%
   mutate(shift = percent((nprev_mean - nprev_mean[analysis == "main"]) / nprev_mean[analysis == "main"], 0.1),
+         shift_lci = (nprev_lci - nprev_lci[analysis == "main"]) / nprev_lci[analysis == "main"] * 100,
+         shift_uci = (nprev_uci - nprev_uci[analysis == "main"]) / nprev_uci[analysis == "main"] * 100,
+         shift_lci = round(shift_lci, 1),
+         shift_uci = round(shift_uci, 1),
+         shift_label = paste0(shift, " [", shift_lci, " ; ", shift_uci, "] "),
          analysis = factor(analysis,
                            levels = c("main", "ttfe_0", "ttfe_20", "m_1", "m_05", "diet_0", "diet_lin"),
                            labels = labels_analysis),
@@ -113,11 +119,11 @@ sensi_data_table <- sensi_data %>%
   ungroup() %>% 
   filter(scenario != "actuel",
          analysis != "Main Analysis") %>%
-  select(analysis, year, scenario, shift) %>%
+  select(analysis, year, scenario, shift_label) %>%
   arrange(analysis, year, scenario)
 
 sensi_data_table <- sensi_data_table %>%
-  pivot_wider(names_from = scenario, values_from = shift) %>%
+  pivot_wider(names_from = scenario, values_from = shift_label) %>%
   qflextable() %>% # Create the table with qflextable
   set_header_labels(
     "analysis" = "Analysis", 
@@ -127,17 +133,57 @@ sensi_data_table <- sensi_data_table %>%
     "sc3" = "Scenario 3",
     "sc4" = "Scenario 4") %>%
   width(j = 2, width = 1) %>% 
-  width(j=c(3,4,5, 6), width = 1.5) %>% 
-  vline(part = "all", j = 1) %>% # Vertical line after the 2nd column
-  vline(part = "all", j = 2) %>%
-  vline(part = "all", j = 3) %>% 
-  vline(part = "all", j = 4) %>%
-  vline(part = "all", j = 5) %>%
-  align(align = "center", j = c(2:6), part = "all") %>% # Center the text in all columns except Analysis
+  width(j=c(3, 4, 5, 6), width = 2) %>% 
+  vline(part = "all", j = c(1, 2, 3, 4, 5)) %>% # Vertical lines
+  hline(part = "body", i = c(3, 6, 9, 12, 15)) %>% # Horizontal lines
+  merge_at(i = 1:3, j = 1, part = "body") %>% # Merge cells in the first column
+  merge_at(i = 4:6, j = 1, part = "body") %>%
+  merge_at(i = 7:9, j = 1, part = "body") %>% 
+  merge_at(i = 10:12, j = 1, part = "body") %>%
+  merge_at(i = 13:15, j = 1, part = "body") %>%
+  merge_at(i = 16:18, j = 1, part = "body") %>%
+  align(align = "center", j = c(1:6), part = "all") %>% # Center the text in all columns except Analysis
   bold(i = 1, part = "header") %>% # Bold the first row of the header
   bg(part = "all", bg = "white") # Set the background color of the table to white
 
 plot(sensi_data_table)
+
+# Number of premature deaths prevented deaths
+sensi_data_table2 <- sensi_data %>%
+  filter(scenario != "actuel") %>%
+  mutate(nprev_mean = round(nprev_mean, 0),
+         nprev_lci = round(nprev_lci, 0),
+         nprev_uci = round(nprev_uci, 0),
+         nprev_label = paste0(nprev_mean, " [", nprev_lci, " ; ", nprev_uci, "] "),
+         analysis = factor(analysis,
+                           levels = c("main", "ttfe_0", "ttfe_20", "m_1", "m_05", "diet_0", "diet_lin"),
+                           labels = labels_analysis),
+         year = as.character(year)) %>%
+  select(analysis, year, scenario, nprev_label) %>%
+  pivot_wider(names_from = scenario, values_from = nprev_label) %>%
+  qflextable() %>% # Create the table with qflextable
+  set_header_labels(
+    "analysis" = "Analysis", 
+    "year" = "Year",
+    "sc1" = "Scenario 1",
+    "sc2" = "Scenario 2",
+    "sc3" = "Scenario 3",
+    "sc4" = "Scenario 4") %>%
+  width(j = 2, width = 1) %>% 
+  width(j=c(3, 4, 5, 6), width = 2) %>% 
+  vline(part = "all", j = c(1, 2, 3, 4, 5)) %>% # Vertical lines
+  hline(part = "body", i = c(3, 6, 9, 12, 15)) %>% # Horizontal lines
+  merge_at(i = 1:3, j = 1, part = "body") %>% # Merge cells in the first column
+  merge_at(i = 4:6, j = 1, part = "body") %>%
+  merge_at(i = 7:9, j = 1, part = "body") %>% 
+  merge_at(i = 10:12, j = 1, part = "body") %>%
+  merge_at(i = 13:15, j = 1, part = "body") %>%
+  merge_at(i = 16:18, j = 1, part = "body") %>%
+  align(align = "center", j = c(1:6), part = "all") %>% # Center the text in all columns except Analysis
+  bold(i = 1, part = "header") %>% # Bold the first row of the header
+  bg(part = "all", bg = "white") # Set the background color of the table to white
+
+plot(sensi_data_table2)
 
 ################################################################################################################################
 #                                             6. Exportation des données                                                      #
@@ -146,3 +192,4 @@ plot(sensi_data_table)
 ggsave(here("sensi_analysis", "sensitivity_analysis.pdf"), graph_sensi)
 
 save_as_image(sensi_data_table, here("sensi_analysis", "sensitivity_analysis_table.png"))
+save_as_image(sensi_data_table2, here("sensi_analysis", "sensitivity_analysis_table2.png"))

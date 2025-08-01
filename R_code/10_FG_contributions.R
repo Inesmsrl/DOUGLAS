@@ -88,7 +88,7 @@ hm_var <- ggplot(data = diets_var %>%
             linetype = 1) +
   coord_fixed() +
   scale_fill_gradient2(low = "#002414", 
-                       high = "#8b0066", 
+                       high = "#ea6a2fff", 
                        mid = "white", 
                        midpoint = 0,
                        limits = c(min(sign(diets_var$var) * log1p(abs(diets_var$var)), na.rm = TRUE), 

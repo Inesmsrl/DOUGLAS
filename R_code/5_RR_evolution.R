@@ -110,7 +110,7 @@ ttfe <- ttfe %>%
 
 diets_evo <- diets_evo %>%
   rowwise() %>%
-  mutate(year_n = list(seq(from = (year_i - 2 * ttfe_time), to = (year_f + 2 * ttfe_time)))) %>%
+  mutate(year_n = list(seq(from = (year_i - 20), to = (year_f + 20)))) %>%
   unnest(year_n) %>%
   mutate(rr_n = case_when(
     year_n < year ~ NA_real_,
@@ -183,7 +183,7 @@ rr_evo_diets <- rr_evo_diets %>%
 # While the implementation of the diets has not started, the relative RR is equal to 1
 rr_evo_diets <- rr_evo_diets %>%
   mutate(relative_rr = case_when(
-    year == year_i - 2 * ttfe_time ~ 1,
+    year == year_i - 20 ~ 1,
     TRUE ~ relative_rr
   ))
 

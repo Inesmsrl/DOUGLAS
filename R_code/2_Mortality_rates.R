@@ -37,4 +37,4 @@ mortality_rates <- population %>%
 ################################################################################################################################
 
 # Mortality rates projection by age and year 
-export(mortality_rates, here("data_clean", "MR_table.xlsx"))
+export(mortality_rates, here("data_clean", "MR_table.csv"))

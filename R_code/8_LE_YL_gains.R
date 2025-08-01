@@ -245,34 +245,7 @@ graph_yll_dates <- ggplot(ic95_yll %>%
 plot(graph_yll_dates)
 
 ################################################################################################################################
-#                                             9. Graph : Health benefits at specific dates                                     #
-################################################################################################################################
-
-# Run the appropriate code to get the prevented deaths and avoided costs graphs in memory
-source(here("R_code", "7_prevented_deaths.R"))
-source(here("R_code", "9_Costs_saved.R"))
-
-# List of the graphs you want to combine in one single figure
-list_graph <- list(graph_tot_av_deaths_dates, graph_yll_dates, graph_le_dates, graph_yll_costs_dates)
-
-# Theme for the common graph
-common_theme <- theme(
-  axis.title = element_text(size = 7, face = "bold"),
-  strip.text = element_text(size = 6),
-  axis.text.y = element_text(size = 6),
-  legend.position = "none"
-)
-
-# Apply the common theme to each graph
-list_graph <- lapply(list_graph, function(p) p + common_theme)
-
-# Combine the graphs into one single figure
-common_graph <- reduce(list_graph, `+`) + plot_layout(ncol = 2)
-
-print(common_graph)
-
-################################################################################################################################
-#                                             10. YLG for a specific age and year                                              #
+#                                             9. YLG for a specific age and year                                              #
 ################################################################################################################################
 
 # Select the data for a specific age and year
@@ -322,7 +295,7 @@ graph_yll_sp <- ggplot(ic95_yll_sp %>%
 
 plot(graph_yll_sp)
 ################################################################################################################################
-#                                             11. LEG for a specific age and year                                              #
+#                                             10. LEG for a specific age and year                                              #
 ################################################################################################################################
 
 # Select the data for a specific age and year
@@ -373,6 +346,34 @@ graph_le_sp <- ggplot(ic95_le_sp %>%
   guides(fill = guide_legend(title = NULL))
 
 plot(graph_le_sp)
+
+################################################################################################################################
+#                                             11. Graph : Health benefits at specific dates                                     #
+################################################################################################################################
+
+# Run the appropriate code to get the prevented deaths and avoided costs graphs in memory
+source(here("R_code", "7_prevented_deaths.R"))
+source(here("R_code", "9_Costs_saved.R"))
+
+# List of the graphs you want to combine in one single figure
+list_graph <- list(graph_tot_av_deaths_dates, graph_yll_dates, graph_le_dates, graph_yll_costs_dates)
+
+# Theme for the common graph
+common_theme <- theme(
+  axis.title = element_text(size = 7, face = "bold"),
+  strip.text = element_text(size = 6),
+  axis.text.y = element_text(size = 6),
+  legend.position = "none"
+)
+
+# Apply the common theme to each graph
+list_graph <- lapply(list_graph, function(p) p + common_theme)
+
+# Combine the graphs into one single figure
+common_graph <- reduce(list_graph, `+`) + plot_layout(ncol = 2)
+
+print(common_graph)
+
 ################################################################################################################################
 #                                             12. Data exportation                                                             #
 ################################################################################################################################
@@ -392,8 +393,8 @@ ggsave(here("results", "HIA", "yll_prevented.pdf"), plot = graph_yll)
 ggsave(here("results", "HIA", "yll_prevented_dates.pdf"), plot = graph_yll_dates)
 
 # YLL for a specific age and year 
-export(ic95_yll_sp_yll_sp, here("results", "HIA", "IC95_yll_18_2050.xlsx"))
-ggsave(here("results", "yll_18_2050.pdf"), plot = graph_yll_sp)
+export(ic95_yll_sp, here("results", "HIA", "IC95_yll_18_2050.xlsx"))
+ggsave(here("results", "HIA", "yll_18_2050.pdf"), plot = graph_yll_sp)
 
 # LE for a specific age and year
 export(ic95_le_sp, here("results", "HIA", "IC95_le_18_2050.xlsx"))
